@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MUSADAD.COM - Kalkulator Undangan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Library untuk membaca dan menulis file Excel (.xlsx) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .modal-content { animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .ai-loader {
+            border-color: rgba(255, 255, 255, 0.2);
+            border-top-color: #fff;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-lg border-b-4 border-blue-600">
+        <div class="container mx-auto px-6 py-4">
+            <h1 class="text-3xl font-bold text-blue-800 text-center">MUSADAD.COM</h1>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-5 gap-8">
+
+        <!-- Kolom Kalkulator -->
+        <div class="lg:col-span-3">
+            <div class="bg-white rounded-xl shadow-2xl w-full">
+                <div class="bg-blue-600 text-white p-4 rounded-t-xl">
+                    <h3 class="text-xl font-semibold text-center">💌 Kalkulator Harga Undangan Belangko</h3>
+                </div>
+
+                <div class="p-6 space-y-6">
+                    <!-- Langkah 1: Pilih Belangko -->
+                    <div>
+                        <label for="belangko_kode_input" class="block text-sm font-semibold text-gray-700 mb-2">1. Pilih Kode Belangko</label>
+                        <div class="flex items-center">
+                            <input type="text" id="belangko_kode_input" list="belangko_list" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Ketik kode belangko...">
+                            <span id="belangko_price_display" class="ml-3 text-sm font-semibold text-blue-700 whitespace-nowrap"></span>
+                        </div>
+                        <datalist id="belangko_list"></datalist>
+                    </div>
+
+                    <!-- Langkah 2: Pilih Plastik -->
+                    <div>
+                        <label for="plastik_nama_input" class="block text-sm font-semibold text-gray-700 mb-2">2. Pilih Ukuran Plastik</label>
+                         <div class="flex items-center">
+                            <input type="text" id="plastik_nama_input" list="plastik_list" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Ketik nama ukuran plastik...">
+                            <span id="plastik_price_display" class="ml-3 text-sm font-semibold text-blue-700 whitespace-nowrap"></span>
+                        </div>
+                        <datalist id="plastik_list"></datalist>
+                    </div>
+
+                    <!-- Langkah 3: Detail Cetak -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="calc_jumlah" class="block text-sm font-semibold text-gray-700 mb-2">3. Jumlah (pcs)</label>
+                            <input type="number" id="calc_jumlah" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="0" min="1">
+                        </div>
+                        <div>
+                            <label for="calc_oc" class="block text-sm font-semibold text-gray-700 mb-2">4. Biaya Cetak (OC)</label>
+                            <select id="calc_oc" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white">
+                                <option value="0">-- Tanpa OC --</option>
+                                <option value="50">OC Mesin Toko (Rp 50)</option>
+                                <option value="120">OC Printer (Rp 120)</option>
+                                <option value="200">OC Warna (Rp 200)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Hasil Perhitungan -->
+                    <div id="hasilKalkulasi" class="space-y-4 pt-4 border-t">
+                        <h4 class="text-lg font-semibold text-gray-800 text-center">Hasil Perhitungan</h4>
+
+                        <div class="bg-gray-50 p-4 rounded-lg border">
+                            <h5 class="font-semibold text-gray-700 mb-2">💰 Rincian Harga Modal (per 1 pcs)</h5>
+                            <div class="space-y-1 text-sm">
+                                <div class="flex justify-between"><span>Harga Belangko:</span> <span id="detail_harga_belangko" class="font-medium">Rp 0</span></div>
+                                <div class="flex justify-between"><span>Harga Plastik:</span> <span id="detail_harga_plastik" class="font-medium">Rp 0</span></div>
+                                <div class="flex justify-between"><span>Biaya Cetak (OC):</span> <span id="detail_biaya_oc" class="font-medium">Rp 0</span></div>
+                                <hr class="my-1">
+                                <div class="flex justify-between font-semibold text-blue-600"><span>TOTAL MODAL per pcs:</span> <span id="detail_total_modal_pcs">Rp 0</span></div>
+                            </div>
+                        </div>
+
+                         <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                            <h5 class="font-semibold text-blue-800 mb-2">📊 Total Keseluruhan Modal</h5>
+                            <div id="detail_total_keseluruhan" class="text-center text-2xl font-bold text-blue-700">Rp 0</div>
+                            <p id="detail_total_note" class="text-center text-xs text-gray-500 mt-1">untuk 0 pcs undangan</p>
+                        </div>
+
+                        <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                            <h5 class="font-semibold text-green-800 mb-2">📈 Saran Harga Jual & Keuntungan</h5>
+                            <div class="text-center mb-4">
+                                <p class="text-sm">Saran Harga Jual per pcs:</p>
+                                <p id="saran_harga_jual" class="text-3xl font-bold text-green-600">Rp 0</p>
+                            </div>
+                            <div class="space-y-2">
+                                <label for="harga_tawar_input" class="block text-sm font-medium text-gray-700">Jika dijual dengan harga (per pcs):</label>
+                                <input type="number" id="harga_tawar_input" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500" placeholder="Masukkan harga jual...">
+                                <div class="mt-2 text-center">
+                                    <p class="text-sm">Total Keuntungan:</p>
+                                    <p id="total_keuntungan" class="text-2xl font-bold text-green-700">Rp 0</p>
+                                    <p id="status_keuntungan" class="text-sm font-semibold"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                 <!-- Tombol Kelola Data -->
+                <div class="p-6 border-t">
+                    <button onclick="openBelangkoManager()" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center">
+                        <span class="mr-2">⚙️</span> Kelola Data Belangko
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kolom AI Text Generator -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-xl shadow-2xl w-full sticky top-8">
+                <div class="bg-purple-600 text-white p-4 rounded-t-xl">
+                    <h3 class="text-xl font-semibold text-center">✨ Generator Teks Undangan AI</h3>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="ai_nama_pria" class="block text-xs font-medium text-gray-600">Nama Mempelai Pria</label>
+                            <input type="text" id="ai_nama_pria" class="mt-1 w-full px-2 py-1 border border-gray-300 rounded-md text-sm">
+                        </div>
+                        <div>
+                            <label for="ai_nama_wanita" class="block text-xs font-medium text-gray-600">Nama Mempelai Wanita</label>
+                            <input type="text" id="ai_nama_wanita" class="mt-1 w-full px-2 py-1 border border-gray-300 rounded-md text-sm">
+                        </div>
+                        <div>
+                            <label for="ai_ortu_pria" class="block text-xs font-medium text-gray-600">Nama Ortu Pria</label>
+                            <input type="text" id="ai_ortu_pria" class="mt-1 w-full px-2 py-1 border border-gray-300 rounded-md text-sm">
+                        </div>
+                        <div>
+                            <label for="ai_ortu_wanita" class="block text-xs font-medium text-gray-600">Nama Ortu Wanita</label>
+                            <input type="text" id="ai_ortu_wanita" class="mt-1 w-full px-2 py-1 border border-gray-300 rounded-md text-sm">
+                        </div>
+                         <div>
+                            <label for="ai_akad" class="block text-xs font-medium text-gray-600">Waktu Akad Nikah</label>
+                            <input type="text" id="ai_akad" placeholder="Cth: Minggu, 1 Jan 2025 Pukul 09:00" class="mt-1 w-full px-2 py-1 border border-gray-300 rounded-md text-sm">
+                        </div>
+                         <div>
+                            <label for="ai_resepsi" class="block text-xs font-medium text-gray-600">Waktu Resepsi</label>
+                            <input type="text" id="ai_resepsi" placeholder="Cth: Minggu, 1 Jan 2025 Pukul 11:00" class="mt-1 w-full px-2 py-1 border border-gray-300 rounded-md text-sm">
+                        </div>
+                        <div class="col-span-2">
+                            <label for="ai_lokasi" class="block text-xs font-medium text-gray-600">Lokasi Acara</label>
+                            <input type="text" id="ai_lokasi" class="mt-1 w-full px-2 py-1 border border-gray-300 rounded-md text-sm">
+                        </div>
+                        <div class="col-span-2">
+                            <label for="ai_gaya" class="block text-xs font-medium text-gray-600">Gaya/Tema Undangan</label>
+                             <select id="ai_gaya" class="mt-1 w-full px-2 py-1 border border-gray-300 rounded-md text-sm bg-white">
+                                <option>Formal & Elegan</option>
+                                <option>Islami & Religius</option>
+                                <option>Modern & Simpel</option>
+                                <option>Santai & Kasual</option>
+                                <option>Puitis & Romantis</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button id="generateTextButton" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg transition flex items-center justify-center">
+                        <span id="ai_button_text">Buat Teks Undangan</span>
+                        <div id="ai_button_loader" class="ai-loader w-5 h-5 rounded-full border-2 hidden ml-2"></div>
+                    </button>
+                    <div class="relative">
+                        <textarea id="ai_result" rows="10" class="w-full p-2 border border-gray-300 rounded-md text-sm bg-gray-50" placeholder="Hasil teks undangan akan muncul di sini..."></textarea>
+                        <button id="copyTextButton" class="absolute top-2 right-2 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs py-1 px-2 rounded">Salin Teks</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-6 mt-12">
+        <div class="container mx-auto px-6 text-center">
+            <p class="text-gray-300">© 2024 MUSADAD.COM - Sistem Manajemen Bisnis</p>
+        </div>
+    </footer>
+
+    <!-- Modal Manajemen Belangko -->
+    <div id="belangkoManagerModal" class="fixed inset-0 bg-black bg-opacity-60 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col modal-content">
+            <div class="bg-gray-800 text-white p-4 rounded-t-xl flex justify-between items-center">
+                <h3 class="text-xl font-semibold">⚙️ Manajemen Data Belangko</h3>
+                <button onclick="closeBelangkoManager()" class="text-white hover:text-gray-200 text-2xl">&times;</button>
+            </div>
+            <div class="p-4 border-b flex flex-col sm:flex-row gap-2">
+                <input type="file" id="excelFileInput" class="hidden" accept=".xlsx, .xls">
+                <button id="importButton" class="w-full sm:w-auto flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg">Impor dari Excel</button>
+                <button id="exportButton" class="w-full sm:w-auto flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg">Ekspor ke Excel</button>
+            </div>
+            <div class="p-6 border-b">
+                <form id="addBelangkoForm" class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+                    <div>
+                        <label for="new_kode_belangko" class="block text-sm font-medium text-gray-700">Kode Belangko Baru</label>
+                        <input type="text" id="new_kode_belangko" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg" required>
+                    </div>
+                    <div>
+                        <label for="new_harga_belangko" class="block text-sm font-medium text-gray-700">Harga</label>
+                        <input type="number" id="new_harga_belangko" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg" required>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg">Tambah Manual</button>
+                </form>
+            </div>
+            <div class="p-6 overflow-y-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">No</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Kode</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Harga</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="belangkoManagerTableBody" class="bg-white divide-y divide-gray-200"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="fixed bottom-5 right-5 bg-gray-900 text-white py-2 px-4 rounded-lg shadow-lg opacity-0 transition-opacity duration-300"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- DATABASE ---
+            let belangkoData = [];
+            const plastikData = [
+                {id: 1, nama_ukuran: 'UNDANGAN KECIL', harga: 5000}, {id: 2, nama_ukuran: 'UNDANGAN BESAR', harga: 10000}, {id: 3, nama_ukuran: 'PLASTIK A5', harga: 7000}
+            ];
+
+            // --- FUNGSI UTAMA ---
+            function initializeApp() {
+                updateBelangkoDatalist();
+
+                const plastikList = document.getElementById('plastik_list');
+                plastikList.innerHTML = '';
+                plastikData.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.nama_ukuran;
+                    plastikList.appendChild(option);
+                });
+
+                const inputs = ['belangko_kode_input', 'plastik_nama_input', 'calc_jumlah', 'calc_oc', 'harga_tawar_input'];
+                inputs.forEach(id => document.getElementById(id).addEventListener('input', calculateAll));
+
+                document.getElementById('addBelangkoForm').addEventListener('submit', addBelangko);
+
+                document.getElementById('importButton').addEventListener('click', () => document.getElementById('excelFileInput').click());
+                document.getElementById('excelFileInput').addEventListener('change', handleImport);
+                document.getElementById('exportButton').addEventListener('click', handleExport);
+
+                // AI Generator listeners
+                document.getElementById('generateTextButton').addEventListener('click', generateInvitationText);
+                document.getElementById('copyTextButton').addEventListener('click', copyAIText);
+
+                calculateAll();
+            }
+
+            function updateBelangkoDatalist() {
+                const belangkoList = document.getElementById('belangko_list');
+                belangkoList.innerHTML = '';
+                belangkoData.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.kode_belangko;
+                    belangkoList.appendChild(option);
+                });
+            }
+
+            function calculateAll() {
+                const belangkoInput = document.getElementById('belangko_kode_input').value;
+                const plastikInput = document.getElementById('plastik_nama_input').value;
+                const jumlah = parseInt(document.getElementById('calc_jumlah').value) || 0;
+                const biayaOC = parseInt(document.getElementById('calc_oc').value) || 0;
+                const hargaTawar = parseInt(document.getElementById('harga_tawar_input').value) || 0;
+
+                const selectedBelangko = belangkoData.find(b => b.kode_belangko === belangkoInput);
+                const hargaBelangko = selectedBelangko ? selectedBelangko.harga : 0;
+
+                const selectedPlastik = plastikData.find(p => p.nama_ukuran === plastikInput);
+                const hargaPlastikPerPack = selectedPlastik ? selectedPlastik.harga : 0;
+                const hargaPlastikPerPcs = hargaPlastikPerPack / 100;
+
+                const modalPerPcs = hargaBelangko + hargaPlastikPerPcs + biayaOC;
+                const biayaMaster = (biayaOC === 50 && jumlah > 0) ? 35000 : 0;
+                const totalModal = (modalPerPcs * jumlah) + biayaMaster;
+
+                const multiplier = jumlah >= 500 ? 2 : 3;
+                const saranHargaJual = Math.ceil((modalPerPcs * multiplier) / 500) * 500;
+
+                const totalPenjualan = hargaTawar * jumlah;
+                const totalKeuntungan = totalPenjualan - totalModal;
+
+                document.getElementById('belangko_price_display').textContent = selectedBelangko ? `= Rp ${hargaBelangko.toLocaleString('id-ID')}` : '';
+                document.getElementById('plastik_price_display').textContent = selectedPlastik ? `= Rp ${hargaPlastikPerPack.toLocaleString('id-ID')}/pack` : '';
+
+                document.getElementById('detail_harga_belangko').textContent = `Rp ${hargaBelangko.toLocaleString('id-ID')}`;
+                document.getElementById('detail_harga_plastik').textContent = `Rp ${hargaPlastikPerPcs.toLocaleString('id-ID')}`;
+                document.getElementById('detail_biaya_oc').textContent = `Rp ${biayaOC.toLocaleString('id-ID')}`;
+                document.getElementById('detail_total_modal_pcs').textContent = `Rp ${modalPerPcs.toLocaleString('id-ID')}`;
+
+                document.getElementById('detail_total_keseluruhan').textContent = `Rp ${totalModal.toLocaleString('id-ID')}`;
+                document.getElementById('detail_total_note').textContent = `untuk ${jumlah} pcs undangan ${biayaMaster > 0 ? '(termasuk master Rp 35.000)' : ''}`;
+
+                document.getElementById('saran_harga_jual').textContent = `Rp ${saranHargaJual.toLocaleString('id-ID')}`;
+                document.getElementById('total_keuntungan').textContent = `Rp ${totalKeuntungan.toLocaleString('id-ID')}`;
+
+                const statusEl = document.getElementById('status_keuntungan');
+                if (hargaTawar > 0) {
+                    if (totalKeuntungan > 0) { statusEl.textContent = '✅ UNTUNG'; statusEl.className = 'text-sm font-semibold text-green-600'; } 
+                    else if (totalKeuntungan < 0) { statusEl.textContent = '❌ RUGI'; statusEl.className = 'text-sm font-semibold text-red-600'; } 
+                    else { statusEl.textContent = '- Impas -'; statusEl.className = 'text-sm font-semibold text-gray-600'; }
+                } else { statusEl.textContent = ''; }
+            }
+
+            // --- Manajemen Belangko ---
+            const belangkoManagerModal = document.getElementById('belangkoManagerModal');
+            const addBelangkoForm = document.getElementById('addBelangkoForm');
+            const toastEl = document.getElementById('toast');
+
+            function showToast(message) {
+                toastEl.textContent = message;
+                toastEl.classList.add('opacity-100');
+                setTimeout(() => { toastEl.classList.remove('opacity-100'); }, 3000);
+            }
+
+            window.openBelangkoManager = function() {
+                belangkoManagerModal.classList.remove('hidden');
+                renderBelangkoTable();
+            }
+
+            window.closeBelangkoManager = function() {
+                belangkoManagerModal.classList.add('hidden');
+            }
+
+            function renderBelangkoTable() {
+                const tableBody = document.getElementById('belangkoManagerTableBody');
+                tableBody.innerHTML = '';
+                belangkoData.forEach((item, index) => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="px-4 py-2 text-sm text-gray-700">${item.no}</td>
+                        <td class="px-4 py-2 text-sm text-gray-700">${item.kode_belangko}</td>
+                        <td class="px-4 py-2 text-sm text-gray-700">Rp ${item.harga.toLocaleString('id-ID')}</td>
+                        <td class="px-4 py-2 text-sm text-gray-700">
+                            <button onclick="deleteBelangko(${index})" class="text-red-500 hover:text-red-700">Hapus</button>
+                        </td>
+                    `;
+                    tableBody.appendChild(tr);
+                });
+            }
+
+            function addBelangko(event) {
+                event.preventDefault();
+                const newKode = document.getElementById('new_kode_belangko').value.trim();
+                const newHarga = parseInt(document.getElementById('new_harga_belangko').value);
+
+                if (newKode && !isNaN(newHarga)) {
+                    if (belangkoData.some(b => b.kode_belangko === newKode)) {
+                        showToast('Error: Kode belangko sudah ada.');
+                        return;
+                    }
+                    const newNo = belangkoData.length > 0 ? Math.max(...belangkoData.map(i => i.no)) + 1 : 1;
+                    belangkoData.push({ no: newNo, kode_belangko: newKode, harga: newHarga });
+
+                    updateBelangkoDatalist();
+                    renderBelangkoTable();
+                    addBelangkoForm.reset();
+                    showToast('Data belangko berhasil ditambahkan!');
+                } else {
+                    showToast('Harap isi semua kolom dengan benar.');
+                }
+            }
+
+            window.deleteBelangko = function(index) {
+                if (confirm(`Yakin ingin menghapus belangko "${belangkoData[index].kode_belangko}"?`)) {
+                    belangkoData.splice(index, 1);
+                    updateBelangkoDatalist();
+                    renderBelangkoTable();
+                    showToast('Data belangko berhasil dihapus!');
+                }
+            }
+
+            // --- Fungsi Impor & Ekspor Excel ---
+            function handleImport(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, {type: 'array'});
+                        const firstSheetName = workbook.SheetNames[0];
+                        const worksheet = workbook.Sheets[firstSheetName];
+                        const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                        const headerRow = json.find(row => row.some(cell => typeof cell === 'string' && cell.toLowerCase().includes('kode')));
+                        if (!headerRow) throw new Error('Header "Kode Belangko" tidak ditemukan.');
+
+                        const noIndex = headerRow.findIndex(h => typeof h === 'string' && h.toLowerCase() === 'no');
+                        const kodeIndex = headerRow.findIndex(h => typeof h === 'string' && h.toLowerCase().includes('kode'));
+                        const hargaIndex = headerRow.findIndex(h => typeof h === 'string' && h.toLowerCase() === 'harga');
+
+                        if (kodeIndex === -1 || hargaIndex === -1 || noIndex === -1) throw new Error('Format file tidak sesuai. Pastikan ada kolom "No", "Kode Belangko", dan "Harga".');
+
+                        const startIndex = json.indexOf(headerRow) + 1;
+                        const importedData = json.slice(startIndex).map(row => ({
+                            no: parseInt(row[noIndex]),
+                            kode_belangko: String(row[kodeIndex] || '').trim(),
+                            harga: parseInt(row[hargaIndex])
+                        })).filter(item => item.kode_belangko && !isNaN(item.harga) && !isNaN(item.no));
+
+                        belangkoData = importedData;
+                        updateBelangkoDatalist();
+                        renderBelangkoTable();
+                        showToast(`Berhasil mengimpor ${belangkoData.length} data belangko!`);
+                    } catch (error) { showToast(`Error: ${error.message}`); }
+                };
+                reader.readAsArrayBuffer(file);
+                event.target.value = '';
+            }
+
+            function handleExport() {
+                if (belangkoData.length === 0) {
+                    showToast('Tidak ada data untuk diekspor.');
+                    return;
+                }
+                const exportData = belangkoData.map(item => ({ 'No': item.no, 'Kode Belangko': item.kode_belangko, 'Harga': item.harga }));
+                const worksheet = XLSX.utils.json_to_sheet(exportData);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "Data Belangko");
+                XLSX.writeFile(workbook, "data_belangko.xlsx");
+                showToast('Data berhasil diekspor!');
+            }
+
+            // --- Gemini AI Text Generation ---
+            async function generateInvitationText() {
+                const button = document.getElementById('generateTextButton');
+                const buttonText = document.getElementById('ai_button_text');
+                const buttonLoader = document.getElementById('ai_button_loader');
+                const resultTextarea = document.getElementById('ai_result');
+
+                const details = {
+                    pria: document.getElementById('ai_nama_pria').value,
+                    wanita: document.getElementById('ai_nama_wanita').value,
+                    ortuPria: document.getElementById('ai_ortu_pria').value,
+                    ortuWanita: document.getElementById('ai_ortu_wanita').value,
+                    akad: document.getElementById('ai_akad').value,
+                    resepsi: document.getElementById('ai_resepsi').value,
+                    lokasi: document.getElementById('ai_lokasi').value,
+                    gaya: document.getElementById('ai_gaya').value,
+                };
+
+                if (!details.pria || !details.wanita) {
+                    showToast("Harap isi nama kedua mempelai.");
+                    return;
+                }
+
+                const prompt = `Anda adalah seorang penulis kreatif untuk undangan pernikahan. Buatkan draf teks isi undangan pernikahan dalam Bahasa Indonesia dengan gaya "${details.gaya}". Teks harus terdengar tulus dan indah.
+
+                Berikut adalah detailnya:
+                - Mempelai Pria: ${details.pria}
+                - Putra dari Bapak ${details.ortuPria || '(nama ayah pria)'} dan Ibu ${details.ortuPria || '(nama ibu pria)'}
+                - Mempelai Wanita: ${details.wanita}
+                - Putri dari Bapak ${details.ortuWanita || '(nama ayah wanita)'} dan Ibu ${details.ortuWanita || '(nama ibu wanita)'}
+                - Waktu Akad Nikah: ${details.akad || '(belum ditentukan)'}
+                - Waktu Resepsi: ${details.resepsi || '(belum ditentukan)'}
+                - Lokasi Acara: ${details.lokasi || '(belum ditentukan)'}
+
+                Struktur teks harus mencakup:
+                1.  Pembukaan yang menyentuh (bisa dengan kutipan atau basmalah jika gayanya Islami).
+                2.  Menyebutkan nama kedua mempelai dan nama orang tua masing-masing.
+                3.  Informasi detail acara (Akad dan Resepsi).
+                4.  Penutup yang berisi ucapan terima kasih dan doa.
+
+                Pastikan formatnya rapi dan mudah dibaca.`;
+
+                button.disabled = true;
+                buttonText.textContent = 'Memproses...';
+                buttonLoader.classList.remove('hidden');
+                resultTextarea.value = 'AI sedang merangkai kata-kata...';
+
+                try {
+                    const apiKey = "";
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+                    const payload = { contents: [{ parts: [{ text: prompt }] }] };
+
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) throw new Error(`API request failed with status ${response.status}`);
+
+                    const result = await response.json();
+                    const generatedText = result.candidates[0].content.parts[0].text;
+                    resultTextarea.value = generatedText;
+
+                } catch (error) {
+                    console.error("Gemini API Error:", error);
+                    resultTextarea.value = "Maaf, terjadi kesalahan saat menghubungi AI. Silakan coba lagi.";
+                    showToast("Gagal membuat teks.", "error");
+                } finally {
+                    button.disabled = false;
+                    buttonText.textContent = 'Buat Teks Undangan';
+                    buttonLoader.classList.add('hidden');
+                }
+            }
+
+            function copyAIText() {
+                const textarea = document.getElementById('ai_result');
+                if (textarea.value) {
+                    textarea.select();
+                    document.execCommand('copy');
+                    showToast('Teks berhasil disalin!');
+                }
+            }
+
+            initializeApp();
+        });
+    </script>
+</body>
+</html>
