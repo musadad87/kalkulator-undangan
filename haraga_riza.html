@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator Harga Bahan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen p-6">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-3xl font-bold text-gray-800 mb-8 text-center">Kalkulator Harga Bahan</h1>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Kalkulator Utama -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-xl font-semibold text-gray-700 mb-6">Hitung Harga Bahan</h2>
+                
+                <div class="space-y-4">
+                    <!-- No ID -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-2">No ID</label>
+                        <input type="text" id="noId" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Masukkan No ID">
+                    </div>
+                    
+                    <!-- Combo Box Nama Bahan -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-2">Nama Bahan</label>
+                        <div class="flex gap-2">
+                            <select id="namaBahan" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" onchange="updateHarga()">
+                                <option value="">Pilih Bahan</option>
+                            </select>
+                            <button onclick="openFormHarga()" class="px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm">+</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Harga Bahan -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-2">Harga Bahan (per meter)</label>
+                        <input type="text" id="hargaBahan" class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50" readonly placeholder="Rp 0">
+                    </div>
+                    
+                    <!-- Input Dimensi -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-2">Panjang (CM)</label>
+                            <input type="number" id="panjangCm" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="0" oninput="hitungHarga()">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-2">Lebar (CM)</label>
+                            <input type="number" id="lebarCm" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="0" oninput="hitungHarga()">
+                        </div>
+                    </div>
+                    
+                    <!-- Konversi Meter -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-2">Meter Panjang</label>
+                            <input type="text" id="meterPanjang" class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50" readonly placeholder="0 m">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-2">Meter Lebar</label>
+                            <input type="text" id="meterLebar" class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50" readonly placeholder="0 m">
+                        </div>
+                    </div>
+                    
+                    <!-- Harga Total -->
+                    <div class="bg-red-50 p-4 rounded-lg border-2 border-red-200">
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="block text-sm font-medium text-gray-600">Harga Cetak</label>
+                            <button onclick="copyHargaCetak()" class="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors">Copy</button>
+                        </div>
+                        <div id="hargaCetak" class="text-2xl font-bold text-red-600 mb-3">Rp 0</div>
+                        
+                        <!-- Summary Text -->
+                        <div class="bg-white p-3 rounded border border-gray-200">
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="block text-xs font-medium text-gray-500">Detail Perhitungan</label>
+                                <button onclick="copySummaryText()" class="bg-green-500 text-white px-2 py-1 rounded text-xs hover:bg-green-600 transition-colors">Copy</button>
+                            </div>
+                            <div id="summaryText" class="text-sm text-gray-700 cursor-pointer hover:bg-gray-50 p-2 rounded select-all" onclick="copySummaryText()" title="Klik untuk copy">
+                                Pilih bahan dan masukkan ukuran untuk melihat detail
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Data Bahan -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-xl font-semibold text-gray-700 mb-6">Data Bahan</h2>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="bg-gray-50">
+                                <th class="px-3 py-2 text-left font-medium text-gray-600">No</th>
+                                <th class="px-3 py-2 text-left font-medium text-gray-600">Nama Bahan</th>
+                                <th class="px-3 py-2 text-left font-medium text-gray-600">Harga/m</th>
+                                <th class="px-3 py-2 text-left font-medium text-gray-600">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataBahan">
+                            <!-- Data akan ditampilkan di sini -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Form Harga -->
+    <div id="modalFormHarga" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-md mx-4">
+            <h3 class="text-lg font-semibold text-gray-700 mb-4">Form Harga Bahan</h3>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-2">No</label>
+                    <input type="number" id="formNo" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-2">Nama Bahan</label>
+                    <input type="text" id="formNamaBahan" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-2">Harga Per Meter</label>
+                    <input type="number" id="formHargaMeter" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+            </div>
+            
+            <div class="flex gap-3 mt-6">
+                <button onclick="simpanBahan()" class="flex-1 bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-colors font-medium">Simpan</button>
+                <button onclick="newBahan()" class="flex-1 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors font-medium">New</button>
+                <button onclick="hapusBahan()" class="flex-1 bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition-colors font-medium">Hapus</button>
+                <button onclick="closeFormHarga()" class="flex-1 bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors font-medium">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Database sederhana menggunakan localStorage
+        let dataBahanList = JSON.parse(localStorage.getItem('dataBahan')) || [
+		{ no: 1, nama: 'TERANSPARAN DOFF', harga: 0 },
+		{ no: 2, nama: 'TERANSPARAN GLOSYY', harga: 0 },
+		{ no: 3, nama: '3D', harga: 0 },
+		{ no: 4, nama: 'Canvas', harga: 100000 },
+		{ no: 5, nama: 'KANPAS', harga: 0 },
+		{ no: 6, nama: 'BAHAN_280', harga: 25000 },
+		{ no: 7, nama: 'BAHAN_330', harga: 35000 },
+		{ no: 8, nama: 'TETOTON', harga: 42000 },
+		{ no: 9, nama: 'SATIN TC', harga: 50000 },
+		{ no: 10, nama: 'SATIN TCs', harga: 50000 },
+		{ no: 11, nama: 'KOREA', harga: 50000 },
+		{ no: 12, nama: 'SATIN BSW PRINT', harga: 71000 },
+		{ no: 13, nama: 'GRAFTACK', harga: 70000 },
+		{ no: 14, nama: 'oneway', harga: 75000 },
+		{ no: 15, nama: 'WANWAY', harga: 80000 },
+		{ no: 16, nama: 'SUPERSETIK', harga: 60000 },
+		{ no: 17, nama: 'BACKLITE', harga: 80000 },
+		{ no: 18, nama: 'RITRAMA', harga: 85000 },
+		{ no: 19, nama: 'DRILL', harga: 86000 },
+		{ no: 20, nama: 'BLUSTER', harga: 5 },
+
+        ];
+        let editingIndex = -1;
+
+        // Inisialisasi
+        document.addEventListener('DOMContentLoaded', function() {
+            // Simpan data awal jika belum ada
+            if (!localStorage.getItem('dataBahan')) {
+                localStorage.setItem('dataBahan', JSON.stringify(dataBahanList));
+            }
+            loadDataBahan();
+            updateComboBox();
+        });
+
+        function openFormHarga() {
+            document.getElementById('modalFormHarga').classList.remove('hidden');
+            document.getElementById('modalFormHarga').classList.add('flex');
+        }
+
+        function closeFormHarga() {
+            document.getElementById('modalFormHarga').classList.add('hidden');
+            document.getElementById('modalFormHarga').classList.remove('flex');
+            newBahan();
+        }
+
+        function newBahan() {
+            document.getElementById('formNo').value = '';
+            document.getElementById('formNamaBahan').value = '';
+            document.getElementById('formHargaMeter').value = '';
+            editingIndex = -1;
+        }
+
+        function simpanBahan() {
+            const no = document.getElementById('formNo').value;
+            const nama = document.getElementById('formNamaBahan').value;
+            const harga = document.getElementById('formHargaMeter').value;
+
+            if (!no || !nama || !harga) {
+                alert('Semua field harus diisi!');
+                return;
+            }
+
+            const bahanData = {
+                no: parseInt(no),
+                nama: nama,
+                harga: parseFloat(harga)
+            };
+
+            if (editingIndex >= 0) {
+                dataBahanList[editingIndex] = bahanData;
+            } else {
+                dataBahanList.push(bahanData);
+            }
+
+            localStorage.setItem('dataBahan', JSON.stringify(dataBahanList));
+            loadDataBahan();
+            updateComboBox();
+            closeFormHarga();
+        }
+
+        function hapusBahan() {
+            if (editingIndex >= 0) {
+                if (confirm('Yakin ingin menghapus data ini?')) {
+                    dataBahanList.splice(editingIndex, 1);
+                    localStorage.setItem('dataBahan', JSON.stringify(dataBahanList));
+                    loadDataBahan();
+                    updateComboBox();
+                    closeFormHarga();
+                }
+            } else {
+                alert('Pilih data yang ingin dihapus terlebih dahulu!');
+            }
+        }
+
+        function editBahan(index) {
+            const bahan = dataBahanList[index];
+            document.getElementById('formNo').value = bahan.no;
+            document.getElementById('formNamaBahan').value = bahan.nama;
+            document.getElementById('formHargaMeter').value = bahan.harga;
+            editingIndex = index;
+            openFormHarga();
+        }
+
+        function deleteBahan(index) {
+            if (confirm('Yakin ingin menghapus data ini?')) {
+                dataBahanList.splice(index, 1);
+                localStorage.setItem('dataBahan', JSON.stringify(dataBahanList));
+                loadDataBahan();
+                updateComboBox();
+            }
+        }
+
+        function loadDataBahan() {
+            const tbody = document.getElementById('dataBahan');
+            tbody.innerHTML = '';
+
+            dataBahanList.forEach((bahan, index) => {
+                const row = document.createElement('tr');
+                row.className = 'border-b hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="px-3 py-2">${bahan.no}</td>
+                    <td class="px-3 py-2">${bahan.nama}</td>
+                    <td class="px-3 py-2">Rp ${bahan.harga.toLocaleString('id-ID')}</td>
+                    <td class="px-3 py-2">
+                        <button onclick="editBahan(${index})" class="text-blue-500 hover:text-blue-700 mr-2 text-xs">Edit</button>
+                        <button onclick="deleteBahan(${index})" class="text-red-500 hover:text-red-700 text-xs">Hapus</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function updateComboBox() {
+            const select = document.getElementById('namaBahan');
+            select.innerHTML = '<option value="">Pilih Bahan</option>';
+
+            dataBahanList.forEach((bahan, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = bahan.nama;
+                select.appendChild(option);
+            });
+        }
+
+        function updateHarga() {
+            const select = document.getElementById('namaBahan');
+            const hargaInput = document.getElementById('hargaBahan');
+            
+            if (select.value !== '') {
+                const bahan = dataBahanList[select.value];
+                hargaInput.value = `Rp ${bahan.harga.toLocaleString('id-ID')}`;
+            } else {
+                hargaInput.value = 'Rp 0';
+            }
+            
+            hitungHarga();
+        }
+
+        function hitungHarga() {
+            const panjangCm = parseFloat(document.getElementById('panjangCm').value) || 0;
+            const lebarCm = parseFloat(document.getElementById('lebarCm').value) || 0;
+            const select = document.getElementById('namaBahan');
+            
+            // Konversi cm ke meter
+            const meterPanjang = panjangCm / 100;
+            const meterLebar = lebarCm / 100;
+            
+            document.getElementById('meterPanjang').value = `${meterPanjang.toFixed(2)} m`;
+            document.getElementById('meterLebar').value = `${meterLebar.toFixed(2)} m`;
+            
+            // Hitung harga total
+            let hargaTotal = 0;
+            let namaBahan = '';
+            if (select.value !== '') {
+                const bahan = dataBahanList[select.value];
+                hargaTotal = meterPanjang * meterLebar * bahan.harga;
+                namaBahan = bahan.nama;
+            }
+            
+            document.getElementById('hargaCetak').textContent = `Rp ${hargaTotal.toLocaleString('id-ID')}`;
+            
+            // Update summary text
+            updateSummaryText(namaBahan, meterPanjang, meterLebar, hargaTotal);
+        }
+
+        function updateSummaryText(namaBahan, meterPanjang, meterLebar, hargaTotal) {
+            const summaryElement = document.getElementById('summaryText');
+            
+            if (namaBahan && meterPanjang > 0 && meterLebar > 0) {
+                summaryElement.textContent = `${namaBahan} - Ukuran ${meterPanjang.toFixed(2)}m x ${meterLebar.toFixed(2)}m = Rp ${hargaTotal.toLocaleString('id-ID')}`;
+            } else {
+                summaryElement.textContent = 'Pilih bahan dan masukkan ukuran untuk melihat detail';
+            }
+        }
+
+        function copyHargaCetak() {
+            const hargaCetak = document.getElementById('hargaCetak').textContent;
+            navigator.clipboard.writeText(hargaCetak).then(function() {
+                alert('Harga cetak berhasil dicopy!');
+            }).catch(function() {
+                // Fallback untuk browser lama
+                const textArea = document.createElement('textarea');
+                textArea.value = hargaCetak;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('Harga cetak berhasil dicopy!');
+            });
+        }
+
+        function copySummaryText() {
+            const summaryText = document.getElementById('summaryText').textContent;
+            navigator.clipboard.writeText(summaryText).then(function() {
+                alert('Detail perhitungan berhasil dicopy!');
+            }).catch(function() {
+                // Fallback untuk browser lama
+                const textArea = document.createElement('textarea');
+                textArea.value = summaryText;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('Detail perhitungan berhasil dicopy!');
+            });
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96fe9dc8c142ce12',t:'MTc1NTMyMzAzMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
