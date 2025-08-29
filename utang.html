@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTANG Query - Aplikasi Pencatat Utang</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <div class="container mx-auto px-4 py-6 max-w-6xl">
+        <!-- Header -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h1 class="text-3xl font-bold text-gray-800 text-center mb-2">UTANG Query</h1>
+            <p class="text-gray-600 text-center">Aplikasi Pencatat Utang (Data Tersimpan di Browser)</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Form Input -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Input Data Utang</h2>
+                
+                <form id="debtForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">ID</label>
+                        <input type="text" id="debtId" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-100" readonly>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal</label>
+                        <input type="date" id="debtDate" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nama</label>
+                        <input type="text" id="debtName" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Nama yang berutang" required>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Ket Utang</label>
+                        <input type="text" id="debtDescription" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Keterangan utang" required>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Harga</label>
+                        <input type="number" id="debtAmount" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="0" min="0" required>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Kete Bayar</label>
+                        <select id="paymentStatus" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            <option value="BLM BAYAR">BLM BAYAR</option>
+                            <option value="SUDAH BAYAR">SUDAH BAYAR</option>
+                        </select>
+                    </div>
+                </form>
+
+                <!-- Navigation Controls -->
+                <div class="mt-6 flex justify-center space-x-2">
+                    <button onclick="firstRecord()" class="px-3 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors" title="Data Pertama">
+                        &lt;&lt;
+                    </button>
+                    <button onclick="previousRecord()" class="px-3 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors" title="Data Sebelumnya">
+                        &lt;
+                    </button>
+                    <button onclick="nextRecord()" class="px-3 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors" title="Data Berikutnya">
+                        &gt;
+                    </button>
+                    <button onclick="lastRecord()" class="px-3 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors" title="Data Terakhir">
+                        &gt;&gt;
+                    </button>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="mt-4 grid grid-cols-3 gap-3">
+                    <button onclick="saveRecord()" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-medium">
+                        Simpan
+                    </button>
+                    <button onclick="deleteRecord()" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors font-medium">
+                        Hapus
+                    </button>
+                    <button onclick="editRecord()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium">
+                        Edit
+                    </button>
+                </div>
+
+                <!-- Menu Depan Button -->
+                <div class="mt-4">
+                    <button onclick="goToMainMenu()" class="w-full px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors font-medium">
+                        Menu Depan / Batal
+                    </button>
+                </div>
+
+                <!-- Backup & Restore -->
+                <div class="mt-6 border-t pt-4">
+                     <h3 class="text-lg font-semibold text-gray-800 mb-3 text-center">Database Management</h3>
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <button onclick="downloadDatabase()" class="px-4 py-2 bg-cyan-600 text-white rounded-md hover:bg-cyan-700 transition-colors font-medium">
+                            Download Database
+                        </button>
+                        <button onclick="uploadDatabase()" class="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors font-medium">
+                            Upload Database
+                        </button>
+                        <input type="file" id="importFile" class="hidden" accept=".json" onchange="handleFileUpload(event)">
+                     </div>
+                </div>
+
+            </div>
+
+            <!-- Data Table -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Daftar Data Utang</h2>
+                
+                <!-- Summary Cards -->
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                        <h3 class="text-sm font-medium text-red-800">Total Belum Bayar</h3>
+                        <p class="text-2xl font-bold text-red-600" id="totalUnpaid">Rp 0</p>
+                    </div>
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <h3 class="text-sm font-medium text-green-800">Total Sudah Bayar</h3>
+                        <p class="text-2xl font-bold text-green-600" id="totalPaid">Rp 0</p>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse border border-gray-300">
+                        <thead>
+                            <tr class="bg-gray-50">
+                                <th class="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">ID</th>
+                                <th class="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">Tanggal</th>
+                                <th class="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">Nama</th>
+                                <th class="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">Keterangan</th>
+                                <th class="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">Harga</th>
+                                <th class="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="debtTableBody">
+                            <!-- Data will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const DB_KEY = 'utangQueryDatabase';
+        let debts = [];
+        let currentIndex = -1;
+        let nextId = 1;
+        let isEditing = false;
+
+        // Save data to localStorage
+        function persistData() {
+            localStorage.setItem(DB_KEY, JSON.stringify(debts));
+        }
+
+        // Initialize the application
+        function init() {
+            // Load data from localStorage
+            const storedDebts = localStorage.getItem(DB_KEY);
+            if (storedDebts) {
+                debts = JSON.parse(storedDebts);
+            }
+
+            // Calculate next ID
+            if (debts.length > 0) {
+                nextId = Math.max(...debts.map(d => d.id)) + 1;
+            } else {
+                nextId = 1;
+            }
+
+            // Set today's date and initial ID
+            document.getElementById('debtDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('debtId').value = nextId;
+            updateTable();
+            updateSummary();
+        }
+
+        // Save or update record
+        function saveRecord() {
+            const form = document.getElementById('debtForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const debt = {
+                id: parseInt(document.getElementById('debtId').value),
+                date: document.getElementById('debtDate').value,
+                name: document.getElementById('debtName').value,
+                description: document.getElementById('debtDescription').value,
+                amount: parseFloat(document.getElementById('debtAmount').value),
+                status: document.getElementById('paymentStatus').value
+            };
+
+            if (isEditing && currentIndex >= 0) {
+                debts[currentIndex] = debt;
+                isEditing = false;
+                alert('Data berhasil diperbarui!');
+            } else {
+                // Check if ID already exists to prevent duplicates from race conditions
+                if (debts.some(d => d.id === debt.id)) {
+                    debt.id = Math.max(...debts.map(d => d.id)) + 1;
+                }
+                debts.push(debt);
+                nextId = debt.id + 1;
+                alert('Data berhasil disimpan!');
+            }
+
+            persistData();
+            clearForm();
+            updateTable();
+            updateSummary();
+        }
+
+        // Delete current record
+        function deleteRecord() {
+            if (currentIndex >= 0 && currentIndex < debts.length) {
+                if (confirm('Apakah Anda yakin ingin menghapus data ini?')) {
+                    debts.splice(currentIndex, 1);
+                    persistData();
+                    currentIndex = -1;
+                    clearForm();
+                    updateTable();
+                    updateSummary();
+                    alert('Data berhasil dihapus!');
+                }
+            } else {
+                alert('Pilih data yang ingin dihapus terlebih dahulu!');
+            }
+        }
+
+        // Edit current record
+        function editRecord() {
+            if (currentIndex >= 0 && currentIndex < debts.length) {
+                isEditing = true;
+                alert('Mode edit aktif. Ubah data di form dan klik "Simpan" untuk memperbarui.');
+            } else {
+                alert('Pilih data yang ingin diedit terlebih dahulu!');
+            }
+        }
+
+        // Navigation functions
+        function firstRecord() {
+            if (debts.length > 0) {
+                currentIndex = 0;
+                loadRecord(currentIndex);
+            }
+        }
+
+        function previousRecord() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                loadRecord(currentIndex);
+            }
+        }
+
+        function nextRecord() {
+            if (currentIndex < debts.length - 1) {
+                currentIndex++;
+                loadRecord(currentIndex);
+            }
+        }
+
+        function lastRecord() {
+            if (debts.length > 0) {
+                currentIndex = debts.length - 1;
+                loadRecord(currentIndex);
+            }
+        }
+
+        // Load record into form
+        function loadRecord(index) {
+            if (index >= 0 && index < debts.length) {
+                const debt = debts[index];
+                document.getElementById('debtId').value = debt.id;
+                document.getElementById('debtDate').value = debt.date;
+                document.getElementById('debtName').value = debt.name;
+                document.getElementById('debtDescription').value = debt.description;
+                document.getElementById('debtAmount').value = debt.amount;
+                document.getElementById('paymentStatus').value = debt.status;
+                isEditing = false; // Turn off editing mode when loading a new record
+                
+                // Highlight selected row
+                document.querySelectorAll('#debtTableBody tr').forEach((r, i) => {
+                    if (i === index) {
+                        r.classList.add('bg-blue-100');
+                    } else {
+                        r.classList.remove('bg-blue-100');
+                    }
+                });
+            }
+        }
+
+        // Clear form
+        function clearForm() {
+            if (debts.length > 0) {
+                nextId = Math.max(...debts.map(d => d.id)) + 1;
+            } else {
+                nextId = 1;
+            }
+            document.getElementById('debtId').value = nextId;
+            document.getElementById('debtDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('debtForm').reset(); // More efficient way to clear form
+            document.getElementById('paymentStatus').value = 'BLM BAYAR'; // Set default for select
+            currentIndex = -1;
+            isEditing = false;
+
+            // Remove highlight from all rows
+            document.querySelectorAll('#debtTableBody tr').forEach(r => r.classList.remove('bg-blue-100'));
+        }
+
+        // Update table
+        function updateTable() {
+            const tbody = document.getElementById('debtTableBody');
+            tbody.innerHTML = '';
+
+            // Sort by date descending
+            const sortedDebts = [...debts].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            sortedDebts.forEach(debt => {
+                const originalIndex = debts.findIndex(d => d.id === debt.id);
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50 cursor-pointer';
+                row.onclick = () => {
+                    currentIndex = originalIndex;
+                    loadRecord(originalIndex);
+                };
+
+                const statusClass = debt.status === 'SUDAH BAYAR' ? 'text-green-600 bg-green-100' : 'text-red-600 bg-red-100';
+                
+                row.innerHTML = `
+                    <td class="border border-gray-300 px-3 py-2 text-sm">${debt.id}</td>
+                    <td class="border border-gray-300 px-3 py-2 text-sm">${new Date(debt.date).toLocaleDateString('id-ID')}</td>
+                    <td class="border border-gray-300 px-3 py-2 text-sm font-medium">${debt.name}</td>
+                    <td class="border border-gray-300 px-3 py-2 text-sm">${debt.description}</td>
+                    <td class="border border-gray-300 px-3 py-2 text-sm font-medium">Rp ${debt.amount.toLocaleString('id-ID')}</td>
+                    <td class="border border-gray-300 px-3 py-2 text-sm">
+                        <span class="px-2 py-1 rounded-full text-xs font-medium ${statusClass}">
+                            ${debt.status}
+                        </span>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Update summary
+        function updateSummary() {
+            const unpaid = debts.filter(debt => debt.status === 'BLM BAYAR').reduce((sum, debt) => sum + debt.amount, 0);
+            const paid = debts.filter(debt => debt.status === 'SUDAH BAYAR').reduce((sum, debt) => sum + debt.amount, 0);
+            
+            document.getElementById('totalUnpaid').textContent = `Rp ${unpaid.toLocaleString('id-ID')}`;
+            document.getElementById('totalPaid').textContent = `Rp ${paid.toLocaleString('id-ID')}`;
+        }
+
+        // Go to main menu (clears the form)
+        function goToMainMenu() {
+            clearForm();
+        }
+
+        // Download database function
+        function downloadDatabase() {
+            if (debts.length === 0) {
+                alert('Database kosong. Tidak ada data untuk di-download.');
+                return;
+            }
+            const dataStr = JSON.stringify(debts, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            const date = new Date().toISOString().split('T')[0];
+            link.download = `utang_query_backup_${date}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        // Trigger file input for upload
+        function uploadDatabase() {
+            document.getElementById('importFile').click();
+        }
+
+        // Handle the file upload
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                if (confirm('Ini akan menimpa semua data saat ini dengan data dari file. Lanjutkan?')) {
+                    try {
+                        const importedData = JSON.parse(e.target.result);
+                        if (Array.isArray(importedData)) {
+                            debts = importedData;
+                            persistData();
+                            init(); // Re-initialize to update everything
+                            alert('Database berhasil di-upload dan dipulihkan!');
+                        } else {
+                            alert('File tidak valid. Data harus berupa array.');
+                        }
+                    } catch (error) {
+                        alert('Gagal memproses file. Pastikan format JSON benar.');
+                        console.error('Upload error:', error);
+                    }
+                }
+            };
+            reader.readAsText(file);
+            // Reset file input to allow uploading the same file again
+            event.target.value = null;
+        }
+
+        // Initialize on page load
+        init();
+    </script>
+</body>
+</html>
+
