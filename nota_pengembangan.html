@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi Nota dengan LocalStorage - MUSADAD.COM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .print-area { background: white; }
+        .invoice-table th, .invoice-table td { border: 1px solid black; }
+
+        @media print {
+            body * { visibility: hidden; }
+            .print-area, .print-area * { visibility: visible; }
+            .print-area { 
+                position: absolute; 
+                left: 0; 
+                top: 0; 
+                width: 100%; 
+            }
+            /* Menyesuaikan warna untuk cetak */
+            .print-area .bg-yellow-200 { background-color: #fce76b !important; -webkit-print-color-adjust: exact; color-adjust: exact; }
+            .print-area .text-red-600 { color: #dc2626 !important; -webkit-print-color-adjust: exact; color-adjust: exact; }
+        }
+
+        /* Gaya untuk Modal Database */
+        .modal {
+            transition: opacity 0.3s ease-in-out;
+        }
+    </style>
+    <!-- Tambahkan library untuk baca/tulis Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto p-4">
+        <!-- Header -->
+        <div class="bg-blue-600 text-white p-4 rounded-t-lg">
+            <h1 class="text-2xl font-bold">Aplikasi Nota Percetakan dengan LocalStorage</h1>
+            <p class="text-blue-100">MUSADAD.COM - Ringan dan Cepat</p>
+        </div>
+
+        <div class="flex flex-col lg:flex-row gap-4 bg-white rounded-b-lg shadow-lg">
+            <!-- Left Panel - Invoice Creation -->
+            <div class="flex-1 p-6">
+                <div class="print-area">
+                    <!-- Invoice Header Section -->
+                    <div class="flex justify-between items-start mb-6">
+                        <div class="w-1/2">
+                            <h2 class="text-2xl font-extrabold text-red-600">MUSADAD.COM</h2>
+                            <p class="text-sm font-semibold text-gray-700">PERCETAKAN</p>
+                            <p class="text-xs text-gray-600 mt-2">Jl. Rp.Garendong - cisema Petir, Kab.Serang BANTEN<br>Tlp. 083812352663<br>Email. musadad08@gmail.com</p>
+                        </div>
+                        <div class="w-1/2 text-right">
+                            <div class="flex justify-end gap-2 text-xs mb-2 items-center">
+                                <label class="font-medium text-gray-700 text-base">Tanggal</label>
+                                <input type="text" id="invoiceDateDisplay" class="border border-black px-1" readonly>
+                            </div>
+                            <div class="flex justify-end gap-2 text-xs items-center">
+                                <label class="font-medium text-gray-700 text-base">Tuan</label>
+                                <input type="text" id="customerNameInput" class="border border-black px-1" placeholder="Nama Pelanggan">
+                            </div>
+                            <div class="flex justify-end gap-2 text-xs mt-2 items-center">
+                                <label class="font-medium text-gray-700 text-base">Tlp.</label>
+                                <input type="text" id="customerPhoneInput" class="border border-black px-1" placeholder="No. Telepon">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center mb-4">
+                        <label class="text-xs font-medium text-gray-700 mr-2">NO NOTA:</label>
+                        <input type="text" id="invoiceNumber" class="border border-black w-36 px-1" readonly>
+                    </div>
+
+                    <!-- Items Table -->
+                    <div class="mb-6">
+                        <table class="w-full border-collapse invoice-table">
+                            <thead class="bg-yellow-200">
+                                <tr class="border border-black">
+                                    <th class="border border-black p-2 text-center w-20">BANYAK</th>
+                                    <th class="border border-black p-2 text-left">NAMA BARANG</th>
+                                    <th class="border border-black p-2 text-right w-24">HARGA</th>
+                                    <th class="border border-black p-2 text-right w-24">JUMLAH</th>
+                                    <th class="border border-black p-2 text-center w-12"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="itemsTable">
+                                <!-- Default row for new invoices -->
+                                <tr>
+                                    <td class="border border-black p-1 text-center">
+                                        <input type="number" class="w-full p-1 border-0 text-center quantity-input" value="0" min="0">
+                                    </td>
+                                    <td class="border border-black p-1">
+                                        <input type="text" class="w-full p-1 border-0 item-name" placeholder="Nama barang/jasa">
+                                    </td>
+                                    <td class="border border-black p-1">
+                                        <input type="number" class="w-full p-1 border-0 text-right item-price" placeholder="0" min="0">
+                                    </td>
+                                    <td class="border border-black p-1 text-right item-total font-medium">Rp 0</td>
+                                    <td class="border border-black p-1 text-center">
+                                        <button onclick="removeItem(this)" class="text-red-500 hover:text-red-700">🗑️</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <button onclick="addItem()" class="mt-2 bg-green-500 text-white px-4 py-1 rounded hover:bg-green-600 text-sm">+ Tambah Item</button>
+                    </div>
+
+                    <!-- Ringkasan & Peringatan -->
+                    <div class="flex justify-between items-end mb-6">
+                        <div class="flex-1 mr-4">
+                            <p class="text-sm font-medium mb-1">Diterima,</p>
+                            <div class="h-16 border-b border-black"></div>
+                            <div class="mt-2 text-sm text-center font-bold">( ................ )</div>
+                        </div>
+                        <div class="flex-1">
+                            <div class="grid grid-cols-2 gap-1 mb-1">
+                                <span class="text-sm font-medium">Jumlah Rp.</span>
+                                <input type="text" id="totalAmount" readonly class="border border-black px-1 text-right font-bold bg-gray-100">
+                            </div>
+                            <div class="grid grid-cols-2 gap-1 mb-1">
+                                <span class="text-sm font-medium">Uang Muka Rp.</span>
+                                <input type="number" id="downPayment" class="border border-black px-1 text-right" min="0">
+                            </div>
+                            <div class="grid grid-cols-2 gap-1">
+                                <span class="text-sm font-medium">Kurang Rp.</span>
+                                <input type="text" id="remainingAmount" readonly class="border border-black px-1 text-right font-bold text-red-600 bg-gray-100">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Info & Warning -->
+                    <div class="mt-6 border-t border-black pt-4 flex justify-between items-start">
+                        <div class="w-1/2 mr-4">
+                            <p class="text-sm font-bold">PEMBAYARAN BISA MELALUI</p>
+                            <div class="text-xs mt-2">
+                                <p>Transfer ke:</p>
+                                <p>NOREK BANK BCA</p>
+                                <p class="font-bold">5410927839 ROHMATULLOH AL MUSADAD</p>
+                            </div>
+                        </div>
+                        <div class="w-1/2 border border-red-500 bg-red-100 rounded p-2 text-center text-xs">
+                            <p class="text-red-800 font-bold">PERHATIAN !!!</p>
+                            <p class="text-red-600 mt-1">Barang-barang yang sudah dibeli tidak bisa ditukar / dikembalikan</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel - Database Controls -->
+            <div class="w-full lg:w-96 p-6 bg-gray-50 border-l">
+                <!-- Database Status -->
+                <div class="mb-6 bg-green-100 border border-green-300 rounded p-3">
+                    <h3 class="text-lg font-semibold text-green-800 mb-2">📊 Status Database</h3>
+                    <p class="text-sm text-green-700">Total Records: <span id="dbRecordCount" class="font-bold">0</span></p>
+                    <p class="text-sm text-green-700">Database: <span class="font-bold" id="dbStatus">Loading...</span></p>
+                </div>
+
+                <!-- Navigation Controls -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold mb-3">Navigasi Data</h3>
+                    <div class="flex justify-center gap-2 mb-4">
+                        <button onclick="firstRecord()" class="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" title="First">⏮️</button>
+                        <button onclick="prevRecord()" class="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" title="Previous">⏪</button>
+                        <button onclick="nextRecord()" class="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" title="Next">⏩</button>
+                        <button onclick="lastRecord()" class="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" title="Last">⏭️</button>
+                    </div>
+                    <div class="text-center text-sm text-gray-600">
+                        Record: <span id="currentRecord">0</span> of <span id="totalRecords">0</span>
+                    </div>
+                </div>
+                
+                <!-- Tombol untuk Modal Database -->
+                <div class="mb-6">
+                     <button onclick="showDatabaseDetails()" class="w-full bg-orange-500 text-white px-3 py-2 rounded hover:bg-orange-600 text-sm">Lihat Database</button>
+                </div>
+
+                <!-- CRUD Operations -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold mb-3">Database Operations</h3>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="newInvoice()" class="bg-green-500 text-white px-3 py-2 rounded hover:bg-green-600 text-sm">📄 Baru</button>
+                        <button onclick="saveInvoice()" id="saveButton" class="bg-blue-500 text-white px-3 py-2 rounded hover:bg-blue-600 text-sm">💾 Simpan</button>
+                        <button onclick="updateInvoice()" class="bg-yellow-500 text-white px-3 py-2 rounded hover:bg-yellow-600 text-sm">✏️ Update</button>
+                        <button onclick="deleteInvoice()" class="bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600 text-sm">🗑️ Hapus</button>
+                        <button onclick="printInvoice()" class="bg-purple-500 text-white px-3 py-2 rounded hover:bg-purple-600 text-sm">🖨️ Cetak</button>
+                    </div>
+                </div>
+
+                <!-- Search -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold mb-3">Pencarian</h3>
+                    <input type="text" id="searchInput" placeholder="Cari nota, nama, atau alamat..." class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 mb-2">
+                    <button onclick="searchInvoices()" class="w-full bg-orange-500 text-white px-3 py-2 rounded hover:bg-orange-600 text-sm">🔍 Cari</button>
+                </div>
+
+                <!-- Database Records List -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold mb-3">Database Records</h3>
+                    <div class="bg-white rounded border max-h-80 overflow-auto">
+                        <table class="w-full text-xs">
+                            <thead class="bg-gray-100 sticky top-0">
+                                <tr>
+                                    <th class="p-2 text-left border-b">No. Nota</th>
+                                    <th class="p-2 text-left border-b">Tanggal</th>
+                                    <th class="p-2 text-left border-b">Pelanggan</th>
+                                    <th class="p-2 text-left border-b">Total</th>
+                                    <th class="p-2 text-left border-b">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="databaseTable">
+                                <!-- Records will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Database Management -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold mb-3">Database Management</h3>
+                    <div class="space-y-2">
+                        <button onclick="clearDatabase()" class="w-full bg-red-600 text-white px-3 py-2 rounded hover:bg-red-700 text-sm">🗑️ Hapus Semua Data</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal untuk Tampilan Detail Database -->
+    <div id="databaseModal" class="modal fixed inset-0 bg-gray-900 bg-opacity-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b border-gray-200">
+                <h2 class="text-xl font-bold">Detail Database Nota</h2>
+                <button onclick="closeDatabaseModal()" class="text-gray-500 hover:text-gray-800">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <!-- Tombol Backup & Restore di dalam Modal -->
+            <div class="p-4 bg-gray-50 border-b border-gray-200">
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <button onclick="exportDatabase()" class="flex-1 bg-cyan-500 text-white px-3 py-2 rounded hover:bg-cyan-600 text-sm flex justify-center items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        Backup JSON
+                    </button>
+                    <button onclick="importDatabase()" class="flex-1 bg-teal-500 text-white px-3 py-2 rounded hover:bg-teal-600 text-sm flex justify-center items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0l-4 4m4-4v12"></path></svg>
+                        Restore JSON
+                    </button>
+                    <button onclick="exportDatabaseToExcel()" class="flex-1 bg-lime-500 text-white px-3 py-2 rounded hover:bg-lime-600 text-sm flex justify-center items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9-3a9 9 0 1118 0 9 9 0 01-18 0z"></path></svg>
+                        Export Excel
+                    </button>
+                    <button onclick="importDatabaseFromExcel()" class="flex-1 bg-amber-500 text-white px-3 py-2 rounded hover:bg-amber-600 text-sm flex justify-center items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9-3a9 9 0 1118 0 9 9 0 01-18 0z"></path></svg>
+                        Import Excel
+                    </button>
+                </div>
+                <!-- Input file untuk restore, disembunyikan -->
+                <input type="file" id="importFile" class="hidden" accept=".json" onchange="handleImportFile(event)">
+                <input type="file" id="importExcelFile" class="hidden" accept=".xlsx, .xls, .csv" onchange="handleImportExcelFile(event)">
+            </div>
+
+            <div class="p-4 overflow-y-auto flex-grow">
+                <table class="min-w-full divide-y divide-gray-200 text-sm">
+                    <thead class="bg-gray-50 sticky top-0">
+                        <tr>
+                            <th class="p-2 text-left text-gray-500 uppercase tracking-wider border-b">No. Nota</th>
+                            <th class="p-2 text-left text-gray-500 uppercase tracking-wider border-b">Tanggal</th>
+                            <th class="p-2 text-left text-gray-500 uppercase tracking-wider border-b">Tuan</th>
+                            <th class="p-2 text-left text-gray-500 uppercase tracking-wider border-b">Tlp</th>
+                            <th class="p-2 text-left text-gray-500 uppercase tracking-wider border-b">Banyak</th>
+                            <th class="p-2 text-left text-gray-500 uppercase tracking-wider border-b">Nama Barang</th>
+                            <th class="p-2 text-left text-gray-500 uppercase tracking-wider border-b">Harga</th>
+                            <th class="p-2 text-left text-gray-500 uppercase tracking-wider border-b">Jumlah</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fullDatabaseTable" class="bg-white divide-y divide-gray-200">
+                        <!-- Data akan diisi oleh JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Database Management System menggunakan localStorage
+        class InvoiceDatabase {
+            constructor() {
+                this.dbKey = 'musadad_invoices_ls';
+                this.records = [];
+                this.currentIndex = 0;
+            }
+
+            async init() {
+                this.loadAllRecords();
+                document.getElementById('dbStatus').textContent = 'LocalStorage Aktif';
+                return Promise.resolve();
+            }
+            
+            _saveToLocalStorage() {
+                localStorage.setItem(this.dbKey, JSON.stringify(this.records));
+            }
+
+            async create(invoiceData) {
+                const newInvoice = {
+                    id: crypto.randomUUID(),
+                    invoiceNumber: await this.generateInvoiceNumber(),
+                    ...invoiceData,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                };
+                
+                this.records.push(newInvoice);
+                this._saveToLocalStorage();
+                this.updateUI();
+                return newInvoice.id;
+            }
+
+            async update(id, invoiceData) {
+                const index = this.records.findIndex(r => r.id === id);
+                if (index === -1) return false;
+                
+                const updatedInvoice = {
+                    ...this.records[index],
+                    ...invoiceData,
+                    updatedAt: new Date().toISOString()
+                };
+                
+                this.records[index] = updatedInvoice;
+                this._saveToLocalStorage();
+                this.updateUI();
+                return true;
+            }
+
+            async read(id) {
+                return this.records.find(r => r.id === id);
+            }
+
+            async delete(id) {
+                const index = this.records.findIndex(r => r.id === id);
+                if (index === -1) return false;
+                
+                this.records.splice(index, 1);
+                this._saveToLocalStorage();
+                this.updateUI();
+                return true;
+            }
+
+            async loadAllRecords() {
+                const storedData = localStorage.getItem(this.dbKey);
+                this.records = storedData ? JSON.parse(storedData) : [];
+                this.records.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                this.updateUI();
+            }
+
+            async search(query) {
+                const searchTerm = query.toLowerCase();
+                return this.records.filter(record => 
+                    (record.invoiceNumber && record.invoiceNumber.toLowerCase().includes(searchTerm)) ||
+                    (record.customerName && record.customerName.toLowerCase().includes(searchTerm)) ||
+                    (record.customerPhone && record.customerPhone.toLowerCase().includes(searchTerm)) ||
+                    (record.items && record.items.some(item => item.name.toLowerCase().includes(searchTerm)))
+                );
+            }
+
+            async clear() {
+                localStorage.removeItem(this.dbKey);
+                this.records = [];
+                this.updateUI();
+                return true;
+            }
+            
+            async importData(data) {
+                if (!Array.isArray(data)) {
+                    throw new Error('Format data tidak valid. Diperlukan array.');
+                }
+                this.records = data;
+                this._saveToLocalStorage();
+                this.updateUI();
+            }
+            
+            async generateInvoiceNumber() {
+                const today = new Date();
+                const d = String(today.getDate()).padStart(2, '0');
+                const m = String(today.getMonth() + 1).padStart(2, '0');
+                const y = today.getFullYear();
+                const datePrefix = `${d}${m}${y}`;
+
+                const todayRecords = this.records.filter(r => r.invoiceNumber && r.invoiceNumber.startsWith(datePrefix));
+
+                let lastSeq = 0;
+                if (todayRecords.length > 0) {
+                    lastSeq = Math.max(...todayRecords.map(r => parseInt(r.invoiceNumber.slice(8)) || 0));
+                }
+                
+                const newSeq = String(lastSeq + 1).padStart(3, '0');
+                
+                return `${datePrefix}${newSeq}`;
+            }
+
+            updateUI() {
+                const totalCount = this.records.length;
+                document.getElementById('dbRecordCount').textContent = totalCount;
+                document.getElementById('totalRecords').textContent = totalCount;
+                document.getElementById('currentRecord').textContent = totalCount > 0 ? this.currentIndex + 1 : 0;
+                this.populateTable(this.records);
+            }
+
+            populateTable(records) {
+                const tbody = document.getElementById('databaseTable');
+                tbody.innerHTML = '';
+                
+                records.forEach((record) => {
+                    const originalIndex = this.records.findIndex(r => r.id === record.id);
+                    const row = tbody.insertRow();
+                    const remaining = record.totalAmount - (record.downPayment || 0);
+                    const status = remaining <= 0 ? 'Lunas' : 'Belum Lunas';
+                    const statusColor = remaining <= 0 ? 'text-green-600' : 'text-red-600';
+
+                    row.innerHTML = `
+                        <td class="p-2 border-b cursor-pointer hover:bg-blue-50" onclick="db.loadRecordByIndex(${originalIndex})">${record.invoiceNumber}</td>
+                        <td class="p-2 border-b">${new Date(record.invoiceDate).toLocaleDateString('id-ID')}</td>
+                        <td class="p-2 border-b">${record.customerName}</td>
+                        <td class="p-2 border-b">Rp ${record.totalAmount ? record.totalAmount.toLocaleString('id-ID') : '0'}</td>
+                        <td class="p-2 border-b ${statusColor} font-semibold">${status}</td>
+                    `;
+                });
+            }
+
+            async loadRecordByIndex(index) {
+                if (index >= 0 && index < this.records.length) {
+                    this.currentIndex = index;
+                    const record = this.records[index];
+
+                    document.getElementById('invoiceNumber').value = record.invoiceNumber;
+                    document.getElementById('invoiceDateDisplay').value = new Date(record.invoiceDate).toLocaleDateString('id-ID', {day: '2-digit', month: '2-digit', year: 'numeric'});
+                    document.getElementById('customerNameInput').value = record.customerName;
+                    document.getElementById('customerPhoneInput').value = record.customerPhone;
+                    document.getElementById('downPayment').value = record.downPayment || '';
+                    
+                    const tbody = document.getElementById('itemsTable');
+                    tbody.innerHTML = '';
+                    
+                    if(record.items && record.items.length > 0){
+                        record.items.forEach(item => {
+                            const row = tbody.insertRow();
+                            const totalItemPrice = (item.quantity * item.price);
+                            row.innerHTML = `
+                                <tr>
+                                    <td class="border border-black p-1 text-center"><input type="number" class="w-full p-1 border-0 text-center quantity-input" value="${item.quantity}" min="0"></td>
+                                    <td class="border border-black p-1"><input type="text" class="w-full p-1 border-0 item-name" value="${item.name}"></td>
+                                    <td class="border border-black p-1"><input type="number" class="w-full p-1 border-0 text-right item-price" value="${item.price}" min="0"></td>
+                                    <td class="border border-black p-1 text-right item-total font-medium">Rp ${totalItemPrice.toLocaleString('id-ID')}</td>
+                                    <td class="border border-black p-1 text-center"><button onclick="removeItem(this)" class="text-red-500 hover:text-red-700">🗑️</button></td>
+                                </tr>
+                            `;
+                        });
+                    } else {
+                        addItem(); // Add a default row if no items exist
+                    }
+
+                    updateCalculations();
+                    this.updateUI();
+                }
+            }
+
+            async first() { if (this.records.length > 0) await this.loadRecordByIndex(0); }
+            async previous() { if (this.currentIndex > 0) await this.loadRecordByIndex(this.currentIndex - 1); }
+            async next() { if (this.currentIndex < this.records.length - 1) await this.loadRecordByIndex(this.currentIndex + 1); }
+            async last() { if (this.records.length > 0) await this.loadRecordByIndex(this.records.length - 1); }
+        }
+
+        const db = new InvoiceDatabase();
+        
+        document.addEventListener('DOMContentLoaded', async function() {
+            await db.init();
+            await newInvoice(); 
+            
+            document.addEventListener('input', e => {
+                if (e.target.classList.contains('quantity-input') || 
+                    e.target.classList.contains('item-price') || 
+                    e.target.id === 'downPayment') {
+                    updateCalculations();
+                }
+            });
+        });
+
+        function addItem() {
+            const tbody = document.getElementById('itemsTable');
+            const newRow = tbody.insertRow();
+            newRow.innerHTML = `
+                <tr>
+                    <td class="border border-black p-1 text-center"><input type="number" class="w-full p-1 border-0 text-center quantity-input" value="1" min="0"></td>
+                    <td class="border border-black p-1"><input type="text" class="w-full p-1 border-0 item-name" placeholder="Nama barang/jasa"></td>
+                    <td class="border border-black p-1"><input type="number" class="w-full p-1 border-0 text-right item-price" placeholder="0" min="0"></td>
+                    <td class="border border-black p-1 text-right item-total font-medium">Rp 0</td>
+                    <td class="border border-black p-1 text-center"><button onclick="removeItem(this)" class="text-red-500 hover:text-red-700">🗑️</button></td>
+                </tr>
+            `;
+            updateCalculations();
+        }
+
+        function removeItem(button) {
+            const tbody = button.closest('tbody');
+            button.closest('tr').remove();
+            if (tbody.rows.length === 0) {
+                 addItem(); // Ensure there's always at least one row
+            }
+            updateCalculations();
+        }
+
+        function updateCalculations() {
+            let total = 0;
+            document.querySelectorAll('#itemsTable tr').forEach(row => {
+                const quantity = parseFloat(row.querySelector('.quantity-input').value) || 0;
+                const price = parseFloat(row.querySelector('.item-price').value) || 0;
+                const itemTotal = quantity * price;
+                row.querySelector('.item-total').textContent = `Rp ${itemTotal.toLocaleString('id-ID')}`;
+                total += itemTotal;
+            });
+
+            document.getElementById('totalAmount').value = `Rp ${total.toLocaleString('id-ID')}`;
+            const downPayment = parseFloat(document.getElementById('downPayment').value) || 0;
+            const remaining = total - downPayment;
+            document.getElementById('remainingAmount').value = `Rp ${remaining.toLocaleString('id-ID')}`;
+        }
+
+        function getFormData() {
+            const items = [];
+            document.querySelectorAll('#itemsTable tr').forEach(row => {
+                const quantity = parseFloat(row.querySelector('.quantity-input').value) || 0;
+                const name = row.querySelector('.item-name').value.trim();
+                const price = parseFloat(row.querySelector('.item-price').value) || 0;
+                if (name && quantity > 0) items.push({ quantity, name, price });
+            });
+
+            const invoiceNumber = document.getElementById('invoiceNumber').value;
+            const record = db.records.find(r => r.invoiceNumber === invoiceNumber);
+            
+            return {
+                id: record ? record.id : null,
+                invoiceNumber: invoiceNumber,
+                invoiceDate: new Date().toISOString(),
+                customerName: document.getElementById('customerNameInput').value,
+                customerPhone: document.getElementById('customerPhoneInput').value,
+                items: items,
+                totalAmount: parseFloat(document.getElementById('totalAmount').value.replace(/[^\d,]/g, '').replace(',', '.')) || 0,
+                downPayment: parseFloat(document.getElementById('downPayment').value) || 0
+            };
+        }
+
+        async function newInvoice() {
+            document.getElementById('invoiceNumber').value = await db.generateInvoiceNumber();
+            document.getElementById('invoiceDateDisplay').value = new Date().toLocaleDateString('id-ID', {day: '2-digit', month: '2-digit', year: 'numeric'});
+            document.getElementById('customerNameInput').value = '';
+            document.getElementById('customerPhoneInput').value = '';
+            document.getElementById('downPayment').value = '';
+            
+            const tbody = document.getElementById('itemsTable');
+            tbody.innerHTML = '';
+            addItem();
+            updateCalculations();
+        }
+
+        async function saveInvoice() {
+            const formData = getFormData();
+            if (!formData.customerName) return showCustomMessage('Mohon isi nama pelanggan!');
+            if (formData.items.length === 0) return showCustomMessage('Mohon tambahkan minimal satu item!');
+
+            try {
+                const id = await db.create(formData);
+                showCustomMessage(`Nota berhasil disimpan!`);
+                const newIndex = db.records.findIndex(r => r.id === id);
+                await db.loadRecordByIndex(newIndex);
+            } catch (error) {
+                showCustomMessage('Gagal menyimpan nota!');
+                console.error('Save error:', error);
+            }
+        }
+
+        async function updateInvoice() {
+            const formData = getFormData();
+            if (!formData.id) return showCustomMessage('Tidak ada nota yang dipilih untuk diupdate!');
+            if (!formData.customerName) return showCustomMessage('Mohon isi nama pelanggan!');
+            
+            try {
+                const success = await db.update(formData.id, formData);
+                showCustomMessage(success ? 'Nota berhasil diupdate!' : 'Gagal mengupdate nota!');
+            } catch (error) {
+                showCustomMessage('Gagal mengupdate nota!');
+                console.error('Update error:', error);
+            }
+        }
+
+        async function deleteInvoice() {
+            const formData = getFormData();
+            if (!formData.id) return showCustomMessage('Tidak ada nota yang dipilih untuk dihapus!');
+
+            showCustomMessageWithConfirmation('Yakin ingin menghapus nota ini?', async (isConfirmed) => {
+                if (isConfirmed) {
+                    try {
+                        const success = await db.delete(formData.id);
+                        if (success) {
+                            await newInvoice();
+                            showCustomMessage('Nota berhasil dihapus!');
+                        } else {
+                            showCustomMessage('Gagal menghapus nota!');
+                        }
+                    } catch (error) {
+                        showCustomMessage('Gagal menghapus nota!');
+                        console.error('Delete error:', error);
+                    }
+                }
+            });
+        }
+
+        function printInvoice() {
+            window.print();
+        }
+        
+        async function exportDatabase() {
+            try {
+                const data = db.records;
+                if (data.length === 0) {
+                    showCustomMessage("Database kosong, tidak ada yang bisa di-backup.");
+                    return;
+                }
+                const jsonString = JSON.stringify(data, null, 2);
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `musadad_invoices_backup_${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(a.href);
+            } catch (error) {
+                showCustomMessage('Gagal backup database!');
+                console.error('Export error:', error);
+            }
+        }
+
+        function importDatabase() { document.getElementById('importFile').click(); }
+
+        function handleImportFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                showCustomMessageWithConfirmation('Ini akan menimpa data saat ini dengan data dari file. Lanjutkan?', async (isConfirmed) => {
+                    if (isConfirmed) {
+                        try {
+                            await db.importData(JSON.parse(e.target.result));
+                            showCustomMessage('Data berhasil di-restore!');
+                            await db.first(); // Load the first record from new data
+                            closeDatabaseModal(); // Tutup modal setelah restore
+                        } catch (error) {
+                            showCustomMessage('Gagal me-restore data. Pastikan file JSON valid.');
+                            console.error('Import error:', error);
+                        }
+                    }
+                });
+            };
+            reader.readAsText(file);
+        }
+        
+        // FUNGSI BARU UNTUK EKSPOR DAN IMPOR EXCEL
+        async function exportDatabaseToExcel() {
+            try {
+                const data = db.records;
+                if (data.length === 0) {
+                    showCustomMessage("Database kosong, tidak ada data untuk diekspor ke Excel.");
+                    return;
+                }
+
+                // Siapkan data untuk Excel
+                const excelData = [];
+                excelData.push(["No. Nota", "Tanggal", "Tuan", "Tlp", "Banyak", "Nama Barang", "Harga", "Jumlah"]); // Header
+
+                data.forEach(invoice => {
+                    const invoiceDate = new Date(invoice.invoiceDate).toLocaleDateString('id-ID');
+                    invoice.items.forEach(item => {
+                        const itemTotal = item.quantity * item.price;
+                        excelData.push([
+                            invoice.invoiceNumber,
+                            invoiceDate,
+                            invoice.customerName,
+                            invoice.customerPhone || '',
+                            item.quantity,
+                            item.name,
+                            item.price,
+                            itemTotal
+                        ]);
+                    });
+                });
+
+                // Buat worksheet dan workbook
+                const ws = XLSX.utils.aoa_to_sheet(excelData);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Nota Data");
+
+                // Simpan file
+                XLSX.writeFile(wb, `nota_data_excel_${new Date().toISOString().split('T')[0]}.xlsx`);
+                showCustomMessage("Data berhasil diekspor ke Excel!");
+            } catch (error) {
+                showCustomMessage('Gagal mengekspor data ke Excel!');
+                console.error('Export Excel error:', error);
+            }
+        }
+
+        function importDatabaseFromExcel() {
+            document.getElementById('importExcelFile').click();
+        }
+
+        function handleImportExcelFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+                const data = e.target.result;
+                const workbook = XLSX.read(data, { type: 'binary' });
+                const sheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[sheetName];
+                const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                
+                if (json.length === 0) {
+                    showCustomMessage('File Excel kosong atau format tidak valid.');
+                    return;
+                }
+
+                showCustomMessageWithConfirmation('Ini akan menimpa data saat ini dengan data dari file Excel. Lanjutkan?', async (isConfirmed) => {
+                    if (isConfirmed) {
+                        try {
+                            const newData = processExcelData(json);
+                            if (newData.length === 0) {
+                                showCustomMessage('Tidak ada data nota yang valid ditemukan dalam file.');
+                                return;
+                            }
+                            await db.importData(newData);
+                            showCustomMessage('Data berhasil di-restore dari file Excel!');
+                            await db.first();
+                            closeDatabaseModal();
+                        } catch (error) {
+                            showCustomMessage('Gagal me-restore data dari Excel. Pastikan file memiliki format yang benar.');
+                            console.error('Import Excel error:', error);
+                        }
+                    }
+                });
+            };
+            reader.readAsBinaryString(file);
+        }
+
+        function processExcelData(data) {
+            const header = data[0];
+            const records = data.slice(1);
+            const processedData = {};
+
+            records.forEach(row => {
+                // Lewati baris kosong
+                if (!row || row.length === 0) return;
+
+                const invoiceNumber = String(row[0]);
+                if (!invoiceNumber || invoiceNumber === "No. Nota") return;
+
+                // Cek jika baris tidak memiliki data lengkap
+                if (row.length < 6) return; 
+
+                const invoiceDate = row[1];
+                const customerName = row[2];
+                const customerPhone = row[3];
+                const quantity = parseFloat(row[4]) || 0;
+                const itemName = row[5];
+                const itemPrice = parseFloat(row[6]) || 0;
+                
+                // Jika nota belum ada, buat entri baru
+                if (!processedData[invoiceNumber]) {
+                    let dateObject = new Date();
+                    // Coba parse tanggal. Jika tidak valid, gunakan tanggal hari ini.
+                    if (invoiceDate) {
+                        const parsedDate = new Date(invoiceDate);
+                        if (!isNaN(parsedDate.getTime())) {
+                            dateObject = parsedDate;
+                        }
+                    }
+
+                    processedData[invoiceNumber] = {
+                        id: crypto.randomUUID(),
+                        invoiceNumber: invoiceNumber,
+                        invoiceDate: dateObject.toISOString(),
+                        customerName: customerName,
+                        customerPhone: customerPhone,
+                        downPayment: 0,
+                        totalAmount: 0,
+                        items: []
+                    };
+                }
+
+                // Tambahkan item ke nota yang sudah ada
+                if (itemName) {
+                    const totalItem = quantity * itemPrice;
+                    processedData[invoiceNumber].items.push({
+                        quantity: quantity,
+                        name: itemName,
+                        price: itemPrice
+                    });
+                    processedData[invoiceNumber].totalAmount += totalItem;
+                }
+            });
+
+            return Object.values(processedData);
+        }
+
+        async function searchInvoices() {
+            const query = document.getElementById('searchInput').value;
+            if (!query) {
+                db.populateTable(db.records);
+                return;
+            };
+            try {
+                const results = await db.search(query);
+                db.populateTable(results);
+                showCustomMessage(`Ditemukan ${results.length} hasil pencarian.`);
+            } catch (error) {
+                showCustomMessage('Gagal melakukan pencarian.');
+                console.error('Search error:', error);
+            }
+        }
+
+        async function clearDatabase() {
+             showCustomMessageWithConfirmation('PERINGATAN: Ini akan menghapus SEMUA data. Yakin?', (isConfirmed) => {
+                if(isConfirmed){
+                    showCustomMessageWithConfirmation('Konfirmasi sekali lagi: Semua data akan hilang permanen!', async (isFinalConfirmed) => {
+                        if (isFinalConfirmed) {
+                             try {
+                                await db.clear();
+                                await newInvoice();
+                                showCustomMessage('Database berhasil dikosongkan!');
+                            } catch (error) {
+                                showCustomMessage('Gagal mengosongkan database!');
+                                console.error('Clear DB error:', error);
+                            }
+                        }
+                    }, 'HAPUS SEMUA', 'Batalkan');
+                }
+            }, 'Ya, Hapus', 'Batal');
+        }
+        
+        function showCustomMessage(message) {
+            const overlay = document.createElement('div');
+            overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;justify-content:center;align-items:center;z-index:1000;';
+            const box = document.createElement('div');
+            box.style.cssText = 'background:white;padding:20px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.1);text-align:center;max-width:300px;';
+            const p = document.createElement('p');
+            p.textContent = message;
+            p.style.marginBottom = '15px';
+            const btn = document.createElement('button');
+            btn.textContent = 'OK';
+            btn.style.cssText = 'background:#007bff;color:white;padding:8px 16px;border:none;border-radius:5px;cursor:pointer;';
+            btn.onclick = () => overlay.remove();
+            box.append(p, btn);
+            overlay.appendChild(box);
+            document.body.appendChild(overlay);
+        }
+
+        function showCustomMessageWithConfirmation(message, callback, confirmText = 'OK', cancelText = 'Batal') {
+            const overlay = document.createElement('div');
+            overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;justify-content:center;align-items:center;z-index:1000;';
+            const box = document.createElement('div');
+            box.style.cssText = 'background:white;padding:20px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.1);text-align:center;max-width:320px;';
+            const p = document.createElement('p');
+            p.textContent = message;
+            p.style.marginBottom = '20px';
+            
+            const btnContainer = document.createElement('div');
+            btnContainer.style.cssText = 'display:flex;justify-content:center;gap:10px;';
+
+            const confirmBtn = document.createElement('button');
+            confirmBtn.textContent = confirmText;
+            confirmBtn.style.cssText = 'background:#28a745;color:white;padding:8px 16px;border:none;border-radius:5px;cursor:pointer;';
+            confirmBtn.onclick = () => { overlay.remove(); callback(true); };
+
+            const cancelBtn = document.createElement('button');
+            cancelBtn.textContent = cancelText;
+            cancelBtn.style.cssText = 'background:#6c757d;color:white;padding:8px 16px;border:none;border-radius:5px;cursor:pointer;';
+            cancelBtn.onclick = () => { overlay.remove(); callback(false); };
+
+            btnContainer.append(cancelBtn, confirmBtn);
+            box.append(p, btnContainer);
+            overlay.appendChild(box);
+            document.body.appendChild(overlay);
+        }
+
+        function firstRecord() { db.first(); }
+        function prevRecord() { db.previous(); }
+        function nextRecord() { db.next(); }
+        function lastRecord() { db.last(); }
+        
+        document.getElementById('searchInput').addEventListener('keypress', e => { if (e.key === 'Enter') searchInvoices(); });
+        
+        // FUNGSI UNTUK MODAL DATABASE
+        function showDatabaseDetails() {
+            const records = db.records;
+            const tbody = document.getElementById('fullDatabaseTable');
+            tbody.innerHTML = '';
+            
+            if (records.length === 0) {
+                const row = tbody.insertRow();
+                row.innerHTML = `<td colspan="8" class="p-4 text-center text-gray-500">Database kosong.</td>`;
+            } else {
+                records.forEach(invoice => {
+                    const invoiceDate = new Date(invoice.invoiceDate).toLocaleDateString('id-ID');
+                    invoice.items.forEach(item => {
+                        const row = tbody.insertRow();
+                        const itemTotal = item.quantity * item.price;
+                        row.innerHTML = `
+                            <td class="p-2 border-b">${invoice.invoiceNumber}</td>
+                            <td class="p-2 border-b">${invoiceDate}</td>
+                            <td class="p-2 border-b">${invoice.customerName}</td>
+                            <td class="p-2 border-b">${invoice.customerPhone || '-'}</td>
+                            <td class="p-2 border-b">${item.quantity}</td>
+                            <td class="p-2 border-b">${item.name}</td>
+                            <td class="p-2 border-b">Rp ${item.price.toLocaleString('id-ID')}</td>
+                            <td class="p-2 border-b font-medium">Rp ${itemTotal.toLocaleString('id-ID')}</td>
+                        `;
+                    });
+                });
+            }
+            
+            document.getElementById('databaseModal').classList.remove('hidden');
+        }
+        
+        function closeDatabaseModal() {
+            document.getElementById('databaseModal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
