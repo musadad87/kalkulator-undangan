@@ -230,7 +230,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, doc, getDoc, updateDoc, deleteDoc, query, where, onSnapshot, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
         // Global variables provided by the environment, do not modify
         const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : null);
@@ -253,22 +253,34 @@
                     db = getFirestore(app);
                     auth = getAuth(app);
                     
-                    if (initialAuthToken) {
-                        await signInWithCustomToken(auth, initialAuthToken);
-                    } else {
-                        await signInAnonymously(auth);
-                    }
-                    userId = auth.currentUser.uid;
-                    document.getElementById('dbStatus').textContent = 'Aktif (Connected to Firestore)';
-                    
-                    this.setupRealtimeListener();
+                    this.setupAuthListener();
                 } catch (error) {
                     document.getElementById('dbStatus').textContent = 'Error';
                     console.error('Firebase initialization error:', error);
                     showCustomMessage('Gagal terhubung ke database. Cek konsol untuk detail.');
                 }
             }
-            
+
+            setupAuthListener() {
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        document.getElementById('dbStatus').textContent = 'Aktif (Connected to Firestore)';
+                        this.setupRealtimeListener();
+                    } else {
+                        userId = null;
+                        this.records = [];
+                        this.currentIndex = 0;
+                        this.updateUI();
+                        if (this.unsubscribe) {
+                            this.unsubscribe();
+                        }
+                        document.getElementById('dbStatus').textContent = 'Disconnected';
+                        showCustomMessage('Anda terputus dari database.');
+                    }
+                });
+            }
+
             setupRealtimeListener() {
                 const q = query(collection(db, 'artifacts', appId, 'users', userId, 'invoices'));
                 this.unsubscribe = onSnapshot(q, (querySnapshot) => {
