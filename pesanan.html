@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Manajemen Pesanan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen p-6">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <h1 class="text-3xl font-bold text-gray-800 text-center">📋 Sistem Manajemen Pesanan</h1>
+            <p class="text-gray-600 text-center mt-1">Data tersimpan aman di browser Anda dengan LocalStorage</p>
+        </div>
+
+        <!-- Form Input -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold text-gray-700 mb-4">Form Input Pesanan</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">No Pesanan</label>
+                    <input type="text" id="noPesanan" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Masukkan No Pesanan">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Nama Pesanan</label>
+                    <input type="text" id="namaPesanan" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Masukkan Nama Pesanan">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Jumlah</label>
+                    <input type="number" id="jumlah" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Masukkan Jumlah">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Diambil</label>
+                    <input type="date" id="tanggalAmbil" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                    <select id="status" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="BLM PROSES">BLM PROSES</option>
+                        <option value="PROSES">PROSES</option>
+                        <option value="CETAK">CETAK</option>
+                        <option value="FINISHING">FINISHING</option>
+                        <option value="SELESAI">SELESAI</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Keterangan Proses</label>
+                <textarea id="keteranganProses" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Masukkan keterangan proses..."></textarea>
+            </div>
+        </div>
+
+        <!-- Navigation & Control Buttons -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Record Navigation Buttons -->
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-700 mb-3">🧭 Navigasi Record</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="firstRecord()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">⏮️ First</button>
+                        <button onclick="previousRecord()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">⏪ Previous</button>
+                        <button onclick="nextRecord()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">⏩ Next</button>
+                        <button onclick="lastRecord()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">⏭️ Last</button>
+                    </div>
+                </div>
+
+                <!-- Data Control Buttons -->
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-700 mb-3">⚙️ Kontrol Data</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="newRecord()" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">➕ New</button>
+                        <button onclick="saveRecord()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">💾 Save</button>
+                        <button onclick="deleteRecord()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">🗑️ Delete</button>
+                        <button onclick="undoRecord()" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">↶ Undo</button>
+                    </div>
+                </div>
+                
+                <!-- Database Management -->
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-700 mb-3">🗃️ Database Management</h3>
+                     <div class="flex flex-wrap gap-2">
+                        <button onclick="downloadDatabase()" class="bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">📤 Download</button>
+                        <button onclick="uploadDatabase()" class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">📥 Upload</button>
+                        <input type="file" id="importFile" class="hidden" accept=".json" onchange="handleFileUpload(event)">
+                     </div>
+                </div>
+            </div>
+
+            <!-- Record Counter -->
+            <div class="mt-6 text-center">
+                <span class="bg-gray-100 px-4 py-2 rounded-lg text-gray-700 font-medium">
+                    Record <span id="currentRecord">0</span> dari <span id="totalRecords">0</span>
+                </span>
+            </div>
+        </div>
+
+        <!-- Database Table -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
+                <h2 class="text-xl font-semibold text-gray-700">📊 Database Pesanan</h2>
+                
+                <!-- Search Section -->
+                <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                    <div class="relative">
+                        <input type="text" id="searchInput" placeholder="Cari pesanan..." class="w-full md:w-64 px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        </div>
+                    </div>
+                    <select id="searchFilter" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="all">Semua Field</option>
+                        <option value="noPesanan">No Pesanan</option>
+                        <option value="namaPesanan">Nama Pesanan</option>
+                        <option value="status">Status</option>
+                    </select>
+                    <button onclick="clearSearch()" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors">🗑️ Clear</button>
+                </div>
+            </div>
+            
+            <div id="searchInfo" class="mb-3 text-sm text-gray-600 hidden"><span id="searchResults"></span></div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse border border-gray-300">
+                    <thead>
+                        <tr class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
+                            <th class="border border-gray-300 px-4 py-3 text-left font-semibold">No Pesanan</th>
+                            <th class="border border-gray-300 px-4 py-3 text-left font-semibold">Nama Pesanan</th>
+                            <th class="border border-gray-300 px-4 py-3 text-left font-semibold">Jumlah</th>
+                            <th class="border border-gray-300 px-4 py-3 text-left font-semibold">Tanggal Diambil</th>
+                            <th class="border border-gray-300 px-4 py-3 text-left font-semibold">Status</th>
+                            <th class="border border-gray-300 px-4 py-3 text-left font-semibold">Keterangan Proses</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTable"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const DB_KEY = 'manajemenPesananDB';
+        let pesananData = [];
+        let currentIndex = -1;
+        let originalData = {};
+        let filteredData = [];
+
+        // --- Core Database Functions ---
+        function loadFromLocalStorage() {
+            const storedData = localStorage.getItem(DB_KEY);
+            if (storedData) {
+                pesananData = JSON.parse(storedData);
+            } else {
+                // Jika tidak ada data, gunakan data sampel awal
+                pesananData = [ { noPesanan: "PSN001", namaPesanan: "Brosur A4", jumlah: 500, tanggalAmbil: "2024-01-15", status: "PROSES", keteranganProses: "Sedang dalam tahap desain" }, { noPesanan: "PSN002", namaPesanan: "Kartu Nama", jumlah: 1000, tanggalAmbil: "2024-01-20", status: "CETAK", keteranganProses: "Siap untuk dicetak" } ];
+                persistData();
+            }
+            filteredData = [...pesananData];
+        }
+
+        function persistData() {
+            localStorage.setItem(DB_KEY, JSON.stringify(pesananData));
+        }
+        
+        // --- Form & UI Functions ---
+        function loadRecord(index) {
+            if (index >= 0 && index < filteredData.length) {
+                const data = filteredData[index];
+                // Cari index asli di data utama
+                const originalIndex = pesananData.findIndex(p => p.noPesanan === data.noPesanan);
+                if (originalIndex === -1) return;
+
+                currentIndex = originalIndex;
+
+                document.getElementById('noPesanan').value = data.noPesanan;
+                document.getElementById('namaPesanan').value = data.namaPesanan;
+                document.getElementById('jumlah').value = data.jumlah;
+                document.getElementById('tanggalAmbil').value = data.tanggalAmbil;
+                document.getElementById('status').value = data.status;
+                document.getElementById('keteranganProses').value = data.keteranganProses;
+                
+                originalData = {...data};
+                
+                updateRecordCounter();
+            }
+        }
+
+        function updateRecordCounter() {
+            const total = pesananData.length;
+            const current = total > 0 ? currentIndex + 1 : 0;
+            document.getElementById('currentRecord').textContent = current;
+            document.getElementById('totalRecords').textContent = total;
+        }
+
+        // --- Navigation functions ---
+        function firstRecord() {
+            if (pesananData.length === 0) return;
+            currentIndex = 0;
+            loadRecord(0); // Load based on filtered data index
+            showNotification("Navigasi ke record pertama", "info");
+        }
+
+        function previousRecord() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                loadRecordBasedOnCurrentIndex();
+                showNotification("Navigasi ke record sebelumnya", "info");
+            } else {
+                showNotification("Sudah di record pertama", "warning");
+            }
+        }
+
+        function nextRecord() {
+            if (currentIndex < pesananData.length - 1) {
+                currentIndex++;
+                loadRecordBasedOnCurrentIndex();
+                showNotification("Navigasi ke record selanjutnya", "info");
+            } else {
+                showNotification("Sudah di record terakhir", "warning");
+            }
+        }
+
+        function lastRecord() {
+            if (pesananData.length === 0) return;
+            currentIndex = pesananData.length - 1;
+            loadRecordBasedOnCurrentIndex();
+            showNotification("Navigasi ke record terakhir", "info");
+        }
+        
+        function loadRecordBasedOnCurrentIndex(){
+            const currentNoPesanan = pesananData[currentIndex].noPesanan;
+            const filteredIndex = filteredData.findIndex(p => p.noPesanan === currentNoPesanan);
+            if(filteredIndex !== -1){
+                loadRecord(filteredIndex);
+            } else {
+                // Jika record tidak ada di filter, clear search dan load
+                clearSearch();
+                loadRecord(currentIndex);
+            }
+        }
+
+        // --- Data control functions ---
+        function undoRecord() {
+            if (originalData.noPesanan) {
+                loadRecord(currentIndex); // Cukup load ulang data asli
+                showNotification("Data dikembalikan ke kondisi semula", "success");
+            }
+        }
+
+        function saveRecord() {
+            const noPesanan = document.getElementById('noPesanan').value.trim();
+            const namaPesanan = document.getElementById('namaPesanan').value.trim();
+
+            if (!noPesanan || !namaPesanan) {
+                showNotification("Mohon lengkapi No Pesanan dan Nama Pesanan", "error");
+                return;
+            }
+            
+            const data = {
+                noPesanan: noPesanan,
+                namaPesanan: namaPesanan,
+                jumlah: parseInt(document.getElementById('jumlah').value) || 0,
+                tanggalAmbil: document.getElementById('tanggalAmbil').value,
+                status: document.getElementById('status').value,
+                keteranganProses: document.getElementById('keteranganProses').value
+            };
+            
+            const existingIndex = pesananData.findIndex(p => p.noPesanan === data.noPesanan);
+
+            if (existingIndex !== -1) {
+                // Update
+                pesananData[existingIndex] = data;
+                showNotification(`Data untuk ${data.noPesanan} berhasil diperbarui`, "success");
+            } else {
+                // Add new
+                pesananData.push(data);
+                currentIndex = pesananData.length - 1;
+                showNotification(`Data baru ${data.noPesanan} berhasil disimpan`, "success");
+            }
+            
+            persistData();
+            refreshTable();
+            loadRecord(filteredData.findIndex(p => p.noPesanan === data.noPesanan));
+        }
+
+        function newRecord() {
+            document.getElementById('noPesanan').value = '';
+            document.getElementById('namaPesanan').value = '';
+            document.getElementById('jumlah').value = '';
+            document.getElementById('tanggalAmbil').value = new Date().toISOString().split('T')[0];
+            document.getElementById('status').value = 'BLM PROSES';
+            document.getElementById('keteranganProses').value = '';
+            
+            let lastNum = 0;
+            pesananData.forEach(p => {
+                const num = parseInt(p.noPesanan.replace('PSN', ''));
+                if (!isNaN(num) && num > lastNum) lastNum = num;
+            });
+
+            const newNo = "PSN" + String(lastNum + 1).padStart(3, '0');
+            document.getElementById('noPesanan').value = newNo;
+            
+            currentIndex = -1; // Indicate new record
+            originalData = {}; // Kosongkan data asli
+            updateRecordCounter();
+            showNotification("Form siap untuk record baru", "info");
+        }
+
+        function deleteRecord() {
+            if (currentIndex < 0 || currentIndex >= pesananData.length) {
+                showNotification("Pilih record yang ingin dihapus terlebih dahulu", "warning");
+                return;
+            }
+            
+            const noPesananToDelete = pesananData[currentIndex].noPesanan;
+            if (confirm(`Apakah Anda yakin ingin menghapus pesanan ${noPesananToDelete}?`)) {
+                // Step 1: Hapus data dari array utama
+                pesananData.splice(currentIndex, 1);
+                
+                // Step 2: Simpan perubahan ke localStorage
+                persistData();
+                
+                // Step 3: Sesuaikan index jika item terakhir dihapus
+                if (currentIndex >= pesananData.length) {
+                    currentIndex = pesananData.length - 1; // Pindah ke item terakhir yang baru, atau menjadi -1 jika kosong
+                }
+                
+                // Step 4: Refresh tabel untuk menampilkan data terbaru (sesuai filter)
+                refreshTable();
+                
+                // Step 5: Muat record yang benar ke dalam form, atau kosongkan form
+                if (pesananData.length > 0) {
+                    // Coba muat record yang sekarang ada di currentIndex
+                    const recordToDisplay = pesananData[currentIndex];
+                    // Temukan posisinya di daftar yang sedang ditampilkan (yang mungkin difilter)
+                    const displayIndex = filteredData.findIndex(p => p.noPesanan === recordToDisplay.noPesanan);
+
+                    if (displayIndex !== -1) {
+                        // Jika recordnya terlihat di tabel, muat ke form
+                        loadRecord(displayIndex);
+                    } else {
+                        // Jika record tidak terlihat (karena filter), kosongkan form
+                        newRecord();
+                    }
+                } else {
+                    // Jika tidak ada data tersisa, siapkan form untuk data baru
+                    newRecord();
+                }
+
+                showNotification(`Pesanan ${noPesananToDelete} berhasil dihapus`, "success");
+            }
+        }
+
+        // --- Table & Search Functions ---
+        function refreshTable() {
+            searchData();
+        }
+
+        function searchData() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const searchFilter = document.getElementById('searchFilter').value;
+            
+            if (!searchTerm) {
+                filteredData = [...pesananData];
+                document.getElementById('searchInfo').classList.add('hidden');
+            } else {
+                filteredData = pesananData.filter(data => {
+                    if (searchFilter === 'all') {
+                        return Object.values(data).some(value => value.toString().toLowerCase().includes(searchTerm));
+                    } else {
+                        return data[searchFilter].toString().toLowerCase().includes(searchTerm);
+                    }
+                });
+                
+                const searchInfo = document.getElementById('searchInfo');
+                const searchResults = document.getElementById('searchResults');
+                searchInfo.classList.remove('hidden');
+                searchResults.textContent = `Ditemukan ${filteredData.length} hasil untuk "${searchTerm}"`;
+            }
+            
+            renderTable();
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('searchFilter').value = 'all';
+            refreshTable();
+            showNotification("Pencarian dibersihkan", "info");
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('dataTable');
+            tbody.innerHTML = '';
+
+            if (filteredData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="border border-gray-300 px-4 py-8 text-center text-gray-500"><div class="flex flex-col items-center gap-2"><svg class="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.47-.881-6.08-2.33"></path></svg><span class="text-lg font-medium">Tidak ada data yang ditemukan</span></div></td></tr>`;
+                updateRecordCounter();
+                return;
+            }
+
+            filteredData.forEach((data, index) => {
+                const statusClass = { 'BLM PROSES': 'bg-red-100 text-red-800', 'PROSES': 'bg-yellow-100 text-yellow-800', 'CETAK': 'bg-blue-100 text-blue-800', 'FINISHING': 'bg-purple-100 text-purple-800', 'SELESAI': 'bg-green-100 text-green-800' };
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-blue-50 transition-colors cursor-pointer';
+                row.onclick = () => loadRecord(index);
+                row.innerHTML = `<td class="border border-gray-300 px-4 py-3">${data.noPesanan}</td><td class="border border-gray-300 px-4 py-3">${data.namaPesanan}</td><td class="border border-gray-300 px-4 py-3">${data.jumlah}</td><td class="border border-gray-300 px-4 py-3">${data.tanggalAmbil}</td><td class="border border-gray-300 px-4 py-3"><span class="${statusClass[data.status]} px-2 py-1 rounded-full text-sm font-medium">${data.status}</span></td><td class="border border-gray-300 px-4 py-3">${data.keteranganProses}</td>`;
+                tbody.appendChild(row);
+            });
+            updateRecordCounter();
+        }
+
+        // --- Database Management ---
+        function downloadDatabase() {
+            if (pesananData.length === 0) {
+                showNotification("Database kosong, tidak ada yang bisa di-download.", "warning");
+                return;
+            }
+            const dataStr = JSON.stringify(pesananData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            const date = new Date().toISOString().split('T')[0];
+            link.download = `pesanan_backup_${date}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            showNotification("Database berhasil di-download!", "success");
+        }
+
+        function uploadDatabase() {
+            document.getElementById('importFile').click();
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                if (confirm('Ini akan menimpa semua data saat ini dengan data dari file. Lanjutkan?')) {
+                    try {
+                        const importedData = JSON.parse(e.target.result);
+                        if (Array.isArray(importedData)) {
+                            pesananData = importedData;
+                            persistData();
+                            init();
+                            showNotification('Database berhasil di-upload dan dipulihkan!', "success");
+                        } else {
+                            showNotification('File tidak valid. Data harus berupa array.', "error");
+                        }
+                    } catch (error) {
+                        showNotification('Gagal memproses file. Pastikan format JSON benar.', "error");
+                    }
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = null;
+        }
+
+        // --- Notification system ---
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            const colors = { success: 'bg-green-500', error: 'bg-red-500', warning: 'bg-yellow-500', info: 'bg-blue-500' };
+            notification.className = `fixed top-4 right-4 ${colors[type]} text-white px-6 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            setTimeout(() => { notification.style.transform = 'translateX(120%)'; setTimeout(() => { if (notification.parentNode) notification.parentNode.removeChild(notification); }, 300); }, 3000);
+        }
+        
+        // --- Initialize ---
+        function init() {
+            loadFromLocalStorage();
+            renderTable();
+            if (pesananData.length > 0) {
+                loadRecord(0);
+            } else {
+                newRecord();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            init();
+            document.getElementById('searchInput').addEventListener('input', searchData);
+            document.getElementById('searchFilter').addEventListener('change', searchData);
+            document.getElementById('searchInput').addEventListener('keypress', e => { if (e.key === 'Enter') searchData(); });
+            showNotification("Sistem Manajemen Pesanan siap digunakan!", "success");
+        });
+    </script>
+</body>
+</html>
+
+
