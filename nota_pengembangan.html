@@ -374,7 +374,7 @@
             
             async importData(data) {
                 if (!Array.isArray(data)) {
-                    throw new Error('Format data tidak valid. Diperlukan array.');
+                    throw new Error('Format data tidak valid. Diperperlukan array.');
                 }
                 this.records = data;
                 this._saveToLocalStorage();
@@ -677,23 +677,46 @@
 
                 // Siapkan data untuk Excel
                 const excelData = [];
-                excelData.push(["No. Nota", "Tanggal", "Tuan", "Tlp", "Banyak", "Nama Barang", "Harga", "Jumlah"]); // Header
+                // Header baru yang mencakup semua data
+                excelData.push(["No. Nota", "Tanggal", "Tuan", "Tlp", "Banyak", "Nama Barang", "Harga", "Jumlah", "Jumlah Harga", "Uang Muka", "Kurang"]); // Header
 
                 data.forEach(invoice => {
                     const invoiceDate = new Date(invoice.invoiceDate).toLocaleDateString('id-ID');
-                    invoice.items.forEach(item => {
-                        const itemTotal = item.quantity * item.price;
+                    const remaining = (invoice.totalAmount || 0) - (invoice.downPayment || 0);
+
+                    // Looping melalui item
+                    if (invoice.items && invoice.items.length > 0) {
+                        invoice.items.forEach((item, index) => {
+                            const itemTotal = item.quantity * item.price;
+                            // Tambahkan baris untuk setiap item
+                            excelData.push([
+                                invoice.invoiceNumber,
+                                invoiceDate,
+                                invoice.customerName,
+                                invoice.customerPhone || '',
+                                item.quantity,
+                                item.name,
+                                item.price,
+                                itemTotal,
+                                // Tambahkan data total hanya pada baris pertama untuk setiap nota
+                                index === 0 ? invoice.totalAmount : '',
+                                index === 0 ? invoice.downPayment : '',
+                                index === 0 ? remaining : ''
+                            ]);
+                        });
+                    } else {
+                        // Jika tidak ada item, tetap tambahkan baris untuk nota
                         excelData.push([
                             invoice.invoiceNumber,
                             invoiceDate,
                             invoice.customerName,
                             invoice.customerPhone || '',
-                            item.quantity,
-                            item.name,
-                            item.price,
-                            itemTotal
+                            '', '', '', '', // Kolom item kosong
+                            invoice.totalAmount || 0,
+                            invoice.downPayment || 0,
+                            remaining
                         ]);
-                    });
+                    }
                 });
 
                 // Buat worksheet dan workbook
@@ -766,7 +789,7 @@
                 if (!invoiceNumber || invoiceNumber === "No. Nota") return;
 
                 // Cek jika baris tidak memiliki data lengkap
-                if (row.length < 6) return; 
+                if (row.length < 8) return; 
 
                 const invoiceDate = row[1];
                 const customerName = row[2];
@@ -774,7 +797,9 @@
                 const quantity = parseFloat(row[4]) || 0;
                 const itemName = row[5];
                 const itemPrice = parseFloat(row[6]) || 0;
-                
+                const totalAmount = parseFloat(row[8]) || 0;
+                const downPayment = parseFloat(row[9]) || 0;
+
                 // Jika nota belum ada, buat entri baru
                 if (!processedData[invoiceNumber]) {
                     let dateObject = new Date();
@@ -792,21 +817,19 @@
                         invoiceDate: dateObject.toISOString(),
                         customerName: customerName,
                         customerPhone: customerPhone,
-                        downPayment: 0,
-                        totalAmount: 0,
+                        downPayment: downPayment,
+                        totalAmount: totalAmount,
                         items: []
                     };
                 }
 
                 // Tambahkan item ke nota yang sudah ada
                 if (itemName) {
-                    const totalItem = quantity * itemPrice;
                     processedData[invoiceNumber].items.push({
                         quantity: quantity,
                         name: itemName,
                         price: itemPrice
                     });
-                    processedData[invoiceNumber].totalAmount += totalItem;
                 }
             });
 
