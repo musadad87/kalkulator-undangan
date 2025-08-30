@@ -191,7 +191,7 @@
                 <!-- Search -->
                 <div class="mb-6">
                     <h3 class="text-lg font-semibold mb-3">Pencarian</h3>
-                    <input type="text" id="searchInput" placeholder="Cari nota, nama, atau alamat..." class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 mb-2">
+                    <input type="text" id="searchInput" placeholder="Cari no. nota, nama pelanggan, atau nama barang..." class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 mb-2">
                     <button onclick="searchInvoices()" class="w-full bg-orange-500 text-white px-3 py-2 rounded hover:bg-orange-600 text-sm">🔍 Cari</button>
                 </div>
 
@@ -360,8 +360,8 @@
                 return this.records.filter(record => 
                     (record.invoiceNumber && record.invoiceNumber.toLowerCase().includes(searchTerm)) ||
                     (record.customerName && record.customerName.toLowerCase().includes(searchTerm)) ||
-                    (record.customerPhone && record.customerPhone.toLowerCase().includes(searchTerm)) ||
-                    (record.items && record.items.some(item => item.name.toLowerCase().includes(searchTerm)))
+                    (record.customerPhone && String(record.customerPhone).toLowerCase().includes(searchTerm)) ||
+                    (record.items && record.items.some(item => item.name && String(item.name).toLowerCase().includes(searchTerm)))
                 );
             }
 
@@ -841,7 +841,7 @@
             if (!query) {
                 db.populateTable(db.records);
                 return;
-            };
+            }
             try {
                 const results = await db.search(query);
                 db.populateTable(results);
@@ -961,3 +961,4 @@
     </script>
 </body>
 </html>
+
