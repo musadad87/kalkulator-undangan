@@ -595,21 +595,31 @@
         }
 
         async function deleteInvoice() {
-            const formData = getFormData();
-            if (!formData.id) return showCustomMessage('Tidak ada nota yang dipilih untuk dihapus!');
+            // 1. Check if there is a record currently selected.
+            // The currentIndex points to the record loaded in the form.
+            if (db.records.length === 0 || db.currentIndex < 0 || db.currentIndex >= db.records.length) {
+                return showCustomMessage('Tidak ada nota yang dipilih untuk dihapus!');
+            }
 
-            showCustomMessageWithConfirmation('Yakin ingin menghapus nota ini?', async (isConfirmed) => {
+            // 2. Get the record to be deleted from our database array.
+            const recordToDelete = db.records[db.currentIndex];
+            
+            // 3. Confirm with the user, showing the invoice number.
+            showCustomMessageWithConfirmation(`Yakin ingin menghapus nota No. ${recordToDelete.invoiceNumber}?`, async (isConfirmed) => {
                 if (isConfirmed) {
                     try {
-                        const success = await db.delete(formData.id);
+                        // 4. Perform the deletion using the record's unique ID.
+                        const success = await db.delete(recordToDelete.id);
                         if (success) {
+                            // 5. After successful deletion, reset the form to a new invoice state.
                             await newInvoice();
                             showCustomMessage('Nota berhasil dihapus!');
                         } else {
-                            showCustomMessage('Gagal menghapus nota!');
+                            // This case is unlikely if we got the record from the array itself, but good to have.
+                            showCustomMessage('Gagal menghapus nota (nota tidak ditemukan).');
                         }
                     } catch (error) {
-                        showCustomMessage('Gagal menghapus nota!');
+                        showCustomMessage('Terjadi galat saat menghapus nota.');
                         console.error('Delete error:', error);
                     }
                 }
@@ -961,4 +971,5 @@
     </script>
 </body>
 </html>
+
 
