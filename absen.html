@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi Absensi Siswa</title>
+    <!-- Memuat Tailwind CSS untuk styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Memuat Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Memuat Lucide Icons -->
+    <script src="https://unpkg.com/lucide-react@0.378.0/dist/lucide-react.js"></script>
+    <style>
+        /* Mengatur font default */
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        /* Style untuk loader/spinner */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Class 'hidden' untuk menyembunyikan elemen */
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <!-- Kontainer utama aplikasi -->
+    <div id="app-container" class="min-h-screen">
+
+        <!-- Layar Loading Awal -->
+        <div id="initial-loader-screen" class="flex items-center justify-center min-h-screen">
+            <div class="text-center">
+                <div class="loader mx-auto"></div>
+                <p class="mt-4 text-lg font-medium text-gray-600">Memuat Aplikasi...</p>
+            </div>
+        </div>
+
+        <!-- Layar Login -->
+        <div id="login-screen" class="hidden">
+            <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+                <div class="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-lg">
+                    <div>
+                        <svg class="mx-auto h-12 w-auto text-blue-600" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg>
+                        <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                            Login Guru
+                        </h2>
+                        <p class="mt-2 text-center text-sm text-gray-600">
+                            Masuk untuk memulai sesi absensi
+                        </p>
+                    </div>
+                    <form id="login-form" class="mt-8 space-y-6">
+                        <div class="rounded-md shadow-sm -space-y-px">
+                            <div>
+                                <label for="email-address" class="sr-only">Alamat Email</label>
+                                <input id="email-address" name="email" type="email" autocomplete="email" required class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm" placeholder="Email: guru@sekolah.id" value="guru@sekolah.id">
+                            </div>
+                            <div>
+                                <label for="password" class="sr-only">Password</label>
+                                <input id="password" name="password" type="password" autocomplete="current-password" required class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm" placeholder="Password: 123456" value="123456">
+                            </div>
+                        </div>
+                        <p id="login-error" class="text-red-500 text-sm mt-2 hidden"></p>
+                        <div>
+                            <button type="submit" class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                                    <svg class="h-5 w-5 text-blue-500 group-hover:text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" /></svg>
+                                </span>
+                                Masuk
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tampilan Utama Aplikasi (setelah login) -->
+        <div id="main-app-screen" class="hidden">
+            <header class="bg-white shadow-md">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+                    <div class="flex items-center space-x-3">
+                         <svg class="h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
+                        <h1 class="text-2xl font-bold text-gray-900">Sistem Absensi Digital</h1>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <span id="user-email" class="text-sm font-medium text-gray-600"></span>
+                        <button id="logout-button" class="flex items-center text-sm font-medium text-red-600 hover:text-red-800 transition">
+                            <svg class="w-5 h-5 mr-1" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+                            Keluar
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <!-- Konten dinamis akan dimuat di sini -->
+                <div id="content-container">
+                    
+                    <!-- View: Dashboard/Pilih Kelas -->
+                    <div id="dashboard-view">
+                        <div class="flex justify-between items-center mb-6">
+                            <div>
+                                <h2 class="text-2xl font-bold">Jadwal Mengajar Hari Ini</h2>
+                                <p id="current-date" class="text-gray-600"></p>
+                            </div>
+                        </div>
+                        <div id="class-list-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <!-- Kartu kelas akan dimuat di sini oleh JavaScript -->
+                        </div>
+                         <div id="no-class-message" class="hidden text-center py-12">
+                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" /></svg>
+                            <h3 class="mt-2 text-sm font-medium text-gray-900">Tidak ada jadwal mengajar</h3>
+                            <p class="mt-1 text-sm text-gray-500">Saat ini tidak ada jadwal mengajar yang tersedia untuk Anda.</p>
+                        </div>
+                    </div>
+
+                    <!-- View: Lembar Absensi -->
+                    <div id="attendance-view" class="hidden">
+                        <button id="back-to-dashboard-btn" class="flex items-center mb-6 text-blue-600 font-medium hover:underline">
+                            <svg class="w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" x2="5" y1="12" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                            Kembali ke Jadwal
+                        </button>
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <div class="border-b pb-4 mb-4">
+                                <h2 id="attendance-class-title" class="text-2xl font-bold"></h2>
+                                <p id="attendance-subject-title" class="text-gray-600"></p>
+                            </div>
+                            <div id="student-list" class="space-y-3">
+                                <!-- Daftar siswa akan dimuat di sini -->
+                            </div>
+                            <div id="attendance-loader" class="text-center py-8 hidden">
+                                <div class="loader mx-auto"></div>
+                                <p class="mt-2 text-gray-600">Memuat data siswa...</p>
+                            </div>
+                            <div class="mt-8 flex justify-end">
+                                <button id="save-attendance-btn" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-300 disabled:bg-gray-400">
+                                    Simpan Absensi
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </main>
+        </div>
+
+    </div>
+    
+    <!-- Modal Notifikasi -->
+    <div id="notification-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-sm mx-auto text-center">
+            <div id="modal-icon"></div>
+            <h3 id="modal-title" class="text-lg font-medium text-gray-900 mt-4"></h3>
+            <p id="modal-message" class="text-sm text-gray-600 mt-2"></p>
+            <button id="modal-close-btn" class="mt-6 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">Tutup</button>
+        </div>
+    </div>
+
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import fungsi yang diperlukan dari Firebase SDK
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, getDocs, doc, setDoc, query, where, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Konfigurasi Firebase Anda (akan diisi otomatis oleh environment)
+        // JANGAN DIUBAH SECARA MANUAL
+        const firebaseConfig = typeof __firebase_config !== 'undefined' 
+            ? JSON.parse(__firebase_config) 
+            : { apiKey: "YOUR_API_KEY", authDomain: "YOUR_AUTH_DOMAIN", projectId: "YOUR_PROJECT_ID" };
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-absensi-app';
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        
+        // Inisialisasi Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Referensi elemen DOM
+        const initialLoaderScreen = document.getElementById('initial-loader-screen');
+        const loginScreen = document.getElementById('login-screen');
+        const mainAppScreen = document.getElementById('main-app-screen');
+        const loginForm = document.getElementById('login-form');
+        const loginError = document.getElementById('login-error');
+        const userEmailDisplay = document.getElementById('user-email');
+        const logoutButton = document.getElementById('logout-button');
+        const currentDateDisplay = document.getElementById('current-date');
+        const classListContainer = document.getElementById('class-list-container');
+        const dashboardView = document.getElementById('dashboard-view');
+        const attendanceView = document.getElementById('attendance-view');
+        const backToDashboardBtn = document.getElementById('back-to-dashboard-btn');
+        const attendanceClassTitle = document.getElementById('attendance-class-title');
+        const attendanceSubjectTitle = document.getElementById('attendance-subject-title');
+        const studentListContainer = document.getElementById('student-list');
+        const saveAttendanceBtn = document.getElementById('save-attendance-btn');
+        const attendanceLoader = document.getElementById('attendance-loader');
+        const noClassMessage = document.getElementById('no-class-message');
+        
+        // Modal elements
+        const notificationModal = document.getElementById('notification-modal');
+        const modalIcon = document.getElementById('modal-icon');
+        const modalTitle = document.getElementById('modal-title');
+        const modalMessage = document.getElementById('modal-message');
+        const modalCloseBtn = document.getElementById('modal-close-btn');
+
+        // Data dummy untuk jadwal dan siswa (akan di-seed ke Firestore)
+        const dummySchedules = [
+            { classId: '10-A', className: 'Kelas 10-A', subject: 'Matematika', time: '07:00 - 08:30' },
+            { classId: '11-B', className: 'Kelas 11-B', subject: 'Bahasa Indonesia', time: '09:00 - 10:30' },
+            { classId: '12-C', className: 'Kelas 12-C', subject: 'Biologi', time: '11:00 - 12:30' },
+        ];
+
+        const dummyStudents = {
+            '10-A': [
+                { studentId: 'NIS1001', name: 'Ahmad Subarjo' }, { studentId: 'NIS1002', name: 'Budi Santoso' },
+                { studentId: 'NIS1003', name: 'Citra Lestari' }, { studentId: 'NIS1004', name: 'Dewi Anggraini' },
+            ],
+            '11-B': [
+                { studentId: 'NIS1101', name: 'Eko Prasetyo' }, { studentId: 'NIS1102', name: 'Fitriani' },
+                { studentId: 'NIS1103', name: 'Gunawan' }, { studentId: 'NIS1104', name: 'Herlina' },
+            ],
+            '12-C': [
+                { studentId: 'NIS1201', name: 'Indah Permata' }, { studentId: 'NIS1202', name: 'Joko Widodo' },
+                { studentId: 'NIS1203', name: 'Kartika Sari' }, { studentId: 'NIS1204', name: 'Lia Amelia' },
+            ],
+        };
+
+        // Fungsi untuk mengisi data awal ke Firestore jika belum ada
+        async function seedInitialData() {
+            try {
+                const publicDataPath = `/artifacts/${appId}/public/data`;
+
+                const classesRef = collection(db, `${publicDataPath}/classes`);
+                const classesSnapshot = await getDocs(classesRef);
+                
+                if (classesSnapshot.empty) {
+                    console.log("Data awal tidak ditemukan, memulai seeding...");
+                    const batch = writeBatch(db);
+
+                    dummySchedules.forEach(cls => {
+                        const classDocRef = doc(db, `${publicDataPath}/classes`, cls.classId);
+                        batch.set(classDocRef, { name: cls.className });
+                    });
+
+                    for (const classId in dummyStudents) {
+                        const students = dummyStudents[classId];
+                        students.forEach(student => {
+                            const studentDocRef = doc(db, `${publicDataPath}/students`, student.studentId);
+                            batch.set(studentDocRef, { ...student, classId: classId });
+                        });
+                    }
+
+                    await batch.commit();
+                    console.log("Seeding data awal berhasil.");
+                } else {
+                    console.log("Data awal sudah ada.");
+                }
+            } catch (error) {
+                console.error("Error saat seeding data:", error);
+                showNotification('error', 'Gagal Memuat Data Awal', 'Terjadi masalah saat menyiapkan data dasar aplikasi.');
+            }
+        }
+
+        // Fungsi untuk menampilkan notifikasi modal
+        function showNotification(type, title, message) {
+            const icons = {
+                success: `<svg class="h-12 w-12 text-green-500 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`,
+                error: `<svg class="h-12 w-12 text-red-500 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`,
+            };
+            modalIcon.innerHTML = icons[type];
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            notificationModal.classList.remove('hidden');
+        }
+
+        modalCloseBtn.addEventListener('click', () => {
+            notificationModal.classList.add('hidden');
+        });
+
+        // Tangani status autentikasi pengguna
+        onAuthStateChanged(auth, user => {
+            initialLoaderScreen.classList.add('hidden');
+            if (user) {
+                // Pengguna sudah login
+                loginScreen.classList.add('hidden');
+                mainAppScreen.classList.remove('hidden');
+                userEmailDisplay.textContent = user.email || 'Guru';
+                initializeDashboard();
+            } else {
+                // Pengguna belum login
+                mainAppScreen.classList.add('hidden');
+                loginScreen.classList.remove('hidden');
+            }
+        });
+
+        // Proses login
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = loginForm.email.value;
+            const password = loginForm.password.value;
+            loginError.classList.add('hidden');
+            
+            try {
+                // Mengatur persistensi agar login tetap ada setelah refresh
+                await setPersistence(auth, browserLocalPersistence);
+                await signInWithEmailAndPassword(auth, email, password);
+                // onAuthStateChanged akan menangani sisanya
+            } catch (error) {
+                console.error("Login Gagal:", error.message);
+                loginError.textContent = "Email atau password salah. Coba lagi.";
+                loginError.classList.remove('hidden');
+            }
+        });
+        
+        // Coba login otomatis saat pertama kali memuat
+        (async () => {
+             try {
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                }
+            } catch (e) {
+                console.error("Gagal login dengan token:", e);
+                // Biarkan onAuthStateChanged menangani dan menampilkan halaman login
+            }
+        })();
+
+        // Proses logout
+        logoutButton.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+            } catch (error) {
+                console.error("Logout Gagal:", error);
+            }
+        });
+
+        // Inisialisasi Dashboard
+        async function initializeDashboard() {
+            // Set tanggal hari ini
+            const today = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            currentDateDisplay.textContent = today.toLocaleDateString('id-ID', options);
+
+            await seedInitialData(); // Pastikan data dummy ada
+            loadClassSchedules();
+        }
+
+        // Memuat jadwal kelas ke dashboard
+        function loadClassSchedules() {
+            classListContainer.innerHTML = ''; // Kosongkan daftar
+            
+            if (dummySchedules.length === 0) {
+                 noClassMessage.classList.remove('hidden');
+                 return;
+            }
+
+            noClassMessage.classList.add('hidden');
+            dummySchedules.forEach(schedule => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer";
+                card.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-xl font-bold text-gray-800">${schedule.className}</h3>
+                        <span class="text-xs font-semibold bg-blue-100 text-blue-800 px-2 py-1 rounded-full">${schedule.time}</span>
+                    </div>
+                    <p class="text-gray-600 mt-2">${schedule.subject}</p>
+                `;
+                card.addEventListener('click', () => showAttendanceSheet(schedule));
+                classListContainer.appendChild(card);
+            });
+        }
+        
+        function switchView(viewToShow) {
+            dashboardView.classList.add('hidden');
+            attendanceView.classList.add('hidden');
+            document.getElementById(viewToShow).classList.remove('hidden');
+        }
+
+        // Menampilkan lembar absensi untuk kelas yang dipilih
+        async function showAttendanceSheet(schedule) {
+            switchView('attendance-view');
+            attendanceLoader.classList.remove('hidden');
+            studentListContainer.innerHTML = '';
+            
+            attendanceClassTitle.textContent = schedule.className;
+            attendanceSubjectTitle.textContent = `${schedule.subject} (${schedule.time})`;
+            
+            try {
+                const publicDataPath = `/artifacts/${appId}/public/data`;
+                const q = query(collection(db, `${publicDataPath}/students`), where("classId", "==", schedule.classId));
+                const querySnapshot = await getDocs(q);
+                
+                const students = [];
+                querySnapshot.forEach((doc) => {
+                    students.push({ id: doc.id, ...doc.data() });
+                });
+                
+                // Sortir siswa berdasarkan nama
+                students.sort((a, b) => a.name.localeCompare(b.name));
+
+                // Cek absensi yang sudah ada hari ini
+                const todayStr = new Date().toISOString().split('T')[0]; // Format YYYY-MM-DD
+                const attendancePath = `/artifacts/${appId}/public/data/attendanceRecords/${todayStr}_${schedule.classId}_${schedule.subject.replace(/\s+/g, '-')}`;
+                const attendanceDoc = await getDocs(query(collection(db, `/artifacts/${appId}/public/data/attendance`), where("recordId", "==", `${todayStr}_${schedule.classId}_${schedule.subject.replace(/\s+/g, '-')}`)));
+                
+                const existingAttendance = {};
+                attendanceDoc.forEach(doc => {
+                    const data = doc.data();
+                    existingAttendance[data.studentId] = data.status;
+                });
+                
+
+                renderStudentList(students, existingAttendance);
+                saveAttendanceBtn.onclick = () => saveAttendance(schedule, students);
+                
+            } catch (error) {
+                console.error("Error mengambil data siswa: ", error);
+                showNotification('error', 'Gagal Memuat Siswa', 'Tidak dapat mengambil data siswa dari database.');
+            } finally {
+                attendanceLoader.classList.add('hidden');
+            }
+        }
+        
+        function renderStudentList(students, existingAttendance) {
+            studentListContainer.innerHTML = '';
+            students.forEach(student => {
+                const studentDiv = document.createElement('div');
+                studentDiv.className = "flex items-center justify-between border-b py-3";
+                studentDiv.dataset.studentId = student.studentId;
+                
+                const currentStatus = existingAttendance[student.studentId] || 'Hadir';
+
+                studentDiv.innerHTML = `
+                    <div>
+                        <p class="font-semibold">${student.name}</p>
+                        <p class="text-sm text-gray-500">NIS: ${student.studentId}</p>
+                    </div>
+                    <div class="flex space-x-2 status-buttons">
+                        <button data-status="Hadir" class="px-3 py-1 text-sm rounded-full transition ${currentStatus === 'Hadir' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-700'}">Hadir</button>
+                        <button data-status="Izin" class="px-3 py-1 text-sm rounded-full transition ${currentStatus === 'Izin' ? 'bg-yellow-500 text-white' : 'bg-gray-200 text-gray-700'}">Izin</button>
+                        <button data-status="Sakit" class="px-3 py-1 text-sm rounded-full transition ${currentStatus === 'Sakit' ? 'bg-orange-500 text-white' : 'bg-gray-200 text-gray-700'}">Sakit</button>
+                        <button data-status="Alfa" class="px-3 py-1 text-sm rounded-full transition ${currentStatus === 'Alfa' ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-700'}">Alfa</button>
+                    </div>
+                `;
+                studentListContainer.appendChild(studentDiv);
+            });
+        }
+
+        // Event listener untuk tombol status (delegasi event)
+        studentListContainer.addEventListener('click', (e) => {
+            if (e.target.matches('button[data-status]')) {
+                const button = e.target;
+                const parent = button.closest('.status-buttons');
+                
+                // Hapus kelas aktif dari semua tombol di grup yang sama
+                parent.querySelectorAll('button').forEach(btn => {
+                    btn.classList.remove('bg-green-500', 'bg-yellow-500', 'bg-orange-500', 'bg-red-500', 'text-white');
+                    btn.classList.add('bg-gray-200', 'text-gray-700');
+                });
+                
+                // Tambahkan kelas aktif ke tombol yang diklik
+                const status = button.dataset.status;
+                const colorClasses = {
+                    'Hadir': 'bg-green-500', 'Izin': 'bg-yellow-500',
+                    'Sakit': 'bg-orange-500', 'Alfa': 'bg-red-500'
+                };
+                button.classList.remove('bg-gray-200', 'text-gray-700');
+                button.classList.add(colorClasses[status], 'text-white');
+            }
+        });
+
+        // Fungsi menyimpan absensi
+        async function saveAttendance(schedule, students) {
+            saveAttendanceBtn.disabled = true;
+            saveAttendanceBtn.textContent = 'Menyimpan...';
+
+            try {
+                const batch = writeBatch(db);
+                const todayStr = new Date().toISOString().split('T')[0];
+                const recordId = `${todayStr}_${schedule.classId}_${schedule.subject.replace(/\s+/g, '-')}`;
+
+                const studentRows = studentListContainer.querySelectorAll('div[data-student-id]');
+                studentRows.forEach(row => {
+                    const studentId = row.dataset.studentId;
+                    const activeButton = row.querySelector('.status-buttons .text-white');
+                    const status = activeButton ? activeButton.dataset.status : 'Alfa';
+
+                    const attendanceDocRef = doc(db, `/artifacts/${appId}/public/data/attendance`, `${recordId}_${studentId}`);
+                    
+                    batch.set(attendanceDocRef, {
+                        recordId: recordId,
+                        studentId: studentId,
+                        studentName: students.find(s => s.studentId === studentId).name,
+                        classId: schedule.classId,
+                        className: schedule.className,
+                        subject: schedule.subject,
+                        date: todayStr,
+                        status: status
+                    });
+                });
+
+                await batch.commit();
+                showNotification('success', 'Berhasil', 'Data absensi telah berhasil disimpan.');
+                switchView('dashboard-view');
+
+            } catch (error) {
+                console.error("Error menyimpan absensi: ", error);
+                showNotification('error', 'Gagal Menyimpan', 'Terjadi kesalahan saat menyimpan data. Coba lagi.');
+            } finally {
+                saveAttendanceBtn.disabled = false;
+                saveAttendanceBtn.textContent = 'Simpan Absensi';
+            }
+        }
+        
+        backToDashboardBtn.addEventListener('click', () => switchView('dashboard-view'));
+
+    </script>
+</body>
+</html>
