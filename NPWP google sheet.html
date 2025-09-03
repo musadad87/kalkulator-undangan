@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi Manajemen Data</title>
+    <!-- Memuat Tailwind CSS untuk styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Memuat Font Awesome untuk ikon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        /* Style tambahan untuk tampilan yang lebih baik */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Style untuk notifikasi */
+        .toast {
+            visibility: hidden;
+            min-width: 250px;
+            margin-left: -125px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 16px;
+            position: fixed;
+            z-index: 100;
+            left: 50%;
+            bottom: 30px;
+            opacity: 0;
+            transition: opacity 0.5s, bottom 0.5s;
+        }
+        .toast.show {
+            visibility: visible;
+            opacity: 1;
+            bottom: 50px;
+        }
+        .toast.success { background-color: #28a745; }
+        .toast.error { background-color: #dc3545; }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <h1 class="text-3xl font-bold mb-6 text-center text-gray-700">Manajemen Data Pribadi</h1>
+
+        <!-- Peringatan Keamanan -->
+        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-md shadow-md" role="alert">
+            <p class="font-bold"><i class="fas fa-exclamation-triangle mr-2"></i>Peringatan Keamanan Penting!</p>
+            <p>Harap **JANGAN** menyimpan password asli atau data yang sangat sensitif di aplikasi ini. Data ini disimpan dalam Google Sheet yang mungkin tidak cukup aman untuk informasi rahasia.</p>
+        </div>
+
+        <!-- Form Input Data -->
+        <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
+            <h2 class="text-2xl font-semibold mb-4 border-b pb-2">Formulir Input Data</h2>
+            <form id="data-form" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Hidden input untuk menyimpan ID record saat edit -->
+                <input type="hidden" id="record-id" name="recordId">
+                
+                <div class="md:col-span-1">
+                    <label for="nama" class="block text-sm font-medium text-gray-700 mb-1">Nama</label>
+                    <input type="text" id="nama" name="nama" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
+                </div>
+                <div class="md:col-span-1">
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" id="email" name="email" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div class="md:col-span-1">
+                    <label for="password-email" class="block text-sm font-medium text-gray-700 mb-1">Password Email</label>
+                    <input type="text" id="password-email" name="passwordEmail" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div class="md:col-span-1">
+                    <label for="nik" class="block text-sm font-medium text-gray-700 mb-1">NIK</label>
+                    <input type="text" id="nik" name="nik" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div class="md:col-span-1">
+                    <label for="kk" class="block text-sm font-medium text-gray-700 mb-1">No. KK</label>
+                    <input type="text" id="kk" name="kk" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div class="md:col-span-1">
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password Lainnya</label>
+                    <input type="text" id="password" name="password" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                 <div class="md:col-span-1">
+                    <label for="npwp-baru" class="block text-sm font-medium text-gray-700 mb-1">NPWP</label>
+                    <input type="text" id="npwp-baru" name="npwpBaru" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div class="md:col-span-1">
+                    <label for="npwp-password" class="block text-sm font-medium text-gray-700 mb-1">Password NPWP</label>
+                    <input type="text" id="npwp-password" name="npwpPassword" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+
+                <!-- Tombol Aksi -->
+                <div class="md:col-span-full flex items-center justify-end space-x-3 mt-4">
+                    <button type="button" id="btn-add-new" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md transition duration-300 shadow-sm"><i class="fas fa-plus mr-2"></i>Reset Form</button>
+                    <button type="submit" id="btn-save" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md transition duration-300 shadow-sm"><i class="fas fa-save mr-2"></i>Simpan Data</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Tampilan Google Sheet -->
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <div class="flex justify-between items-center mb-4">
+                 <h2 class="text-2xl font-semibold">Tampilan Data (Google Sheet)</h2>
+                 <button id="btn-refresh-sheet" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md transition duration-300 shadow-sm"><i class="fas fa-sync-alt mr-2"></i>Refresh</button>
+            </div>
+            <p class="text-sm text-gray-600 mb-4">Data yang baru ditambahkan mungkin memerlukan beberapa saat untuk muncul. Klik tombol Refresh jika data belum terlihat.</p>
+            <iframe id="google-sheet-iframe" src="https://docs.google.com/spreadsheets/d/1nXnDDnZQo4XErDPKM87s7R3DdZW9V8kmfWWknI5zxK4/edit?usp=sharing&rm=minimal" style="width: 100%; height: 600px; border: 1px solid #ccc; border-radius: 8px;"></iframe>
+        </div>
+    </div>
+
+    <!-- Elemen Notifikasi (Toast) -->
+    <div id="toast" class="toast"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // ===================================================================================
+            // URL WEB APP GOOGLE SCRIPT ANDA
+            // ===================================================================================
+            const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxbvin5aPIFx5TYqi1F9LUKodvzDqxlhKvLNbpMrUYc05zC4z8BXNFl_IPJ8ZBTi8YeLw/exec";
+            // ===================================================================================
+
+            const form = document.getElementById('data-form');
+            const btnSave = document.getElementById('btn-save');
+            const btnAddNew = document.getElementById('btn-add-new');
+            const toast = document.getElementById('toast');
+            const sheetIframe = document.getElementById('google-sheet-iframe');
+            const btnRefreshSheet = document.getElementById('btn-refresh-sheet');
+
+
+            // Fungsi untuk menampilkan notifikasi
+            function showToast(message, type = 'success') {
+                toast.textContent = message;
+                toast.className = `toast show ${type}`;
+                setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 5000);
+            }
+
+            // Fungsi untuk me-refresh iframe
+            function refreshSheet() {
+                showToast('Merefresh tampilan sheet...', 'success');
+                // Trik untuk memaksa iframe reload kontennya
+                sheetIframe.src = sheetIframe.src;
+            }
+
+            btnRefreshSheet.addEventListener('click', refreshSheet);
+
+            // Fungsi untuk menangani submit form
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                btnSave.disabled = true;
+                btnSave.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Menyimpan...';
+
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
+                data.action = 'add'; // Hanya aksi tambah data
+
+                try {
+                    const response = await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify(data),
+                    });
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    const result = await response.json();
+
+                    if (result.success) {
+                        showToast('Data berhasil ditambahkan!');
+                        form.reset();
+                        // Refresh sheet setelah beberapa saat untuk memberi waktu Google Sheet update
+                        setTimeout(refreshSheet, 2000); 
+                    } else {
+                        throw new Error(result.message || 'Operasi gagal.');
+                    }
+                } catch (error) {
+                    console.error('Error submitting form:', error);
+                    showToast(`Gagal menyimpan data: ${error.message}`, 'error');
+                } finally {
+                    btnSave.disabled = false;
+                    btnSave.innerHTML = '<i class="fas fa-save mr-2"></i>Simpan Data';
+                }
+            });
+
+            // Fungsi untuk membersihkan form
+            btnAddNew.addEventListener('click', () => {
+                form.reset();
+                document.getElementById('nama').focus();
+            });
+        });
+    </script>
+</body>
+</html>
