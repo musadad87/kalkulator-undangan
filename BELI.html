@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi Pembelian Sederhana</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 1rem;
+        }
+        .card {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header-section {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            background-color: #10b981;
+            color: white;
+            font-weight: bold;
+            border-radius: 0.75rem 0.75rem 0 0;
+            margin-bottom: 0.5rem;
+        }
+        .header-section svg {
+            margin-right: 0.5rem;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 0.25rem;
+            font-weight: bold;
+            color: #4b5563;
+        }
+        .input-group input, .input-group textarea {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+<div class="container py-8">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+        <!-- Panel Kiri: Kontrol -->
+        <div class="col-span-1">
+            <div class="card mb-6">
+                <div class="header-section bg-green-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM13 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2h-2zM13 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2h-2z" />
+                    </svg>
+                    <span>Kontrol</span>
+                </div>
+                <div class="space-y-4">
+                    <!-- Navigasi Data -->
+                    <div class="border-b pb-4">
+                        <h3 class="font-semibold text-gray-700 mb-2">Navigasi Data</h3>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button class="bg-blue-500 text-white rounded-lg p-2 flex items-center justify-center hover:bg-blue-600 transition-colors" onclick="goToFirst()">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                                </svg>
+                                Pertama
+                            </button>
+                            <button class="bg-blue-500 text-white rounded-lg p-2 flex items-center justify-center hover:bg-blue-600 transition-colors" onclick="goToPrevious()">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                                </svg>
+                                Sebelum
+                            </button>
+                            <button class="bg-blue-500 text-white rounded-lg p-2 flex items-center justify-center hover:bg-blue-600 transition-colors" onclick="goToNext()">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                                Sesudah
+                            </button>
+                            <button class="bg-blue-500 text-white rounded-lg p-2 flex items-center justify-center hover:bg-blue-600 transition-colors" onclick="goToLast()">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                                </svg>
+                                Terakhir
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Aksi Data -->
+                    <div class="border-b pb-4">
+                        <h3 class="font-semibold text-gray-700 mb-2">Aksi Data</h3>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button class="bg-green-500 text-white rounded-lg p-2 flex items-center justify-center hover:bg-green-600 transition-colors" onclick="saveData()">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v6a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                                </svg>
+                                Simpan
+                            </button>
+                            <button class="bg-yellow-500 text-white rounded-lg p-2 flex items-center justify-center hover:bg-yellow-600 transition-colors" onclick="cancelEdit()">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                                Batal
+                            </button>
+                            <button class="bg-gray-400 text-white rounded-lg p-2 flex items-center justify-center hover:bg-gray-500 transition-colors" onclick="refreshData()">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.836 2l.608 2.016m-.608-2.016A10.001 10.001 0 0012 21a9.998 9.998 0 008.026-4.996l-1.002-.5m-14.024-5.004l-1.002-.5a10.001 10.001 0 0110.001-9.998l.608 2.016" />
+                                </svg>
+                                Refresh
+                            </button>
+                            <button class="bg-blue-600 text-white rounded-lg p-2 flex items-center justify-center hover:bg-blue-700 transition-colors" onclick="newData()">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                                Data Baru
+                            </button>
+                            <button class="bg-red-500 text-white rounded-lg p-2 flex items-center justify-center hover:bg-red-600 transition-colors" onclick="deleteData()">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-1 12a2 2 0 01-2 2H8a2 2 0 01-2-2L5 7m5 4v6m4-6v6m4-10H5" />
+                                </svg>
+                                Hapus
+                            </button>
+                            <button class="bg-blue-400 text-white rounded-lg p-2 flex items-center justify-center hover:bg-blue-500 transition-colors" onclick="exportExcel()">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m3-8H5a2 2 0 00-2 2v10a2 2 0 002 2h14a2 2 0 002-2V7a2 2 0 00-2-2h-5" />
+                                </svg>
+                                Export EXCEL
+                            </button>
+                            <button class="bg-blue-400 text-white rounded-lg p-2 flex items-center justify-center hover:bg-blue-500 transition-colors" onclick="importExcel()">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m3-8H5a2 2 0 00-2 2v10a2 2 0 002 2h14a2 2 0 002-2V7a2 2 0 00-2-2h-5" />
+                                </svg>
+                                Import EXCEL
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Detail Pembelian -->
+                    <div class="border-b pb-4">
+                        <h3 class="font-semibold text-gray-700 mb-2">Detail Pembelian</h3>
+                        <div class="space-y-1 text-sm text-gray-600">
+                            <p><strong>Tanggal:</strong> <span id="detailTanggal"></span></p>
+                            <p><strong>Nama Barang:</strong> <span id="detailNamaBarang"></span></p>
+                            <p><strong>Harga Satuan:</strong> <span id="detailHargaSatuan"></span></p>
+                            <p><strong>Jumlah:</strong> <span id="detailJumlah"></span></p>
+                            <p><strong>TOTAL:</strong> <span id="detailTotal"></span></p>
+                            <p><strong>Kebutuhan:</strong> <span id="detailKebutuhan"></span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Navigasi Menu -->
+            <div class="card">
+                <div class="header-section bg-green-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10 2a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V4a2 2 0 00-2-2h-2zM4 10a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H4zM16 10a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2h-2zM4 2a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V4a2 2 0 00-2-2H4zM16 2a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V4a2 2 0 00-2-2h-2zM10 10a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2h-2z" />
+                    </svg>
+                    <span>Navigasi Menu</span>
+                </div>
+                <button class="w-full bg-gray-200 text-gray-700 rounded-lg p-3 font-bold hover:bg-gray-300 transition-colors">
+                    MENU DEPAN
+                </button>
+            </div>
+        </div>
+
+        <!-- Panel Kanan: Form Beli -->
+        <div class="col-span-1 md:col-span-2">
+            <div class="card">
+                <div class="header-section bg-green-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm6 6a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                    </svg>
+                    <span>Form Beli</span>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="header-section bg-gray-200 text-gray-700 font-normal rounded-lg p-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M7 3.5a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0zm0 13a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0zm10-13a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0zm0 13a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                        </svg>
+                        <span>Input Data</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="input-group">
+                            <label for="no">No (Primary Key)</label>
+                            <input type="text" id="no" value="1" readonly class="bg-gray-100 cursor-not-allowed">
+                        </div>
+                        <div class="input-group">
+                            <label for="tanggal">Tanggal</label>
+                            <input type="date" id="tanggal" value="2025-09-03">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="kebutuhan">Ket Kebutuhan</label>
+                        <textarea id="kebutuhan" rows="3" class="w-full resize-none"></textarea>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="namaBarang">Nama Barang</label>
+                        <input type="text" id="namaBarang">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="input-group">
+                            <label for="harga">Harga</label>
+                            <input type="number" id="harga" min="0" value="0">
+                        </div>
+                        <div class="input-group">
+                            <label for="jumlah">Jumlah</label>
+                            <input type="number" id="jumlah" min="0" value="0">
+                        </div>
+                    </div>
+
+                    <div class="text-center font-bold text-lg bg-green-200 text-green-800 p-4 rounded-lg">
+                        Total Harga: <span id="totalHarga">Rp 0</span>
+                    </div>
+
+                    <div class="text-sm text-gray-500 text-center">
+                        Record: <span id="currentRecord">0</span> of <span id="totalRecords">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel Bawah: Data Pembelian -->
+    <div class="card mt-6">
+        <div class="header-section bg-green-500">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2zM3 16a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2z" />
+            </svg>
+            <span>Data Pembelian</span>
+        </div>
+
+        <div class="flex items-center justify-between mb-4">
+            <div class="relative w-full mr-4">
+                <input type="text" id="searchInput" placeholder="Cari nama barang..." class="w-full p-2 pl-10 rounded-lg border border-gray-300">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                </svg>
+            </div>
+            <span id="dataCount" class="text-sm text-gray-500 whitespace-nowrap">Menampilkan 0 dari 0 data</span>
+        </div>
+
+        <div class="overflow-x-auto rounded-lg">
+            <table class="min-w-full bg-white rounded-lg shadow-md">
+                <thead>
+                    <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+                        <th class="py-3 px-6 text-left">NO</th>
+                        <th class="py-3 px-6 text-left">TANGGAL</th>
+                        <th class="py-3 px-6 text-left">NAMA BARANG</th>
+                        <th class="py-3 px-6 text-left">TOTAL</th>
+                    </tr>
+                </thead>
+                <tbody id="dataTableBody" class="text-gray-600 text-sm font-light">
+                    <!-- Data akan dimasukkan di sini oleh JavaScript -->
+                    <tr class="border-b border-gray-200">
+                        <td class="py-3 px-6 text-center" colspan="4">Memuat data...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<input type="file" id="importFile" accept=".csv" style="display: none;">
+
+<script>
+    // Data dummy untuk simulasi
+    let purchaseData = [];
+    let currentIndex = 0;
+    
+    // Inisialisasi data dummy saat halaman dimuat
+    document.addEventListener('DOMContentLoaded', () => {
+        purchaseData = [
+            { no: 1, tanggal: '2025-09-03', kebutuhan: 'Kebutuhan kantor', namaBarang: 'Kertas A4', harga: 50000, jumlah: 10 },
+            { no: 2, tanggal: '2025-09-02', kebutuhan: 'Proyek baru', namaBarang: 'Mouse Wireless', harga: 150000, jumlah: 5 },
+            { no: 3, tanggal: '2025-09-01', kebutuhan: 'Keperluan pribadi', namaBarang: 'Tinta Printer', harga: 80000, jumlah: 3 },
+            { no: 4, tanggal: '2025-08-31', kebutuhan: 'Stok gudang', namaBarang: 'Bolpoin', harga: 2500, jumlah: 200 }
+        ];
+        
+        // Atur tanggal default pada input
+        document.getElementById('tanggal').value = new Date().toISOString().slice(0, 10);
+        
+        renderData(purchaseData);
+        updateForm(currentIndex);
+    });
+
+    function renderData(dataToRender) {
+        const tableBody = document.getElementById('dataTableBody');
+        tableBody.innerHTML = '';
+        if (dataToRender.length === 0) {
+            tableBody.innerHTML = `<tr class="border-b border-gray-200"><td class="py-3 px-6 text-center" colspan="4">Tidak ada data untuk ditampilkan.</td></tr>`;
+            document.getElementById('dataCount').textContent = `Menampilkan 0 dari 0 data`;
+            return;
+        }
+
+        dataToRender.forEach(item => {
+            const row = document.createElement('tr');
+            row.className = 'border-b border-gray-200 hover:bg-gray-100 transition-colors cursor-pointer';
+            row.innerHTML = `
+                <td class="py-3 px-6 text-left">${item.no}</td>
+                <td class="py-3 px-6 text-left">${item.tanggal}</td>
+                <td class="py-3 px-6 text-left">${item.namaBarang}</td>
+                <td class="py-3 px-6 text-left">Rp ${(item.harga * item.jumlah).toLocaleString('id-ID')}</td>
+            `;
+            row.addEventListener('click', () => {
+                const index = purchaseData.findIndex(d => d.no === item.no);
+                currentIndex = index;
+                updateForm(currentIndex);
+            });
+            tableBody.appendChild(row);
+        });
+
+        document.getElementById('dataCount').textContent = `Menampilkan ${dataToRender.length} dari ${purchaseData.length} data`;
+    }
+
+    function updateForm(index) {
+        if (purchaseData.length === 0) {
+            clearForm();
+            return;
+        }
+        
+        const data = purchaseData[index];
+        document.getElementById('no').value = data.no;
+        document.getElementById('tanggal').value = data.tanggal;
+        document.getElementById('kebutuhan').value = data.kebutuhan;
+        document.getElementById('namaBarang').value = data.namaBarang;
+        document.getElementById('harga').value = data.harga;
+        document.getElementById('jumlah').value = data.jumlah;
+        document.getElementById('totalHarga').textContent = `Rp ${(data.harga * data.jumlah).toLocaleString('id-ID')}`;
+        
+        document.getElementById('detailTanggal').textContent = data.tanggal;
+        document.getElementById('detailNamaBarang').textContent = data.namaBarang;
+        document.getElementById('detailHargaSatuan').textContent = `Rp ${data.harga.toLocaleString('id-ID')}`;
+        document.getElementById('detailJumlah').textContent = data.jumlah;
+        document.getElementById('detailTotal').textContent = `Rp ${(data.harga * data.jumlah).toLocaleString('id-ID')}`;
+        document.getElementById('detailKebutuhan').textContent = data.kebutuhan;
+
+        document.getElementById('currentRecord').textContent = index + 1;
+        document.getElementById('totalRecords').textContent = purchaseData.length;
+    }
+
+    function clearForm() {
+        document.getElementById('no').value = purchaseData.length > 0 ? purchaseData[purchaseData.length - 1].no + 1 : 1;
+        document.getElementById('tanggal').value = new Date().toISOString().slice(0, 10);
+        document.getElementById('kebutuhan').value = '';
+        document.getElementById('namaBarang').value = '';
+        document.getElementById('harga').value = 0;
+        document.getElementById('jumlah').value = 0;
+        document.getElementById('totalHarga').textContent = 'Rp 0';
+        
+        document.getElementById('detailTanggal').textContent = '';
+        document.getElementById('detailNamaBarang').textContent = '';
+        document.getElementById('detailHargaSatuan').textContent = '';
+        document.getElementById('detailJumlah').textContent = '';
+        document.getElementById('detailTotal').textContent = '';
+        document.getElementById('detailKebutuhan').textContent = '';
+
+        document.getElementById('currentRecord').textContent = purchaseData.length;
+        document.getElementById('totalRecords').textContent = purchaseData.length;
+    }
+
+    // Event listener untuk mengupdate total harga secara real-time
+    document.getElementById('harga').addEventListener('input', updateTotal);
+    document.getElementById('jumlah').addEventListener('input', updateTotal);
+
+    function updateTotal() {
+        const harga = parseFloat(document.getElementById('harga').value) || 0;
+        const jumlah = parseFloat(document.getElementById('jumlah').value) || 0;
+        const total = harga * jumlah;
+        document.getElementById('totalHarga').textContent = `Rp ${total.toLocaleString('id-ID')}`;
+    }
+
+    // Fungsi Navigasi
+    function goToFirst() {
+        currentIndex = 0;
+        updateForm(currentIndex);
+    }
+
+    function goToPrevious() {
+        if (currentIndex > 0) {
+            currentIndex--;
+            updateForm(currentIndex);
+        }
+    }
+
+    function goToNext() {
+        if (currentIndex < purchaseData.length - 1) {
+            currentIndex++;
+            updateForm(currentIndex);
+        }
+    }
+
+    function goToLast() {
+        currentIndex = purchaseData.length - 1;
+        updateForm(currentIndex);
+    }
+    
+    // Fungsi Aksi Data
+    function saveData() {
+        const no = parseInt(document.getElementById('no').value);
+        const tanggal = document.getElementById('tanggal').value;
+        const kebutuhan = document.getElementById('kebutuhan').value;
+        const namaBarang = document.getElementById('namaBarang').value;
+        const harga = parseFloat(document.getElementById('harga').value);
+        const jumlah = parseFloat(document.getElementById('jumlah').value);
+
+        if (!no || !tanggal || !namaBarang || harga <= 0 || jumlah <= 0) {
+            showMessage("Semua field harus diisi dengan benar.");
+            return;
+        }
+
+        const newData = { no, tanggal, kebutuhan, namaBarang, harga, jumlah };
+
+        const existingIndex = purchaseData.findIndex(d => d.no === no);
+        if (existingIndex > -1) {
+            // Update data yang sudah ada
+            purchaseData[existingIndex] = newData;
+            showMessage("Data berhasil diperbarui!");
+        } else {
+            // Tambah data baru
+            purchaseData.push(newData);
+            showMessage("Data baru berhasil ditambahkan!");
+        }
+        
+        // Urutkan ulang data berdasarkan nomor
+        purchaseData.sort((a, b) => a.no - b.no);
+        currentIndex = purchaseData.findIndex(d => d.no === no);
+        
+        renderData(purchaseData);
+        updateForm(currentIndex);
+    }
+
+    function cancelEdit() {
+        updateForm(currentIndex);
+        showMessage("Perubahan dibatalkan.");
+    }
+    
+    function refreshData() {
+        // Logika untuk me-refresh data (saat ini hanya merender ulang data dummy)
+        renderData(purchaseData);
+        updateForm(currentIndex);
+        showMessage("Data berhasil di-refresh.");
+    }
+    
+    function newData() {
+        clearForm();
+        showMessage("Formulir siap untuk data baru.");
+    }
+    
+    function deleteData() {
+        if (purchaseData.length === 0) {
+            showMessage("Tidak ada data untuk dihapus.");
+            return;
+        }
+        const noToDelete = parseInt(document.getElementById('no').value);
+        const newDataArray = purchaseData.filter(d => d.no !== noToDelete);
+        
+        if (newDataArray.length < purchaseData.length) {
+            purchaseData = newDataArray;
+            showMessage("Data berhasil dihapus.");
+            
+            // Atur ulang current index
+            if (currentIndex >= purchaseData.length) {
+                currentIndex = purchaseData.length > 0 ? purchaseData.length - 1 : 0;
+            }
+            renderData(purchaseData);
+            updateForm(currentIndex);
+        } else {
+            showMessage("Data tidak ditemukan.");
+        }
+    }
+    
+    // FUNGSI EKSPORT EXCEL
+    function exportExcel() {
+        if (purchaseData.length === 0) {
+            showMessage("Tidak ada data untuk dieksport.");
+            return;
+        }
+        
+        // Buat header CSV
+        const header = ["No", "Tanggal", "Kebutuhan", "Nama Barang", "Harga", "Jumlah", "Total"];
+        
+        // Buat baris data
+        const rows = purchaseData.map(item => [
+            item.no,
+            item.tanggal,
+            `"${item.kebutuhan.replace(/"/g, '""')}"`, // Bungkus dengan kutip jika ada koma di dalamnya
+            `"${item.namaBarang.replace(/"/g, '""')}"`,
+            item.harga,
+            item.jumlah,
+            item.harga * item.jumlah
+        ]);
+        
+        // Gabungkan header dan baris data
+        let csvContent = "data:text/csv;charset=utf-8," 
+                        + header.join(",") + "\n"
+                        + rows.map(e => e.join(",")).join("\n");
+        
+        // Buat link download
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "data_pembelian.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showMessage("Data berhasil dieksport ke file CSV.");
+    }
+
+    // FUNGSI IMPORT EXCEL
+    function importExcel() {
+        const fileInput = document.getElementById('importFile');
+        fileInput.click();
+    }
+
+    document.getElementById('importFile').addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const csvContent = e.target.result;
+                const lines = csvContent.split('\n');
+                
+                // Lewati header
+                lines.shift();
+                
+                const importedData = lines.filter(line => line.trim() !== '').map(line => {
+                    const values = line.split(',');
+                    return {
+                        no: parseInt(values[0]),
+                        tanggal: values[1].trim(),
+                        kebutuhan: values[2].trim().replace(/^"|"$/g, '').replace(/""/g, '"'),
+                        namaBarang: values[3].trim().replace(/^"|"$/g, '').replace(/""/g, '"'),
+                        harga: parseFloat(values[4]),
+                        jumlah: parseFloat(values[5])
+                    };
+                });
+                
+                if (importedData.length > 0) {
+                    purchaseData = importedData;
+                    renderData(purchaseData);
+                    goToFirst();
+                    showMessage("Data berhasil diimpor dari file CSV.");
+                } else {
+                    showMessage("File CSV kosong atau tidak valid.");
+                }
+            } catch (error) {
+                showMessage("Gagal mengimpor file. Pastikan format file sudah benar.");
+                console.error("Error importing CSV:", error);
+            }
+        };
+        reader.readAsText(file);
+    });
+    
+    // Fungsi Pencarian
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        const filteredData = purchaseData.filter(item => 
+            item.namaBarang.toLowerCase().includes(searchTerm)
+        );
+        renderData(filteredData);
+    });
+
+    // Fungsi untuk menampilkan pesan (pengganti alert)
+    function showMessage(message) {
+        // Implementasi modal atau toast message kustom di sini
+        // Untuk saat ini, kita akan menggunakan console.log
+        console.log(message);
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center z-50';
+        modal.innerHTML = `
+            <div class="bg-white p-6 rounded-lg shadow-xl text-center">
+                <p class="text-lg font-semibold">${message}</p>
+                <button onclick="this.parentNode.parentNode.remove()" class="mt-4 px-4 py-2 bg-green-500 text-white rounded-md">OK</button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+
+</script>
+
+</body>
+</html>
