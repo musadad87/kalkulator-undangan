@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hitung Kertas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .custom-alert-overlay {
+            background-color: rgba(0, 0, 0, 0.5);
+            transition: opacity 0.3s ease-in-out;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .custom-alert-overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen p-4">
+    <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-6">
+        <h1 class="text-3xl font-bold text-center text-indigo-800 mb-8">HITUNG KERTAS</h1>
+        
+        <!-- Input Dasar -->
+        <div class="bg-gray-50 rounded-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Input Dasar</h2>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Nama Pesanan</label>
+                    <input type="text" id="namaPesanan" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Masukkan nama pesanan">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Ket Pembuatan</label>
+                    <input type="text" id="ketPembuatan" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Keterangan pembuatan">
+                </div>
+            </div>
+        </div>
+
+        <!-- Menu Kertas -->
+        <div class="bg-blue-50 rounded-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold text-blue-800 mb-4">Menu Kertas</h2>
+            <div class="grid md:grid-cols-3 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Jumlah Pesanan</label>
+                    <input type="number" id="jumlahPesanan" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="0" oninput="hitungKertas()">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Lebar (CM)</label>
+                    <input type="number" id="lebarCm" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="0" oninput="hitungKertas()">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Panjang (CM)</label>
+                    <input type="number" id="panjangCm" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="0" oninput="hitungKertas()">
+                </div>
+            </div>
+            
+            <!-- Tombol untuk memilih ukuran kertas -->
+            <div class="mb-4">
+                <button onclick="bukaFormUkuranKertas()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-200">
+                    Pilih Ukuran Kertas
+                </button>
+            </div>
+
+            <!-- Hasil Perhitungan Kertas -->
+            <div class="bg-white rounded-lg p-4 border-2 border-blue-200">
+                <div class="grid md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <p><strong>LEBAR_M:</strong> <span id="lebarM">0</span></p>
+                        <p><strong>PANJANG_M:</strong> <span id="panjangM">0</span></p>
+                        <p><strong>M2_KERTAS:</strong> <span id="m2Kertas">0</span></p>
+                    </div>
+                    <div>
+                        <p><strong>1 PLANO DAPAT:</strong> <span id="plano">0</span></p>
+                        <p><strong>HABIS_KERTAS:</strong> <span id="habisKertas">0</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Harga Kertas -->
+        <div class="bg-green-50 rounded-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold text-green-800 mb-4">Harga Kertas</h2>
+            
+            <!-- Tombol Input Harga Kertas -->
+            <div class="mb-4">
+                <button onclick="bukaFormHargaKertas()" class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition duration-200">
+                    Input Harga Kertas
+                </button>
+            </div>
+
+            <!-- Pilih Kertas -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Pilih Jenis Kertas</label>
+                <select id="jenisKertas" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500" onchange="updateHargaKertas()">
+                    <option value="">-- Pilih Jenis Kertas --</option>
+                </select>
+            </div>
+            
+            <div class="bg-white rounded-lg p-4 border-2 border-green-200">
+                <p class="text-lg"><strong>HARGA_KERTAS_PER_PLANO:</strong> <span id="hargaKertasPerPlano">Rp 0</span></p>
+                <p class="text-xl font-bold text-green-700 mt-2"><strong>JUMLAH_HARGA_KERTAS:</strong> <span id="jumlahHargaKertas">Rp 0</span></p>
+            </div>
+        </div>
+
+        <!-- Menu Harga -->
+        <div class="bg-yellow-50 rounded-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold text-yellow-800 mb-4">Menu Harga</h2>
+            
+            <!-- Harga Master -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Harga Master</label>
+                <select id="hargaMaster" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500" onchange="hitungTotal()">
+                    <option value="0">-- Pilih Master --</option>
+                    <option value="10000">Master Toko - Rp 10.000</option>
+                    <option value="36000">Master Toko CMYK - Rp 36.000</option>
+                    <option value="25000">Master Oliver - Rp 25.000</option>
+                    <option value="120000">Master Oliver 58 - Rp 120.000</option>
+                </select>
+            </div>
+
+            <!-- Harga OC -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Harga OC</label>
+                <select id="hargaOc" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500" onchange="hitungTotal()">
+                    <option value="0">-- Pilih OC --</option>
+                    <option value="7000">Mesin Toko - Rp 7.000</option>
+                    <option value="75000">Oliver 58 - Rp 75.000</option>
+                    <option value="280000">Offset Oliver 58 - Rp 280.000</option>
+                    <option value="300000">Offset Oliver 52 - Rp 300.000</option>
+                </select>
+            </div>
+
+            <!-- Harga Cetak -->
+            <div class="bg-white rounded-lg p-4 border-2 border-yellow-200 mb-4">
+                <p class="text-lg"><strong>HARGA CETAK:</strong> <span id="hargaCetak">Rp 0</span></p>
+            </div>
+
+            <!-- Input Tambahan -->
+            <div class="grid md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Harga Finishing</label>
+                    <input type="number" id="hargaFinishing" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500" placeholder="0" oninput="hitungTotal()">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Harga Potong</label>
+                    <input type="number" id="hargaPotong" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500" placeholder="0" oninput="hitungTotal()">
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Harga -->
+        <div class="bg-red-50 rounded-lg p-6 border-2 border-red-200">
+            <h2 class="text-2xl font-bold text-red-800 text-center">JUMLAH HARGA TOTAL</h2>
+            <p class="text-3xl font-bold text-red-700 text-center mt-4"><span id="totalHarga">Rp 0</span></p>
+            
+            <!-- Breakdown -->
+            <div class="mt-6 bg-white rounded-lg p-4">
+                <h3 class="font-semibold text-gray-800 mb-3">Rincian Biaya:</h3>
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between">
+                        <span>Jumlah Harga Kertas:</span>
+                        <span><span id="breakdownKertas">Rp 0</span></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Harga Master:</span>
+                        <span><span id="breakdownMaster">Rp 0</span></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Harga OC:</span>
+                        <span><span id="breakdownOc">Rp 0</span></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Harga Finishing:</span>
+                        <span><span id="breakdownFinishing">Rp 0</span></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Harga Potong:</span>
+                        <span><span id="breakdownPotong">Rp 0</span></span>
+                    </div>
+                    <hr class="my-2">
+                    <div class="flex justify-between font-semibold text-base text-blue-700">
+                        <span>JUMLAH_HARGA_KERTAS:</span>
+                        <span><span id="breakdownJumlahHargaKertas">Rp 0</span></span>
+                    </div>
+                    <hr class="my-2">
+                    <div class="flex justify-between font-bold text-lg text-red-700">
+                        <span>JUMLAH HARGA TOTAL:</span>
+                        <span><span id="breakdownTotal">Rp 0</span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Form Harga Kertas -->
+    <div id="modalHargaKertas" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+        <div class="bg-white rounded-lg p-6 w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-green-700">Form Harga Kertas</h3>
+                <button onclick="tutupFormHargaKertas()" class="text-gray-500 hover:text-gray-700 text-3xl">&times;</button>
+            </div>
+            
+            <!-- Form Input -->
+            <div class="bg-green-50 rounded-lg p-4 mb-6">
+                <h4 class="text-lg font-semibold text-green-800 mb-4">Input Data Kertas</h4>
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nama Kertas</label>
+                        <input type="text" id="namaKertasBaru" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Contoh: HVS 80gr">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Harga per Plano</label>
+                        <input type="number" id="hargaKertasBaru" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="0">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Database Harga Kertas -->
+            <div class="bg-white rounded-lg p-4 mb-6 border-2 border-green-200">
+                <h4 class="text-lg font-semibold text-green-700 mb-4">Database Harga Kertas</h4>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="bg-green-100">
+                                <th class="px-3 py-2 text-left">No</th>
+                                <th class="px-3 py-2 text-left">Nama Kertas</th>
+                                <th class="px-3 py-2 text-left">Harga per Plano</th>
+                                <th class="px-3 py-2 text-left">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="databaseKertasModal">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Record Navigation Buttons -->
+            <div class="bg-blue-50 rounded-lg p-4 mb-6">
+                <h4 class="text-lg font-semibold text-blue-800 mb-4">Record Navigation</h4>
+                <div class="flex flex-wrap gap-2 justify-center">
+                    <button onclick="firstRecord()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm transition duration-200">
+                        First Record
+                    </button>
+                    <button onclick="previousRecord()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm transition duration-200">
+                        Previous Record
+                    </button>
+                    <button onclick="nextRecord()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm transition duration-200">
+                        Next Record
+                    </button>
+                    <button onclick="lastRecord()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm transition duration-200">
+                        Last Record
+                    </button>
+                </div>
+                <div class="text-center mt-2">
+                    <span class="text-sm text-gray-600">Record <span id="currentRecord">1</span> of <span id="totalRecords">0</span></span>
+                </div>
+            </div>
+
+            <!-- Data Control Buttons -->
+            <div class="bg-yellow-50 rounded-lg p-4 mb-6">
+                <h4 class="text-lg font-semibold text-yellow-800 mb-4">Data Control</h4>
+                <div class="flex flex-wrap gap-2 justify-center">
+                    <button onclick="undoRecord()" class="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-md text-sm transition duration-200">
+                        Undo Record
+                    </button>
+                    <button onclick="saveNewRecord()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm transition duration-200">
+                        Save New Record
+                    </button>
+                    <button onclick="refreshData()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm transition duration-200">
+                        Refresh Data
+                    </button>
+                    <button onclick="tutupFormHargaKertas()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm transition duration-200">
+                        Kembali ke Menu Utama
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Form Ukuran Kertas -->
+    <div id="modalUkuranKertas" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+        <div class="bg-white rounded-lg p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-blue-700">Pilih Ukuran Kertas</h3>
+                <button onclick="tutupFormUkuranKertas()" class="text-gray-500 hover:text-gray-700 text-3xl">&times;</button>
+            </div>
+            
+            <!-- Form Input Ukuran Kertas -->
+            <div class="bg-blue-50 rounded-lg p-4 mb-6">
+                <h4 class="text-lg font-semibold text-blue-800 mb-4">Tambah Ukuran Kertas Baru</h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nama Ukuran</label>
+                        <input type="text" id="namaUkuranBaru" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Contoh: A2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Lebar (CM)</label>
+                        <input type="number" id="lebarUkuranBaru" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="0">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Panjang (CM)</label>
+                        <input type="number" id="panjangUkuranBaru" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="0">
+                    </div>
+                </div>
+                <button onclick="saveNewUkuran()" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-200">
+                    Simpan Ukuran Baru
+                </button>
+            </div>
+
+            <!-- Database Ukuran Kertas -->
+            <div class="bg-white rounded-lg p-4 mb-6 border-2 border-blue-200">
+                <h4 class="text-lg font-semibold text-blue-700 mb-4">Database Ukuran Kertas</h4>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="bg-blue-100">
+                                <th class="px-3 py-2 text-left">Nama</th>
+                                <th class="px-3 py-2 text-left">Ukuran (cm)</th>
+                                <th class="px-3 py-2 text-left">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="databaseUkuranKertasModal">
+                            <!-- Data akan diisi oleh JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Alert/Confirm Modal -->
+    <div id="customAlertModal" class="custom-alert-overlay fixed inset-0 flex items-center justify-center z-[100]">
+        <div class="bg-white rounded-lg p-6 w-full max-w-sm mx-4 shadow-xl">
+            <h4 id="customAlertTitle" class="text-lg font-bold mb-2"></h4>
+            <p id="customAlertMessage" class="text-gray-700 mb-4"></p>
+            <div id="customAlertButtons" class="flex justify-end gap-2">
+                <button id="customAlertOk" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Database kertas
+        let databaseKertasData = [
+            { nama: 'HVS 70gr', harga: 15000 },
+            { nama: 'HVS 80gr', harga: 18000 },
+            { nama: 'Art Paper 120gr', harga: 25000 },
+            { nama: 'Art Carton 230gr', harga: 35000 },
+            { nama: 'Ivory 230gr', harga: 45000 }
+        ];
+
+        // Database ukuran kertas
+        let databaseUkuranData = [
+            { nama: 'A4', lebar: 21, panjang: 29.7 },
+            { nama: 'A3', lebar: 29.7, panjang: 42 },
+            { nama: 'F4', lebar: 21.5, panjang: 33 },
+            { nama: 'Folio', lebar: 21.59, panjang: 35.56 }
+        ];
+
+        let currentRecordIndex = 0;
+        let originalData = {};
+
+        // Custom alert/confirm function
+        function customAlert(title, message, isConfirm = false) {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('customAlertModal');
+                const titleEl = document.getElementById('customAlertTitle');
+                const messageEl = document.getElementById('customAlertMessage');
+                const buttonsEl = document.getElementById('customAlertButtons');
+                
+                titleEl.textContent = title;
+                messageEl.textContent = message;
+                buttonsEl.innerHTML = '';
+
+                const okButton = document.createElement('button');
+                okButton.textContent = 'OK';
+                okButton.className = 'bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md';
+                okButton.onclick = () => {
+                    modal.classList.remove('visible');
+                    resolve(true);
+                };
+                buttonsEl.appendChild(okButton);
+
+                if (isConfirm) {
+                    const cancelButton = document.createElement('button');
+                    cancelButton.textContent = 'Batal';
+                    cancelButton.className = 'bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium py-2 px-4 rounded-md';
+                    cancelButton.onclick = () => {
+                        modal.classList.remove('visible');
+                        resolve(false);
+                    };
+                    buttonsEl.appendChild(cancelButton);
+                }
+
+                modal.classList.add('visible');
+            });
+        }
+
+        function formatRupiah(number) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(number);
+        }
+
+        function hitungKertas() {
+            const jumlahPesanan = parseFloat(document.getElementById('jumlahPesanan').value) || 0;
+            const lebarCm = parseFloat(document.getElementById('lebarCm').value) || 0;
+            const panjangCm = parseFloat(document.getElementById('panjangCm').value) || 0;
+
+            // Konversi ke meter
+            const lebarM = lebarCm / 100;
+            const panjangM = panjangCm / 100;
+            
+            // Hitung M2
+            const m2Kertas = lebarM * panjangM;
+            
+            // Hitung plano
+            const plano = m2Kertas > 0 ? 0.869 / m2Kertas : 0;
+            
+            // Hitung habis kertas
+            const habisKertas = plano > 0 ? jumlahPesanan / plano : 0;
+
+            // Update tampilan
+            document.getElementById('lebarM').textContent = lebarM.toFixed(3);
+            document.getElementById('panjangM').textContent = panjangM.toFixed(3);
+            document.getElementById('m2Kertas').textContent = m2Kertas.toFixed(6);
+            document.getElementById('plano').textContent = plano.toFixed(2);
+            document.getElementById('habisKertas').textContent = Math.ceil(habisKertas).toFixed(0);
+
+            // Update harga kertas
+            updateHargaKertas();
+        }
+
+        function bukaFormHargaKertas() {
+            document.getElementById('modalHargaKertas').classList.remove('hidden');
+            updateDatabaseKertasModal();
+            updateRecordInfo();
+            loadCurrentRecord();
+        }
+
+        function tutupFormHargaKertas() {
+            document.getElementById('modalHargaKertas').classList.add('hidden');
+            // Clear input
+            document.getElementById('namaKertasBaru').value = '';
+            document.getElementById('hargaKertasBaru').value = '';
+        }
+
+        // Fungsi untuk modal ukuran kertas
+        function bukaFormUkuranKertas() {
+            document.getElementById('modalUkuranKertas').classList.remove('hidden');
+            updateDatabaseUkuranKertasModal();
+        }
+
+        function tutupFormUkuranKertas() {
+            document.getElementById('modalUkuranKertas').classList.add('hidden');
+        }
+
+        function updateDatabaseUkuranKertasModal() {
+            const tbody = document.getElementById('databaseUkuranKertasModal');
+            tbody.innerHTML = '';
+            databaseUkuranData.forEach((ukuran, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-3 py-2 border-b">${ukuran.nama}</td>
+                    <td class="px-3 py-2 border-b">${ukuran.lebar} x ${ukuran.panjang} cm</td>
+                    <td class="px-3 py-2 border-b flex items-center gap-2">
+                        <button onclick="pilihUkuran(${ukuran.lebar}, ${ukuran.panjang})" class="bg-blue-500 hover:bg-blue-600 text-white text-xs px-2 py-1 rounded-md">Pilih</button>
+                        <button onclick="hapusUkuranModal(${index})" class="bg-red-500 hover:bg-red-600 text-white text-xs px-2 py-1 rounded-md">Hapus</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        async function hapusUkuranModal(index) {
+            const confirmDelete = await customAlert('Konfirmasi Hapus', 'Yakin ingin menghapus ukuran kertas ini?', true);
+            if (confirmDelete) {
+                databaseUkuranData.splice(index, 1);
+                updateDatabaseUkuranKertasModal();
+                customAlert('Berhasil!', 'Ukuran kertas berhasil dihapus!');
+            }
+        }
+
+        function saveNewUkuran() {
+            const nama = document.getElementById('namaUkuranBaru').value.trim();
+            const lebar = parseFloat(document.getElementById('lebarUkuranBaru').value);
+            const panjang = parseFloat(document.getElementById('panjangUkuranBaru').value);
+
+            if (!nama || isNaN(lebar) || isNaN(panjang) || lebar <= 0 || panjang <= 0) {
+                customAlert('Kesalahan!', 'Mohon isi semua data ukuran kertas dengan angka yang valid.');
+                return;
+            }
+
+            databaseUkuranData.push({ nama, lebar, panjang });
+            updateDatabaseUkuranKertasModal();
+            customAlert('Berhasil!', 'Ukuran kertas baru berhasil ditambahkan!');
+
+            // Clear input
+            document.getElementById('namaUkuranBaru').value = '';
+            document.getElementById('lebarUkuranBaru').value = '';
+            document.getElementById('panjangUkuranBaru').value = '';
+        }
+        
+        function pilihUkuran(lebar, panjang) {
+            document.getElementById('lebarCm').value = lebar;
+            document.getElementById('panjangCm').value = panjang;
+            hitungKertas(); // Panggil hitung kertas setelah nilai diupdate
+            tutupFormUkuranKertas();
+        }
+
+        // Record Navigation Functions untuk harga kertas
+        function firstRecord() {
+            currentRecordIndex = 0;
+            loadCurrentRecord();
+            updateRecordInfo();
+        }
+
+        function previousRecord() {
+            if (currentRecordIndex > 0) {
+                currentRecordIndex--;
+                loadCurrentRecord();
+                updateRecordInfo();
+            }
+        }
+
+        function nextRecord() {
+            if (currentRecordIndex < databaseKertasData.length - 1) {
+                currentRecordIndex++;
+                loadCurrentRecord();
+                updateRecordInfo();
+            }
+        }
+
+        function lastRecord() {
+            currentRecordIndex = databaseKertasData.length - 1;
+            loadCurrentRecord();
+            updateRecordInfo();
+        }
+
+        function loadCurrentRecord() {
+            if (databaseKertasData.length > 0 && currentRecordIndex >= 0 && currentRecordIndex < databaseKertasData.length) {
+                const record = databaseKertasData[currentRecordIndex];
+                document.getElementById('namaKertasBaru').value = record.nama;
+                document.getElementById('hargaKertasBaru').value = record.harga;
+                originalData = { ...record };
+            } else {
+                document.getElementById('namaKertasBaru').value = '';
+                document.getElementById('hargaKertasBaru').value = '';
+                originalData = {};
+            }
+        }
+
+        function updateRecordInfo() {
+            document.getElementById('currentRecord').textContent = databaseKertasData.length > 0 ? currentRecordIndex + 1 : 0;
+            document.getElementById('totalRecords').textContent = databaseKertasData.length;
+        }
+
+        // Data Control Functions untuk harga kertas
+        async function undoRecord() {
+            if (originalData.nama && originalData.harga) {
+                document.getElementById('namaKertasBaru').value = originalData.nama;
+                document.getElementById('hargaKertasBaru').value = originalData.harga;
+                await customAlert('Informasi', 'Data dikembalikan ke kondisi semula!');
+            } else {
+                document.getElementById('namaKertasBaru').value = '';
+                document.getElementById('hargaKertasBaru').value = '';
+                await customAlert('Informasi', 'Form dikosongkan!');
+            }
+        }
+
+        async function saveNewRecord() {
+            const namaKertas = document.getElementById('namaKertasBaru').value.trim();
+            const hargaKertas = parseFloat(document.getElementById('hargaKertasBaru').value);
+
+            if (!namaKertas || isNaN(hargaKertas) || hargaKertas <= 0) {
+                await customAlert('Kesalahan!', 'Mohon isi nama kertas dan harga yang valid!');
+                return;
+            }
+
+            // Tambah ke database
+            databaseKertasData.push({ nama: namaKertas, harga: hargaKertas });
+
+            // Update tampilan
+            updateDatabaseKertasModal();
+            updateDropdownKertas();
+            updateRecordInfo();
+
+            // Clear input
+            document.getElementById('namaKertasBaru').value = '';
+            document.getElementById('hargaKertasBaru').value = '';
+            originalData = {};
+
+            await customAlert('Berhasil!', 'Record baru berhasil disimpan!');
+        }
+
+        async function refreshData() {
+            updateDatabaseKertasModal();
+            updateDropdownKertas();
+            updateRecordInfo();
+            loadCurrentRecord();
+            await customAlert('Berhasil!', 'Data berhasil di-refresh!');
+        }
+
+        async function hapusKertasModal(index) {
+            const confirmDelete = await customAlert('Konfirmasi Hapus', 'Yakin ingin menghapus kertas ini?', true);
+            if (confirmDelete) {
+                databaseKertasData.splice(index, 1);
+                
+                // Adjust current record index if needed
+                if (currentRecordIndex >= databaseKertasData.length) {
+                    currentRecordIndex = Math.max(0, databaseKertasData.length - 1);
+                }
+                
+                updateDatabaseKertasModal();
+                updateDropdownKertas();
+                updateRecordInfo();
+                loadCurrentRecord();
+                await customAlert('Berhasil!', 'Data berhasil dihapus!');
+            }
+        }
+
+        function updateDatabaseKertasModal() {
+            const tbody = document.getElementById('databaseKertasModal');
+            tbody.innerHTML = '';
+
+            databaseKertasData.forEach((kertas, index) => {
+                const row = document.createElement('tr');
+                const isCurrentRecord = index === currentRecordIndex;
+                row.className = isCurrentRecord ? 'bg-blue-100' : '';
+                row.innerHTML = `
+                    <td class="px-3 py-2 border-b">${index + 1}</td>
+                    <td class="px-3 py-2 border-b">${kertas.nama}</td>
+                    <td class="px-3 py-2 border-b">${formatRupiah(kertas.harga)}</td>
+                    <td class="px-3 py-2 border-b">
+                        <button onclick="selectRecord(${index})" class="text-blue-600 hover:text-blue-800 text-xs mr-2">Pilih</button>
+                        <button onclick="hapusKertasModal(${index})" class="text-red-600 hover:text-red-800 text-xs">Hapus</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function selectRecord(index) {
+            currentRecordIndex = index;
+            loadCurrentRecord();
+            updateRecordInfo();
+            updateDatabaseKertasModal();
+        }
+
+        function updateDropdownKertas() {
+            const select = document.getElementById('jenisKertas');
+            select.innerHTML = '<option value="">-- Pilih Jenis Kertas --</option>';
+
+            databaseKertasData.forEach(kertas => {
+                const option = document.createElement('option');
+                option.value = kertas.harga;
+                option.textContent = `${kertas.nama} - ${formatRupiah(kertas.harga)}`;
+                select.appendChild(option);
+            });
+        }
+
+        function updateHargaKertas() {
+            const hargaPerPlano = parseFloat(document.getElementById('jenisKertas').value) || 0;
+            const habisKertas = parseFloat(document.getElementById('habisKertas').textContent) || 0;
+            
+            // Perbaikan: gunakan Math.ceil() untuk memastikan pembulatan ke atas
+            const jumlahHargaKertas = hargaPerPlano * Math.ceil(habisKertas);
+            
+            document.getElementById('hargaKertasPerPlano').textContent = formatRupiah(hargaPerPlano);
+            document.getElementById('jumlahHargaKertas').textContent = formatRupiah(jumlahHargaKertas);
+            
+            hitungTotal();
+        }
+
+        function hitungTotal() {
+            // Ambil nilai yang sudah diformat dan hapus formatnya
+            const jumlahHargaKertas = parseFloat(document.getElementById('jumlahHargaKertas').textContent.replace(/Rp\s?|\./g, '').replace(/,/g, '.')) || 0;
+            const hargaMaster = parseFloat(document.getElementById('hargaMaster').value) || 0;
+            const hargaOc = parseFloat(document.getElementById('hargaOc').value) || 0;
+            const hargaFinishing = parseFloat(document.getElementById('hargaFinishing').value) || 0;
+            const hargaPotong = parseFloat(document.getElementById('hargaPotong').value) || 0;
+            
+            const hargaCetak = hargaMaster + hargaOc;
+            const totalHarga = jumlahHargaKertas + hargaMaster + hargaOc + hargaFinishing + hargaPotong;
+            
+            // Update tampilan
+            document.getElementById('hargaCetak').textContent = formatRupiah(hargaCetak);
+            document.getElementById('totalHarga').textContent = formatRupiah(totalHarga);
+            
+            // Update breakdown
+            document.getElementById('breakdownKertas').textContent = formatRupiah(jumlahHargaKertas);
+            document.getElementById('breakdownMaster').textContent = formatRupiah(hargaMaster);
+            document.getElementById('breakdownOc').textContent = formatRupiah(hargaOc);
+            document.getElementById('breakdownFinishing').textContent = formatRupiah(hargaFinishing);
+            document.getElementById('breakdownPotong').textContent = formatRupiah(hargaPotong);
+            document.getElementById('breakdownJumlahHargaKertas').textContent = formatRupiah(jumlahHargaKertas);
+            document.getElementById('breakdownTotal').textContent = formatRupiah(totalHarga);
+        }
+
+        // Initialize
+        updateDropdownKertas();
+        hitungKertas();
+    </script>
+</body>
+</html>
