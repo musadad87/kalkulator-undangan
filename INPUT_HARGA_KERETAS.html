@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Manajemen Harga Kertas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            color: #1f2937;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+        .form-card {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+        }
+        .form-header {
+            background-color: #22c55e;
+            color: white;
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .form-header .close-btn {
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .input-group {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .input-field {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.25rem;
+        }
+        .btn-group {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            font-weight: 600;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .btn-nav {
+            background-color: #60a5fa;
+            color: white;
+        }
+        .btn-nav:hover {
+            background-color: #3b82f6;
+        }
+        .btn-save {
+            background-color: #10b981;
+            color: white;
+        }
+        .btn-save:hover {
+            background-color: #059669;
+        }
+        .btn-refresh {
+            background-color: #6366f1;
+            color: white;
+        }
+        .btn-refresh:hover {
+            background-color: #4f46e5;
+        }
+        .btn-new {
+            background-color: #3b82f6;
+            color: white;
+        }
+        .btn-new:hover {
+            background-color: #2563eb;
+        }
+        .btn-delete {
+            background-color: #ef4444;
+            color: white;
+        }
+        .btn-delete:hover {
+            background-color: #dc2626;
+        }
+        .btn-undo {
+            background-color: #f59e0b;
+            color: white;
+        }
+        .btn-undo:hover {
+            background-color: #d97706;
+        }
+        .btn-excel {
+            background-color: #22c55e;
+            color: white;
+        }
+        .btn-excel:hover {
+            background-color: #16a34a;
+        }
+        .table-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+        .database-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        .database-table th, .database-table td {
+            border: 1px solid #e2e8f0;
+            padding: 0.75rem;
+            text-align: left;
+        }
+        .database-table th {
+            background-color: #f8fafc;
+            font-weight: 600;
+        }
+        .action-btn {
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+        }
+        .action-btn-select {
+            background-color: #3b82f6;
+            color: white;
+        }
+        .action-btn-select:hover {
+            background-color: #2563eb;
+        }
+        .action-btn-delete {
+            background-color: #ef4444;
+            color: white;
+        }
+        .action-btn-delete:hover {
+            background-color: #dc2626;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Form Section -->
+        <div class="form-card">
+            <div class="form-header">
+                <h2 class="text-xl font-semibold">Form Harga Kertas</h2>
+                <span class="close-btn">&times;</span>
+            </div>
+            <div class="p-6">
+                <form id="price-form">
+                    <h3 class="font-bold text-gray-700 mb-4">No (Primary Key)</h3>
+                    <div class="input-group">
+                        <div>
+                            <input type="number" id="no" class="input-field" readonly>
+                        </div>
+                    </div>
+
+                    <h3 class="font-bold text-gray-700 mb-4">Harga Kertas</h3>
+                    <div class="input-group">
+                        <div>
+                            <input type="number" id="harga-kertas" class="input-field">
+                        </div>
+                    </div>
+
+                    <h3 class="font-bold text-gray-700 mb-4">Nama Kertas</h3>
+                    <div class="input-group">
+                        <div class="col-span-2">
+                            <input type="text" id="nama-kertas" class="input-field">
+                        </div>
+                    </div>
+                    
+                    <h3 class="font-bold text-gray-700 mb-4">Ukuran Kertas (cm)</h3>
+                    <div class="input-group">
+                        <div>
+                            <label for="ukuran-lebar" class="block text-sm text-gray-500">Ukuran Lebar (cm)</label>
+                            <input type="number" id="ukuran-lebar" class="input-field">
+                        </div>
+                        <div>
+                            <label for="ukuran-panjang" class="block text-sm text-gray-500">Ukuran Panjang (cm)</label>
+                            <input type="number" id="ukuran-panjang" class="input-field">
+                        </div>
+                    </div>
+
+                    <h3 class="font-bold text-gray-700 mt-6 mb-2">Record Navigation Buttons:</h3>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-nav" id="first-record-btn">« First Record</button>
+                        <button type="button" class="btn btn-nav" id="prev-record-btn">‹ Previous Record</button>
+                        <button type="button" class="btn btn-nav" id="next-record-btn">Next Record ›</button>
+                        <button type="button" class="btn btn-nav" id="last-record-btn">Last Record »</button>
+                    </div>
+
+                    <h3 class="font-bold text-gray-700 mt-6 mb-2">Data Control Buttons:</h3>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-undo" id="undo-record-btn">↺ Undo Record</button>
+                        <button type="button" class="btn btn-save" id="save-record-btn">❐ Save New Record</button>
+                        <button type="button" class="btn btn-refresh" id="refresh-data-btn">↻ Refresh Data</button>
+                        <button type="button" class="btn btn-new" id="new-data-btn">+ New Data</button>
+                        <button type="button" class="btn btn-delete" id="delete-record-btn">✖ Hapus</button>
+                        <button type="button" class="btn btn-excel" id="export-excel-btn">⇪ Export Excel</button>
+                        <button type="button" class="btn btn-excel" id="import-excel-btn">⇩ Import Excel</button>
+                    </div>
+                    <input type="file" id="import-excel-file" class="hidden" accept=".xlsx, .xls">
+                    
+                    <p id="record-status" class="text-center text-gray-500 mt-4">Record: 0 of 0</p>
+                </form>
+            </div>
+        </div>
+
+        <!-- Database Table Section -->
+        <div class="table-card">
+            <h2 class="text-xl font-bold text-gray-700 mb-4">Database Harga Kertas</h2>
+            <div class="overflow-x-auto">
+                <table class="database-table" id="data-table">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Harga Kertas</th>
+                            <th>Nama Kertas</th>
+                            <th>Lebar (cm)</th>
+                            <th>Panjang (cm)</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data rows will be injected here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const storageKey = 'hargaKertas';
+            let data = [];
+            let currentRecordIndex = -1;
+            const formInputs = {
+                no: document.getElementById('no'),
+                hargaKertas: document.getElementById('harga-kertas'),
+                namaKertas: document.getElementById('nama-kertas'),
+                ukuranLebar: document.getElementById('ukuran-lebar'),
+                ukuranPanjang: document.getElementById('ukuran-panjang')
+            };
+            const recordStatus = document.getElementById('record-status');
+            const dataTableBody = document.querySelector('#data-table tbody');
+
+            // --- Utility Functions ---
+            function saveToLocalStorage() {
+                localStorage.setItem(storageKey, JSON.stringify(data));
+            }
+
+            function loadFromLocalStorage() {
+                const storedData = localStorage.getItem(storageKey);
+                data = storedData ? JSON.parse(storedData) : [];
+            }
+
+            // --- Form & Data Display ---
+            function renderRecord() {
+                if (data.length === 0) {
+                    clearForm();
+                    recordStatus.textContent = 'Record: 0 of 0';
+                    return;
+                }
+                if (currentRecordIndex < 0) currentRecordIndex = 0;
+                if (currentRecordIndex >= data.length) currentRecordIndex = data.length - 1;
+
+                const record = data[currentRecordIndex];
+                formInputs.no.value = record.no;
+                formInputs.hargaKertas.value = record.hargaKertas;
+                formInputs.namaKertas.value = record.namaKertas;
+                formInputs.ukuranLebar.value = record.ukuranLebar;
+                formInputs.ukuranPanjang.value = record.ukuranPanjang;
+
+                recordStatus.textContent = `Record: ${currentRecordIndex + 1} of ${data.length}`;
+            }
+
+            function clearForm() {
+                for (const key in formInputs) {
+                    formInputs[key].value = '';
+                }
+                formInputs.no.value = data.length + 1;
+                currentRecordIndex = -1;
+                recordStatus.textContent = `Record: ${data.length + 1} of ${data.length + 1}`;
+            }
+
+            function renderTable() {
+                dataTableBody.innerHTML = '';
+                if (data.length === 0) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td colspan="6" class="text-center text-gray-500">Tidak ada data. Tambahkan data baru di formulir di atas.</td>`;
+                    dataTableBody.appendChild(row);
+                    return;
+                }
+                data.forEach(record => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${record.no}</td>
+                        <td>Rp ${record.hargaKertas.toLocaleString('id-ID')}</td>
+                        <td>${record.namaKertas}</td>
+                        <td>${record.ukuranLebar}</td>
+                        <td>${record.ukuranPanjang}</td>
+                        <td>
+                            <button type="button" class="action-btn action-btn-select" onclick="selectRecord(${record.no})">Pilih</button>
+                            <button type="button" class="action-btn action-btn-delete" onclick="deleteRecord(${record.no})">Hapus</button>
+                        </td>
+                    `;
+                    dataTableBody.appendChild(row);
+                });
+            }
+
+            // --- Navigation Logic ---
+            document.getElementById('first-record-btn').addEventListener('click', () => {
+                currentRecordIndex = 0;
+                renderRecord();
+            });
+
+            document.getElementById('prev-record-btn').addEventListener('click', () => {
+                if (currentRecordIndex > 0) {
+                    currentRecordIndex--;
+                    renderRecord();
+                }
+            });
+
+            document.getElementById('next-record-btn').addEventListener('click', () => {
+                if (currentRecordIndex < data.length - 1) {
+                    currentRecordIndex++;
+                    renderRecord();
+                }
+            });
+
+            document.getElementById('last-record-btn').addEventListener('click', () => {
+                currentRecordIndex = data.length - 1;
+                renderRecord();
+            });
+
+            // --- Data Control Logic ---
+            document.getElementById('save-record-btn').addEventListener('click', () => {
+                const newRecord = {
+                    no: formInputs.no.value ? parseInt(formInputs.no.value) : data.length + 1,
+                    hargaKertas: parseFloat(formInputs.hargaKertas.value) || 0,
+                    namaKertas: formInputs.namaKertas.value,
+                    ukuranLebar: parseFloat(formInputs.ukuranLebar.value) || 0,
+                    ukuranPanjang: parseFloat(formInputs.ukuranPanjang.value) || 0
+                };
+
+                const existingIndex = data.findIndex(r => r.no === newRecord.no);
+                if (existingIndex !== -1) {
+                    data[existingIndex] = newRecord;
+                } else {
+                    data.push(newRecord);
+                }
+                
+                saveToLocalStorage();
+                refreshData();
+            });
+
+            document.getElementById('new-data-btn').addEventListener('click', clearForm);
+
+            document.getElementById('refresh-data-btn').addEventListener('click', refreshData);
+
+            document.getElementById('delete-record-btn').addEventListener('click', () => {
+                if (currentRecordIndex !== -1 && data.length > 0) {
+                    deleteRecord(data[currentRecordIndex].no);
+                }
+            });
+
+            document.getElementById('undo-record-btn').addEventListener('click', () => {
+                alert('Fungsi undo tidak diimplementasikan.');
+            });
+
+            window.selectRecord = (no) => {
+                const index = data.findIndex(r => r.no === no);
+                if (index !== -1) {
+                    currentRecordIndex = index;
+                    renderRecord();
+                }
+            };
+
+            window.deleteRecord = (no) => {
+                if (confirm('Apakah Anda yakin ingin menghapus data ini?')) {
+                    data = data.filter(r => r.no !== no);
+                    saveToLocalStorage();
+                    refreshData();
+                }
+            };
+            
+            function refreshData() {
+                loadFromLocalStorage();
+                renderTable();
+                currentRecordIndex = 0;
+                renderRecord();
+            }
+
+            // --- Excel Import/Export Logic ---
+            document.getElementById('export-excel-btn').addEventListener('click', () => {
+                if (data.length === 0) {
+                    alert('Tidak ada data untuk diekspor!');
+                    return;
+                }
+                const ws = XLSX.utils.json_to_sheet(data);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Harga Kertas");
+                XLSX.writeFile(wb, "harga_kertas.xlsx");
+            });
+
+            document.getElementById('import-excel-btn').addEventListener('click', () => {
+                document.getElementById('import-excel-file').click();
+            });
+
+            document.getElementById('import-excel-file').addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const bstr = event.target.result;
+                    const wb = XLSX.read(bstr, { type: 'binary' });
+                    const wsname = wb.SheetNames[0];
+                    const ws = wb.Sheets[wsname];
+                    const importedData = XLSX.utils.sheet_to_json(ws);
+                    
+                    if (importedData.length > 0) {
+                        data = importedData.map((item, index) => ({
+                            no: index + 1,
+                            hargaKertas: parseFloat(item["Harga Kertas"]),
+                            namaKertas: item["Nama Kertas"],
+                            ukuranLebar: parseFloat(item["Lebar (cm)"]),
+                            ukuranPanjang: parseFloat(item["Panjang (cm)"])
+                        }));
+                        saveToLocalStorage();
+                        refreshData();
+                        alert('Data berhasil diimpor!');
+                    } else {
+                        alert('File Excel kosong atau format tidak sesuai.');
+                    }
+                };
+                reader.readAsBinaryString(file);
+            });
+
+            // --- Initial Load ---
+            refreshData();
+        });
+    </script>
+</body>
+</html>
