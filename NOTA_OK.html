@@ -626,8 +626,17 @@
             });
         }
 
+        // FUNGSI PRINT DENGAN UMPAN BALIK
         function printInvoice() {
-            window.print();
+            try {
+                window.print();
+                // Beri pesan jika jendela cetak mungkin tidak langsung terlihat
+                showCustomMessage('Jendela cetak telah dibuka. Periksa jendela pop-up peramban Anda.');
+            } catch (e) {
+                // Tangani kesalahan jika jendela cetak tidak bisa dibuka
+                showCustomMessage('Gagal membuka jendela cetak. Periksa pengaturan peramban atau pop-up blocker Anda.');
+                console.error('Print error:', e);
+            }
         }
         
         async function exportDatabase() {
@@ -971,5 +980,3 @@
     </script>
 </body>
 </html>
-
-
