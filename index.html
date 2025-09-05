@@ -99,6 +99,7 @@
                     <button class="app-button" onclick="handleButtonClick('hitung-riza')">HITUNG RIZA</button>
                     <button class="app-button" onclick="handleButtonClick('focopy')">FOCOPY</button>
                     <button class="app-button" onclick="handleButtonClick('npwp')">NPWP</button>
+                    <button class="app-button" onclick="handleButtonClick('npwp1')">NPWP2</button>
                     <button class="app-button" onclick="handleButtonClick('cetak-foto')">CETAK FOTO</button>
                 </div>
             </div>
@@ -159,6 +160,9 @@
             } else if (action === 'beli') {
                 // Membuka tautan beli di tab baru
                 window.open('https://musadad87.github.io/kalkulator-undangan/BELI.html', '_blank');
+                } else if (action === 'npwp1') {
+                // Membuka tautan beli di tab baru
+                window.open('https://g.co/gemini/share/21fa35ea25d3', '_blank');
             } else {
                 // Logika lain untuk tombol lainnya bisa ditambahkan di sini.
                 // localStorage.setItem('lastAction', action);
@@ -167,3 +171,4 @@
     </script>
 </body>
 </html>
+
