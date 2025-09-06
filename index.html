@@ -101,6 +101,8 @@
                     <button class="app-button" onclick="handleButtonClick('npwp')">NPWP</button>
                     <button class="app-button" onclick="handleButtonClick('npwp1')">NPWP2</button>
                     <button class="app-button" onclick="handleButtonClick('cetak-foto')">CETAK FOTO</button>
+                     <button class="app-button" onclick="handleButtonClick('Hapus_BC')">Hapus Becron</button>
+                     <button class="app-button" onclick="handleButtonClick('Menajam_Fo')">menajamkan Foto</button>
                 </div>
             </div>
         </div>
@@ -169,6 +171,12 @@
                 } else if (action === 'focopy') {
                 // Membuka tautan beli di tab baru
                 window.open('https://musadad87.github.io/kalkulator-undangan/fotocpy.html', '_blank');
+                 } else if (action === 'Hapus_BC') {
+                // Membuka tautan beli di tab baru
+                window.open('https://www.photoroom.com/tools/background-remover', '_blank');
+                } else if (action === 'Menajam_Fo') {
+                // Membuka tautan beli di tab baru
+                window.open('https://picwish.com/photo-enhancer', '_blank');
             } else {
                 // Logika lain untuk tombol lainnya bisa ditambahkan di sini.
                 // localStorage.setItem('lastAction', action);
@@ -177,5 +185,6 @@
     </script>
 </body>
 </html>
+
 
 
