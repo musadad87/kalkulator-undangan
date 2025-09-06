@@ -1,198 +1,194 @@
-&lt;html lang=&quot;id&quot;&gt;
-&lt;head&gt;
-    &lt;meta charset=&quot;UTF-8&quot;&gt;
-    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
-    &lt;title&gt;Kalkulator Harga Fotocopy&lt;/title&gt;
-    &lt;script src=&quot;https://cdn.tailwindcss.com&quot;&gt;&lt;/script&gt;
-    &lt;style&gt;
-        @import url(&#39;https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap&#39;);
-        body { font-family: &#39;Inter&#39;, sans-serif; }
-    &lt;/style&gt;
-&lt;/head&gt;
-&lt;body class=&quot;bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen&quot;&gt;
-    &lt;div class=&quot;container mx-auto px-4 py-8&quot;&gt;
-        &lt;!-- Header --&gt;
-        &lt;div class=&quot;text-center mb-8&quot;&gt;
-            &lt;h1 class=&quot;text-4xl font-bold text-gray-800 mb-2&quot;&gt;📄 Kalkulator Harga Fotocopy&lt;/h1&gt;
-            &lt;p class=&quot;text-gray-600&quot;&gt;Hitung harga per lembar fotocopy dengan mudah&lt;/p&gt;
-        &lt;/div&gt;
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator Harga Fotocopy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Menggunakan font Inter untuk tampilan yang bersih dan modern */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center justify-center p-4">
 
-        &lt;!-- Main Calculator Card --&gt;
-        &lt;div class=&quot;max-w-2xl mx-auto bg-white rounded-2xl shadow-xl p-8&quot;&gt;
-            &lt;div class=&quot;space-y-6&quot;&gt;
-                &lt;!-- Input Section 1: Harga ke Lembar --&gt;
-                &lt;div class=&quot;bg-gray-50 rounded-xl p-6&quot;&gt;
-                    &lt;label for=&quot;harga&quot; class=&quot;block text-lg font-semibold text-gray-700 mb-3&quot;&gt;
-                        💰 Masukkan Harga Total
-                    &lt;/label&gt;
-                    &lt;div class=&quot;flex items-center space-x-4&quot;&gt;
-                        &lt;div class=&quot;flex-1&quot;&gt;
-                            &lt;div class=&quot;relative&quot;&gt;
-                                &lt;span class=&quot;absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium&quot;&gt;Rp&lt;/span&gt;
-                                &lt;input 
-                                    type=&quot;number&quot; 
-                                    id=&quot;harga&quot; 
-                                    placeholder=&quot;0&quot;
-                                    class=&quot;w-full pl-12 pr-4 py-4 text-xl font-semibold border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-colors&quot;
-                                    oninput=&quot;hitungHarga()&quot;
-                                &gt;
-                            &lt;/div&gt;
-                        &lt;/div&gt;
-                        &lt;div class=&quot;flex-1&quot;&gt;
-                            &lt;select 
-                                id=&quot;jenisLayananHarga&quot; 
-                                class=&quot;w-full px-4 py-4 text-lg font-semibold border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-colors bg-white&quot;
-                                onchange=&quot;hitungHarga()&quot;
-                            &gt;
-                                &lt;option value=&quot;250&quot;&gt;📄 Fotocopy A4 - Rp 250&lt;/option&gt;
-                                &lt;option value=&quot;300&quot;&gt;📄 Fotocopy F4 - Rp 300&lt;/option&gt;
-                                &lt;option value=&quot;1000&quot;&gt;🖨️ Print BW - Rp 1.000&lt;/option&gt;
-                                &lt;option value=&quot;2000&quot;&gt;🌈 Print Warna - Rp 2.000&lt;/option&gt;
-                            &lt;/select&gt;
-                        &lt;/div&gt;
-                        &lt;div class=&quot;text-2xl text-gray-400&quot;&gt;÷ &lt;span id=&quot;hargaPembagi&quot;&gt;250&lt;/span&gt; =&lt;/div&gt;
-                        &lt;div class=&quot;flex-1&quot;&gt;
-                            &lt;div class=&quot;bg-blue-50 border-2 border-blue-200 rounded-xl p-4&quot;&gt;
-                                &lt;div class=&quot;text-sm text-blue-600 font-medium mb-1&quot;&gt;Jumlah yang bisa dicetak&lt;/div&gt;
-                                &lt;div id=&quot;hasil&quot; class=&quot;text-2xl font-bold text-blue-800&quot;&gt;0 lembar&lt;/div&gt;
-                            &lt;/div&gt;
-                        &lt;/div&gt;
-                    &lt;/div&gt;
-                &lt;/div&gt;
+    <div class="max-w-3xl w-full bg-white rounded-2xl shadow-xl p-8 space-y-8">
 
-                &lt;!-- Input Section 2: Lembar ke Harga --&gt;
-                &lt;div class=&quot;bg-green-50 rounded-xl p-6&quot;&gt;
-                    &lt;label for=&quot;lembar&quot; class=&quot;block text-lg font-semibold text-gray-700 mb-3&quot;&gt;
-                        📄 Masukkan Jumlah Lembar
-                    &lt;/label&gt;
-                    &lt;div class=&quot;flex items-center space-x-4&quot;&gt;
-                        &lt;div class=&quot;flex-1&quot;&gt;
-                            &lt;div class=&quot;relative&quot;&gt;
-                                &lt;input 
-                                    type=&quot;number&quot; 
-                                    id=&quot;lembar&quot; 
-                                    placeholder=&quot;0&quot;
-                                    class=&quot;w-full px-4 py-4 text-xl font-semibold border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none transition-colors&quot;
-                                    oninput=&quot;hitungTotalHarga()&quot;
-                                &gt;
-                                &lt;span class=&quot;absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium&quot;&gt;lembar&lt;/span&gt;
-                            &lt;/div&gt;
-                        &lt;/div&gt;
-                        &lt;div class=&quot;flex-1&quot;&gt;
-                            &lt;select 
-                                id=&quot;jenisLayanan&quot; 
-                                class=&quot;w-full px-4 py-4 text-lg font-semibold border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none transition-colors bg-white&quot;
-                                onchange=&quot;hitungTotalHarga()&quot;
-                            &gt;
-                                &lt;option value=&quot;300&quot;&gt;📄 Fotocopy - Rp 300&lt;/option&gt;
-                                &lt;option value=&quot;1000&quot;&gt;🖨️ Print BW - Rp 1.000&lt;/option&gt;
-                                &lt;option value=&quot;2000&quot;&gt;🌈 Print Warna - Rp 2.000&lt;/option&gt;
-                            &lt;/select&gt;
-                        &lt;/div&gt;
-                        &lt;div class=&quot;text-2xl text-gray-400&quot;&gt;× &lt;span id=&quot;hargaSatuan&quot;&gt;300&lt;/span&gt; =&lt;/div&gt;
-                        &lt;div class=&quot;flex-1&quot;&gt;
-                            &lt;div class=&quot;bg-green-100 border-2 border-green-200 rounded-xl p-4&quot;&gt;
-                                &lt;div class=&quot;text-sm text-green-600 font-medium mb-1&quot;&gt;Total harga&lt;/div&gt;
-                                &lt;div id=&quot;hasilHarga&quot; class=&quot;text-2xl font-bold text-green-800&quot;&gt;Rp 0&lt;/div&gt;
-                            &lt;/div&gt;
-                        &lt;/div&gt;
-                    &lt;/div&gt;
-                &lt;/div&gt;
+        <!-- Bagian Header Aplikasi -->
+        <div class="text-center">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">📄 Kalkulator Harga Fotocopy</h1>
+            <p class="text-gray-600">Hitung total harga atau jumlah lembar dengan mudah.</p>
+        </div>
 
-                &lt;!-- Info Section --&gt;
-                &lt;div class=&quot;bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl p-6 text-white&quot;&gt;
-                    &lt;div class=&quot;flex items-center space-x-3 mb-3&quot;&gt;
-                        &lt;span class=&quot;text-2xl&quot;&gt;ℹ️&lt;/span&gt;
-                        &lt;h3 class=&quot;text-lg font-semibold&quot;&gt;Informasi Perhitungan&lt;/h3&gt;
-                    &lt;/div&gt;
-                    &lt;p class=&quot;text-blue-100&quot;&gt;
-                        Kalkulator ini membagi harga total dengan 300 untuk mendapatkan jumlah lembar yang bisa dicetak. 
-                        Angka 300 adalah harga per lembar fotocopy yang digunakan sebagai standar perhitungan.
-                    &lt;/p&gt;
-                &lt;/div&gt;
+        <!-- Bagian 1: Hitung Total Harga dari Jumlah Lembar -->
+        <div class="bg-indigo-50 rounded-xl p-6 border-2 border-indigo-200">
+            <h2 class="text-2xl font-semibold text-indigo-700 mb-4 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M12 21a9 9 0 1 1 0-18 9 9 0 0 1 0 18ZM12 9v4.5M12 9a2.25 2.25 0 0 0 2.25 2.25M12 9a2.25 2.25 0 0 1-2.25 2.25m-1.5 8.25c.105.04.21.082.315.125M12 21h4.5c.354 0 .695-.03.01-.061M12 21c-3.132 0-6.189-.684-8.132-1.921a2.25 2.25 0 0 1 1.545-3.085l.132-.014.354-.054.341-.049.255-.035.185-.025.132-.014.07-.009.055-.006.052-.005.048-.004.045-.003.039-.002.041-.002.035-.001.033-.001.029-.001.025-.001.018 0-.018 0-.025.001-.029.001-.033.001-.035.001-.041.002-.039.002-.045.003-.048.004-.052.005-.055.006-.07.009-.132.014-.185.025-.255.035-.341.049-.354.054-.132.014-1.545 3.085z" />
+                </svg>
+                Hitung Total Harga
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                <!-- Input untuk jumlah lembar -->
+                <div>
+                    <label for="lembar" class="block text-sm font-medium text-gray-700 mb-1">Jumlah Lembar</label>
+                    <div class="relative rounded-md shadow-sm">
+                        <input type="number" id="lembar" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors" placeholder="0" oninput="hitungTotalHarga()">
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                            <span class="text-gray-500 sm:text-sm">lembar</span>
+                        </div>
+                    </div>
+                </div>
 
-                &lt;!-- Quick Examples --&gt;
-                &lt;div class=&quot;grid grid-cols-1 md:grid-cols-3 gap-4&quot;&gt;
-                    &lt;div class=&quot;bg-green-50 border border-green-200 rounded-lg p-4 text-center cursor-pointer hover:bg-green-100 transition-colors&quot; onclick=&quot;setContoh(15000)&quot;&gt;
-                        &lt;div class=&quot;text-green-600 font-semibold&quot;&gt;Contoh 1&lt;/div&gt;
-                        &lt;div class=&quot;text-sm text-gray-600&quot;&gt;Rp 15.000&lt;/div&gt;
-                        &lt;div class=&quot;text-xs text-green-500&quot;&gt;= 50 lembar&lt;/div&gt;
-                    &lt;/div&gt;
-                    &lt;div class=&quot;bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center cursor-pointer hover:bg-yellow-100 transition-colors&quot; onclick=&quot;setContoh(30000)&quot;&gt;
-                        &lt;div class=&quot;text-yellow-600 font-semibold&quot;&gt;Contoh 2&lt;/div&gt;
-                        &lt;div class=&quot;text-sm text-gray-600&quot;&gt;Rp 30.000&lt;/div&gt;
-                        &lt;div class=&quot;text-xs text-yellow-500&quot;&gt;= 100 lembar&lt;/div&gt;
-                    &lt;/div&gt;
-                    &lt;div class=&quot;bg-purple-50 border border-purple-200 rounded-lg p-4 text-center cursor-pointer hover:bg-purple-100 transition-colors&quot; onclick=&quot;setContoh(45000)&quot;&gt;
-                        &lt;div class=&quot;text-purple-600 font-semibold&quot;&gt;Contoh 3&lt;/div&gt;
-                        &lt;div class=&quot;text-sm text-gray-600&quot;&gt;Rp 45.000&lt;/div&gt;
-                        &lt;div class=&quot;text-xs text-purple-500&quot;&gt;= 150 lembar&lt;/div&gt;
-                    &lt;/div&gt;
-                &lt;/div&gt;
-            &lt;/div&gt;
-        &lt;/div&gt;
+                <!-- Pilihan layanan -->
+                <div>
+                    <label for="layanan" class="block text-sm font-medium text-gray-700 mb-1">Jenis Layanan</label>
+                    <select id="layanan" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors" onchange="hitungTotalHarga()">
+                        <option value="300">Fotocopy BW A4 - Rp 300/lembar</option>
+                        <option value="500">Fotocopy Warna A4 - Rp 500/lembar</option>
+                        <option value="350">Fotocopy BW F4 - Rp 350/lembar</option>
+                        <option value="600">Fotocopy Warna F4 - Rp 600/lembar</option>
+                        <option value="5000">Print A3 - Rp 5.000/lembar</option>
+                        <option value="10000">Stiker A3 - Rp 10.000/lembar</option>
+                        <option value="15000">Vinyl A3 - Rp 15.000/lembar</option>
+                    </select>
+                </div>
+            </div>
 
-        &lt;!-- Footer --&gt;
-        &lt;div class=&quot;text-center mt-8 text-gray-500&quot;&gt;
-            &lt;p&gt;💡 Klik pada contoh di atas untuk mencoba perhitungan&lt;/p&gt;
-        &lt;/div&gt;
-    &lt;/div&gt;
+            <!-- Hasil perhitungan harga total -->
+            <div class="mt-6 text-center">
+                <p class="text-gray-500 text-sm font-medium">Total Harga:</p>
+                <p id="hasilHarga" class="text-4xl font-bold text-indigo-800">Rp 0</p>
+            </div>
+        </div>
 
-    &lt;script&gt;
-        function hitungHarga() {
-            const hargaInput = document.getElementById(&#39;harga&#39;);
-            const jenisLayananHargaSelect = document.getElementById(&#39;jenisLayananHarga&#39;);
-            const hasilDiv = document.getElementById(&#39;hasil&#39;);
-            const hargaPembagiSpan = document.getElementById(&#39;hargaPembagi&#39;);
+        <!-- Bagian 2: Hitung Jumlah Lembar dari Harga Total -->
+        <div class="bg-green-50 rounded-xl p-6 border-2 border-green-200">
+            <h2 class="text-2xl font-semibold text-green-700 mb-4 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-3h.01M9 15h.01M9 18h.01M9 21h.01M12 3v3.75m3-3V7.5M15 6V3m3 3V3m3 3V3m0 0h-3V3m0 0a.75.75 0 0 1 .75-.75h2.25a.75.75 0 0 1 .75.75v3h-.01M18 6h.01m-2.25-.75h.01M21 3h-.01m-3.75 0a.75.75 0 0 1-.75-.75h-2.25a.75.75 0 0 1-.75.75V3m0 0H3m0 0a.75.75 0 0 1-.75.75v2.25a.75.75 0 0 1 .75.75h3V3m0 0a.75.75 0 0 1-.75-.75h-2.25a.75.75 0 0 1-.75.75V3m18-3a.75.75 0 0 1 .75.75v2.25a.75.75 0 0 1-.75.75h-3V3m0 0a.75.75 0 0 1 .75-.75h2.25a.75.75 0 0 1 .75.75v3h-.01M3 6h.01m3.75-.75h.01M6 3v3.75m-3-3V7.5M3 6V3m-3 3V3m3 3h.01m-2.25-.75h.01M3 3h-.01m-.75 0a.75.75 0 0 1-.75-.75h-2.25a.75.75 0 0 1-.75.75V3m0 0H3m0 0a.75.75 0 0 1-.75.75v2.25a.75.75 0 0 1 .75.75h3V3m0 0a.75.75 0 0 1-.75-.75h-2.25a.75.75 0 0 1-.75.75V3m18-3a.75.75 0 0 1 .75.75v2.25a.75.75 0 0 1-.75.75h-3V3m0 0a.75.75 0 0 1 .75-.75h2.25a.75.75 0 0 1 .75.75v3h-.01M3 6h.01m-2.25-.75h.01" />
+                </svg>
+                Hitung Jumlah Lembar
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                <!-- Input untuk total harga -->
+                <div>
+                    <label for="harga" class="block text-sm font-medium text-gray-700 mb-1">Total Anggaran</label>
+                    <div class="relative rounded-md shadow-sm">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <span class="text-gray-500 sm:text-sm">Rp</span>
+                        </div>
+                        <input type="number" id="harga" class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors" placeholder="0" oninput="hitungJumlahLembar()">
+                    </div>
+                </div>
+
+                <!-- Pilihan layanan (untuk bagian kedua) -->
+                <div>
+                    <label for="layananHarga" class="block text-sm font-medium text-gray-700 mb-1">Jenis Layanan</label>
+                    <select id="layananHarga" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors" onchange="hitungJumlahLembar()">
+                        <option value="300">Fotocopy BW A4 - Rp 300/lembar</option>
+                        <option value="500">Fotocopy Warna A4 - Rp 500/lembar</option>
+                        <option value="350">Fotocopy BW F4 - Rp 350/lembar</option>
+                        <option value="600">Fotocopy Warna F4 - Rp 600/lembar</option>
+                        <option value="5000">Print A3 - Rp 5.000/lembar</option>
+                        <option value="10000">Stiker A3 - Rp 10.000/lembar</option>
+                        <option value="15000">Vinyl A3 - Rp 15.000/lembar</option>
+                    </select>
+                </div>
+            </div>
             
-            const harga = parseFloat(hargaInput.value) || 0;
-            const hargaPerLembar = parseFloat(jenisLayananHargaSelect.value);
-            const jumlahLembar = harga / hargaPerLembar;
-            
-            // Update harga pembagi yang ditampilkan
-            hargaPembagiSpan.textContent = hargaPerLembar.toLocaleString(&#39;id-ID&#39;);
-            
-            // Format angka dengan pemisah ribuan
-            const formatter = new Intl.NumberFormat(&#39;id-ID&#39;);
-            
-            if (harga === 0) {
-                hasilDiv.textContent = &#39;0 lembar&#39;;
-            } else {
-                hasilDiv.textContent = `${formatter.format(Math.round(jumlahLembar))} lembar`;
-            }
-        }
-        
+            <!-- Hasil perhitungan jumlah lembar -->
+            <div class="mt-6 text-center">
+                <p class="text-gray-500 text-sm font-medium">Jumlah Lembar:</p>
+                <p id="hasilLembar" class="text-4xl font-bold text-green-800">0 lembar</p>
+            </div>
+        </div>
+
+        <!-- Bagian Contoh Cepat -->
+        <div class="bg-gray-100 rounded-xl p-6 border-2 border-gray-200">
+            <h3 class="text-xl font-semibold text-gray-700 mb-4 text-center">Contoh Cepat</h3>
+            <div class="flex flex-wrap justify-center gap-4">
+                <button onclick="setContoh(1000)" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors transform hover:scale-105">
+                    Rp 1.000
+                </button>
+                <button onclick="setContoh(2000)" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors transform hover:scale-105">
+                    Rp 2.000
+                </button>
+                <button onclick="setContoh(5000)" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors transform hover:scale-105">
+                    Rp 5.000
+                </button>
+                <button onclick="setContoh(10000)" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors transform hover:scale-105">
+                    Rp 10.000
+                </button>
+                <button onclick="setContoh(15000)" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors transform hover:scale-105">
+                    Rp 15.000
+                </button>
+                <button onclick="setContoh(30000)" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors transform hover:scale-105">
+                    Rp 30.000
+                </button>
+                <button onclick="setContoh(50000)" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors transform hover:scale-105">
+                    Rp 50.000
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Fungsi untuk menghitung total harga berdasarkan jumlah lembar
         function hitungTotalHarga() {
-            const lembarInput = document.getElementById(&#39;lembar&#39;);
-            const jenisLayananSelect = document.getElementById(&#39;jenisLayanan&#39;);
-            const hasilHargaDiv = document.getElementById(&#39;hasilHarga&#39;);
-            const hargaSatuanSpan = document.getElementById(&#39;hargaSatuan&#39;);
-            
-            const lembar = parseFloat(lembarInput.value) || 0;
-            const hargaPerLembar = parseFloat(jenisLayananSelect.value);
-            const totalHarga = lembar * hargaPerLembar;
-            
-            // Update harga satuan yang ditampilkan
-            hargaSatuanSpan.textContent = hargaPerLembar.toLocaleString(&#39;id-ID&#39;);
-            
-            // Format angka dengan pemisah ribuan
-            const formatter = new Intl.NumberFormat(&#39;id-ID&#39;);
-            
-            if (lembar === 0) {
-                hasilHargaDiv.textContent = &#39;Rp 0&#39;;
-            } else {
-                hasilHargaDiv.textContent = `Rp ${formatter.format(totalHarga)}`;
-            }
+            const lembarInput = document.getElementById('lembar');
+            const layananSelect = document.getElementById('layanan');
+            const hasilHargaDiv = document.getElementById('hasilHarga');
+
+            const jumlahLembar = parseFloat(lembarInput.value) || 0;
+            const hargaPerLembar = parseFloat(layananSelect.value);
+            const totalHarga = jumlahLembar * hargaPerLembar;
+
+            // Format angka menjadi mata uang Rupiah
+            const formatter = new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            });
+            hasilHargaDiv.textContent = formatter.format(totalHarga);
         }
-        
+
+        // Fungsi untuk menghitung jumlah lembar berdasarkan total harga
+        function hitungJumlahLembar() {
+            const hargaInput = document.getElementById('harga');
+            const layananHargaSelect = document.getElementById('layananHarga');
+            const hasilLembarDiv = document.getElementById('hasilLembar');
+
+            const totalHarga = parseFloat(hargaInput.value) || 0;
+            const hargaPerLembar = parseFloat(layananHargaSelect.value);
+            let jumlahLembar = 0;
+            if (hargaPerLembar > 0) {
+                jumlahLembar = totalHarga / hargaPerLembar;
+            }
+
+            // Format jumlah lembar dengan pemisah ribuan
+            const formatter = new Intl.NumberFormat('id-ID');
+            hasilLembarDiv.textContent = `${formatter.format(Math.round(jumlahLembar))} lembar`;
+        }
+
+        // Fungsi untuk mengisi contoh harga dan memicu perhitungan
         function setContoh(nilai) {
-            const hargaInput = document.getElementById(&#39;harga&#39;);
+            const hargaInput = document.getElementById('harga');
             hargaInput.value = nilai;
-            hitungHarga();
+            hitungJumlahLembar();
             
-            // Animasi highlight
-            hargaInput.classList.add(&#39;ring-4&#39;, &#39;ring-blue-300&#39;);
-            setTimeout(() =&gt; {
-                hargaInput.classList.remove(&#39;ring-4&#39;, &#39;ring-blue-300&#39;);
+            // Animasi highlight pada input
+            hargaInput.classList.add('ring-4', 'ring-blue-300');
+            setTimeout(() => {
+                hargaInput.classList.remove('ring-4', 'ring-blue-300');
             }, 1000);
         }
+        
+        // Panggilan awal untuk memastikan tampilan default yang benar
+        hitungTotalHarga();
+        hitungJumlahLembar();
+    </script>
+</body>
+</html>
