@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi Manajemen Pengguna</title>
+    <!-- Memuat Tailwind CSS untuk styling modern -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Memuat Google Fonts untuk tipografi yang lebih baik -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Menggunakan font Inter sebagai default */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar untuk tampilan yang lebih baik */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1f2937;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200 flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-4xl bg-gray-800 rounded-2xl shadow-2xl p-8 space-y-8">
+        <!-- Judul Aplikasi -->
+        <h1 class="text-3xl font-bold text-center text-white">Manajemen Data Pengguna</h1>
+        
+        <!-- Form Input Data -->
+        <form id="user-form" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Input Nomor Unik Dihapus -->
+
+                <!-- Input Email -->
+                <div>
+                    <label for="email" class="block mb-2 text-sm font-medium text-gray-300">Email</label>
+                    <input type="email" id="email" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="nama@email.com" required>
+                </div>
+                
+                <!-- Input Password -->
+                <div>
+                    <label for="password" class="block mb-2 text-sm font-medium text-gray-300">Password</label>
+                    <input type="text" id="password" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="Masukkan password" required>
+                </div>
+
+                <!-- Pilihan Status -->
+                <div class="md:col-span-2">
+                    <label class="block mb-2 text-sm font-medium text-gray-300">Status</label>
+                    <div class="flex items-center gap-x-6 mt-2">
+                        <div class="flex items-center">
+                            <input id="status-aktif" type="radio" value="Aktif" name="status" class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-600 ring-offset-gray-800 focus:ring-2" checked>
+                            <label for="status-aktif" class="ml-2 text-sm font-medium text-gray-300">Aktif</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input id="status-nonaktif" type="radio" value="Nonaktif" name="status" class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-600 ring-offset-gray-800 focus:ring-2">
+                            <label for="status-nonaktif" class="ml-2 text-sm font-medium text-gray-300">Nonaktif</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <!-- Tombol Aksi -->
+        <div class="flex flex-wrap justify-center gap-4 pt-4 border-t border-gray-700">
+            <button type="button" id="btn-tambah" class="text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition-transform transform hover:scale-105">Tambah Data</button>
+            <button type="button" id="btn-simpan" class="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition-transform transform hover:scale-105">Simpan Perubahan</button>
+            <button type="button" id="btn-hapus" class="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition-transform transform hover:scale-105">Hapus Data</button>
+            <button type="button" id="btn-batal" class="text-gray-900 bg-gray-300 hover:bg-gray-400 focus:ring-4 focus:outline-none focus:ring-gray-500 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition-transform transform hover:scale-105">Batal</button>
+        </div>
+         <!-- Tombol Aksi Database -->
+        <div class="flex flex-wrap justify-center gap-4 pt-4 border-t border-gray-700">
+            <button type="button" id="btn-download" class="text-white bg-purple-600 hover:bg-purple-700 focus:ring-4 focus:outline-none focus:ring-purple-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition-transform transform hover:scale-105">Download Database</button>
+            <button type="button" id="btn-upload" class="text-white bg-yellow-500 hover:bg-yellow-600 focus:ring-4 focus:outline-none focus:ring-yellow-700 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition-transform transform hover:scale-105">Upload Database</button>
+            <input type="file" id="upload-file" class="hidden" accept=".json">
+        </div>
+
+
+        <!-- Tampilan Database -->
+        <div class="pt-8 border-t border-gray-700">
+            <h2 class="text-xl font-semibold text-center text-white mb-4">Data Tersimpan</h2>
+            <div class="relative overflow-x-auto shadow-md rounded-lg">
+                <table class="w-full text-sm text-left text-gray-400">
+                    <thead class="text-xs text-gray-300 uppercase bg-gray-700">
+                        <tr>
+                            <th scope="col" class="px-6 py-3">No. Unik</th>
+                            <th scope="col" class="px-6 py-3">Email</th>
+                            <th scope="col" class="px-6 py-3">Password</th>
+                            <th scope="col" class="px-6 py-3">Status</th>
+                            <th scope="col" class="px-6 py-3">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="user-table-body">
+                        <!-- Data akan dimasukkan di sini oleh JavaScript -->
+                        <tr class="bg-gray-800 border-b border-gray-700">
+                           <td colspan="5" class="px-6 py-4 text-center">Belum ada data.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Mengambil elemen-elemen dari DOM
+            const form = document.getElementById('user-form');
+            // const nomorInput = document.getElementById('nomor'); // Dihapus
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            const tableBody = document.getElementById('user-table-body');
+
+            const btnTambah = document.getElementById('btn-tambah');
+            const btnSimpan = document.getElementById('btn-simpan');
+            const btnHapus = document.getElementById('btn-hapus');
+            const btnBatal = document.getElementById('btn-batal');
+            const btnDownload = document.getElementById('btn-download');
+            const btnUpload = document.getElementById('btn-upload');
+            const uploadFile = document.getElementById('upload-file');
+
+            // "Database" lokal menggunakan array
+            let users = [];
+            let selectedNomor = null; // Untuk menyimpan nomor unik dari baris yang dipilih
+
+            // --- Fungsi untuk Local Storage ---
+            const saveData = () => {
+                localStorage.setItem('userDatabase', JSON.stringify(users));
+            };
+
+            const loadData = () => {
+                const data = localStorage.getItem('userDatabase');
+                if (data) {
+                    users = JSON.parse(data);
+                }
+                renderTable();
+            };
+            
+            // Fungsi untuk merender (menampilkan) data ke tabel
+            const renderTable = () => {
+                tableBody.innerHTML = ''; // Kosongkan tabel sebelum diisi ulang
+                
+                if (users.length === 0) {
+                    tableBody.innerHTML = `<tr class="bg-gray-800 border-b border-gray-700"><td colspan="5" class="px-6 py-4 text-center">Belum ada data.</td></tr>`;
+                    return;
+                }
+
+                users.forEach(user => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'bg-gray-800 border-b border-gray-700 hover:bg-gray-600';
+                    tr.innerHTML = `
+                        <td class="px-6 py-4 font-medium text-white whitespace-nowrap">${user.nomor}</td>
+                        <td class="px-6 py-4">${user.email}</td>
+                        <td class="px-6 py-4">${user.password}</td>
+                        <td class="px-6 py-4">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.status === 'Aktif' ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'}">
+                                ${user.status}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <button class="font-medium text-blue-500 hover:underline btn-edit" data-nomor="${user.nomor}">Edit</button>
+                        </td>
+                    `;
+                    tableBody.appendChild(tr);
+                });
+            };
+
+            // Fungsi untuk membersihkan form
+            const clearForm = () => {
+                form.reset();
+                selectedNomor = null;
+            };
+
+            // Event listener untuk tombol Tambah Data
+            btnTambah.addEventListener('click', () => {
+                const nomor = Date.now(); // Nomor unik dibuat otomatis menggunakan timestamp
+                const email = emailInput.value;
+                const password = passwordInput.value;
+                const status = document.querySelector('input[name="status"]:checked').value;
+
+                if (!email || !password) {
+                    alert('Kolom email dan password harus diisi!');
+                    return;
+                }
+
+                users.push({ nomor, email, password, status });
+                saveData();
+                renderTable();
+                clearForm();
+            });
+
+            // Event listener untuk tombol Simpan Perubahan
+            btnSimpan.addEventListener('click', () => {
+                if (selectedNomor === null) {
+                    alert('Pilih data yang ingin diubah dengan menekan tombol "Edit" pada tabel.');
+                    return;
+                }
+
+                const userIndex = users.findIndex(user => user.nomor === selectedNomor);
+                if (userIndex > -1) {
+                    users[userIndex].email = emailInput.value;
+                    users[userIndex].password = passwordInput.value;
+                    users[userIndex].status = document.querySelector('input[name="status"]:checked').value;
+                    
+                    saveData();
+                    renderTable();
+                    clearForm();
+                }
+            });
+
+            // Event listener untuk tombol Hapus Data
+            btnHapus.addEventListener('click', () => {
+                 if (selectedNomor === null) {
+                    alert('Pilih data yang ingin dihapus dengan menekan tombol "Edit" pada tabel.');
+                    return;
+                }
+                
+                if (confirm(`Apakah Anda yakin ingin menghapus data dengan nomor unik ${selectedNomor}?`)) {
+                    users = users.filter(user => user.nomor !== selectedNomor);
+                    saveData();
+                    renderTable();
+                    clearForm();
+                }
+            });
+            
+            // Event listener untuk tombol Batal
+            btnBatal.addEventListener('click', clearForm);
+
+            // --- Fungsi Download dan Upload ---
+            btnDownload.addEventListener('click', () => {
+                if (users.length === 0) {
+                    alert('Database kosong, tidak ada yang bisa di-download.');
+                    return;
+                }
+                const dataStr = JSON.stringify(users, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(dataBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'database_pengguna.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+
+            btnUpload.addEventListener('click', () => {
+                uploadFile.click();
+            });
+
+            uploadFile.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const newUsers = JSON.parse(e.target.result);
+                        // Validasi sederhana
+                        if (Array.isArray(newUsers) && newUsers.every(u => u.nomor && u.email && u.password && u.status)) {
+                            if (confirm('Ini akan menggantikan semua data yang ada. Lanjutkan?')) {
+                                users = newUsers;
+                                saveData();
+                                renderTable();
+                                alert('Database berhasil di-upload!');
+                            }
+                        } else {
+                            alert('Format file tidak valid!');
+                        }
+                    } catch (error) {
+                        alert('Gagal membaca file. Pastikan file adalah JSON yang valid.');
+                    }
+                };
+                reader.readAsText(file);
+                // Reset input file agar bisa upload file yang sama lagi
+                event.target.value = null;
+            });
+
+
+            // Event listener untuk tabel (menggunakan event delegation untuk tombol Edit)
+            tableBody.addEventListener('click', (e) => {
+                if (e.target.classList.contains('btn-edit')) {
+                    const nomorToEdit = parseInt(e.target.getAttribute('data-nomor'));
+                    const user = users.find(u => u.nomor === nomorToEdit);
+
+                    if (user) {
+                        emailInput.value = user.email;
+                        passwordInput.value = user.password;
+                        document.querySelector(`input[name="status"][value="${user.status}"]`).checked = true;
+                        
+                        selectedNomor = user.nomor;
+                    }
+                }
+            });
+
+            // Muat data dari local storage dan render tabel saat halaman pertama kali dimuat
+            loadData();
+        });
+    </script>
+
+</body>
+</html>
+
+
