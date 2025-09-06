@@ -100,8 +100,7 @@
                     <button id="saveRecord" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md transition-colors">💾 Simpan Baru</button>
                     <button id="refreshData" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-md transition-colors">🔄 Muat Ulang</button>
                     <button id="emailMissing" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md transition-colors">📧 Email Belum Input</button>
-                   
-                </div>
+                    </div>
             </div>
 
             <div class="mb-6">
@@ -168,14 +167,6 @@
             </div>
             <div id="noEmailData" class="text-center py-8 text-gray-500 hidden">Semua data sudah memiliki email</div>
             <div class="mt-4 bg-gray-50 rounded-lg p-4"><div class="flex justify-between items-center text-sm text-gray-600"><span id="emailRecordCount">Total: 0 record tanpa email</span><span id="emailCurrentRecord">Record: 0 / 0</span></div></div>
-        
-            <div id="externalPageContainer" class="mt-8 border-t pt-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h4 class="text-lg font-semibold text-gray-800">Halaman Eksternal</h4>
-                    <button id="closeExternalPageBtn" class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded-md transition-colors text-sm">✖️ Tutup</button>
-                </div>
-                <iframe id="externalEmailPage" src="about:blank" class="w-full h-96 border border-gray-300 rounded-md"></iframe>
-            </div>
         </div>
 
         <!-- Database Display -->
@@ -199,6 +190,7 @@
     </div>
 
     <script>
+	
         document.addEventListener('DOMContentLoaded', () => {
             const LOCAL_STORAGE_KEY = 'npwp_database_lokal';
             
@@ -372,31 +364,8 @@
             document.getElementById('refreshData').addEventListener('click', loadDataFromLocal);
 
             document.getElementById('emailMissing').addEventListener('click', () => {
-                const emailSection = document.getElementById('emailInputSection');
-                emailFilteredData = npwpData.filter(r => !r.hasEmail || r.email.trim() === '');
-                emailCurrentIndex = 0;
-            
-                updateEmailDisplay();
-                if (emailFilteredData.length > 0) {
-                    loadEmailRecord(0);
-                }
-            
-                emailSection.classList.remove('hidden');
-                document.getElementById('externalPageContainer').classList.remove('hidden'); // Memastikan iframe container terlihat
-                
-                const iframe = document.getElementById('externalEmailPage');
-                if (iframe.src !== 'https://musadad87.github.io/kalkulator-undangan/email.html') {
-                    iframe.src = 'https://musadad87.github.io/kalkulator-undangan/email.html';
-                }
-
-                emailSection.scrollIntoView({ behavior: 'smooth' });
-            });
-
-            document.getElementById('closeExternalPageBtn').addEventListener('click', () => {
-                const container = document.getElementById('externalPageContainer');
-                container.classList.add('hidden');
-                // Mengosongkan iframe untuk menghentikan pemuatan
-                document.getElementById('externalEmailPage').src = 'about:blank';
+                // Mengarahkan ke URL eksternal sesuai permintaan
+                window.open('https://musadad87.github.io/kalkulator-undangan/email.html', '_blank');
             });
 
             document.getElementById('searchBtn').addEventListener('click', () => {
@@ -582,7 +551,7 @@
             
             // Initial Load
             loadDataFromLocal();
-        });
+			        });
     </script>
 </body>
 </html>
