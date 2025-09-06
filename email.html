@@ -6,6 +6,8 @@
     <title>Aplikasi Manajemen Pengguna</title>
     <!-- Memuat Tailwind CSS untuk styling modern -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Memuat Pustaka SheetJS untuk fungsionalitas Excel -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <!-- Memuat Google Fonts untuk tipografi yang lebih baik -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -80,9 +82,13 @@
         </div>
          <!-- Tombol Aksi Database -->
         <div class="flex flex-wrap justify-center gap-4 pt-4 border-t border-gray-700">
-            <button type="button" id="btn-download" class="text-white bg-purple-600 hover:bg-purple-700 focus:ring-4 focus:outline-none focus:ring-purple-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition-transform transform hover:scale-105">Download Database</button>
-            <button type="button" id="btn-upload" class="text-white bg-yellow-500 hover:bg-yellow-600 focus:ring-4 focus:outline-none focus:ring-yellow-700 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition-transform transform hover:scale-105">Upload Database</button>
-            <input type="file" id="upload-file" class="hidden" accept=".json">
+            <button type="button" id="btn-download-json" class="text-white bg-purple-600 hover:bg-purple-700 focus:ring-4 focus:outline-none focus:ring-purple-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition-transform transform hover:scale-105">Download JSON</button>
+            <button type="button" id="btn-upload-json" class="text-white bg-yellow-500 hover:bg-yellow-600 focus:ring-4 focus:outline-none focus:ring-yellow-700 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition-transform transform hover:scale-105">Upload JSON</button>
+            <input type="file" id="upload-file-json" class="hidden" accept=".json">
+
+            <button type="button" id="btn-download-excel" class="text-white bg-teal-600 hover:bg-teal-700 focus:ring-4 focus:outline-none focus:ring-teal-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition-transform transform hover:scale-105">Download Excel</button>
+            <button type="button" id="btn-upload-excel" class="text-white bg-orange-500 hover:bg-orange-600 focus:ring-4 focus:outline-none focus:ring-orange-700 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition-transform transform hover:scale-105">Upload Excel</button>
+            <input type="file" id="upload-file-excel" class="hidden" accept=".xlsx, .xls">
         </div>
 
 
@@ -115,7 +121,6 @@
         document.addEventListener('DOMContentLoaded', () => {
             // Mengambil elemen-elemen dari DOM
             const form = document.getElementById('user-form');
-            // const nomorInput = document.getElementById('nomor'); // Dihapus
             const emailInput = document.getElementById('email');
             const passwordInput = document.getElementById('password');
             const tableBody = document.getElementById('user-table-body');
@@ -124,9 +129,17 @@
             const btnSimpan = document.getElementById('btn-simpan');
             const btnHapus = document.getElementById('btn-hapus');
             const btnBatal = document.getElementById('btn-batal');
-            const btnDownload = document.getElementById('btn-download');
-            const btnUpload = document.getElementById('btn-upload');
-            const uploadFile = document.getElementById('upload-file');
+            
+            // Tombol JSON
+            const btnDownloadJson = document.getElementById('btn-download-json');
+            const btnUploadJson = document.getElementById('btn-upload-json');
+            const uploadFileJson = document.getElementById('upload-file-json');
+
+            // Tombol Excel
+            const btnDownloadExcel = document.getElementById('btn-download-excel');
+            const btnUploadExcel = document.getElementById('btn-upload-excel');
+            const uploadFileExcel = document.getElementById('upload-file-excel');
+
 
             // "Database" lokal menggunakan array
             let users = [];
@@ -235,8 +248,8 @@
             // Event listener untuk tombol Batal
             btnBatal.addEventListener('click', clearForm);
 
-            // --- Fungsi Download dan Upload ---
-            btnDownload.addEventListener('click', () => {
+            // --- Fungsi Download dan Upload JSON ---
+            btnDownloadJson.addEventListener('click', () => {
                 if (users.length === 0) {
                     alert('Database kosong, tidak ada yang bisa di-download.');
                     return;
@@ -253,11 +266,11 @@
                 URL.revokeObjectURL(url);
             });
 
-            btnUpload.addEventListener('click', () => {
-                uploadFile.click();
+            btnUploadJson.addEventListener('click', () => {
+                uploadFileJson.click();
             });
 
-            uploadFile.addEventListener('change', (event) => {
+            uploadFileJson.addEventListener('change', (event) => {
                 const file = event.target.files[0];
                 if (!file) return;
 
@@ -271,18 +284,66 @@
                                 users = newUsers;
                                 saveData();
                                 renderTable();
-                                alert('Database berhasil di-upload!');
+                                alert('Database JSON berhasil di-upload!');
                             }
                         } else {
-                            alert('Format file tidak valid!');
+                            alert('Format file JSON tidak valid!');
                         }
                     } catch (error) {
                         alert('Gagal membaca file. Pastikan file adalah JSON yang valid.');
                     }
                 };
                 reader.readAsText(file);
-                // Reset input file agar bisa upload file yang sama lagi
-                event.target.value = null;
+                event.target.value = null; // Reset input file
+            });
+
+            // --- Fungsi Download dan Upload EXCEL ---
+            btnDownloadExcel.addEventListener('click', () => {
+                if (users.length === 0) {
+                    alert('Database kosong, tidak ada yang bisa di-download.');
+                    return;
+                }
+                const worksheet = XLSX.utils.json_to_sheet(users);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "Pengguna");
+                XLSX.writeFile(workbook, "database_pengguna.xlsx");
+            });
+
+            btnUploadExcel.addEventListener('click', () => {
+                uploadFileExcel.click();
+            });
+
+            uploadFileExcel.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const sheetName = workbook.SheetNames[0];
+                        const worksheet = workbook.Sheets[sheetName];
+                        const newUsers = XLSX.utils.sheet_to_json(worksheet);
+
+                        // Validasi sederhana
+                        if (Array.isArray(newUsers) && newUsers.length > 0 && newUsers.every(u => u.nomor && u.email && u.password && u.status)) {
+                             if (confirm('Ini akan menggantikan semua data yang ada. Lanjutkan?')) {
+                                users = newUsers;
+                                saveData();
+                                renderTable();
+                                alert('Database Excel berhasil di-upload!');
+                            }
+                        } else {
+                            alert('Format file Excel tidak valid! Pastikan kolomnya adalah: nomor, email, password, status.');
+                        }
+                    } catch (error) {
+                        console.error(error);
+                        alert('Gagal membaca file. Pastikan file adalah Excel yang valid.');
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+                event.target.value = null; // Reset input file
             });
 
 
@@ -309,5 +370,4 @@
 
 </body>
 </html>
-
 
