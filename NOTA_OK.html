@@ -319,7 +319,10 @@
                 this.updateUI();
                 return newInvoice.id;
             }
-
+            document.getElementById('openbahan').addEventListener('click', () => {
+                // Mengarahkan ke URL eksternal sesuai permintaan
+                window.open('https://musadad87.github.io/kalkulator-undangan/BAHAN_HABIS.html', '_blank');
+            });
             async update(id, invoiceData) {
                 const index = this.records.findIndex(r => r.id === id);
                 if (index === -1) return false;
@@ -982,5 +985,6 @@
     </script>
 </body>
 </html>
+
 
 
