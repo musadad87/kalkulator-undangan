@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PrintFlow - Aplikasi Kasir Percetakan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .status-antrian { background-color: #fef3c7; color: #92400e; }
+        .status-desain { background-color: #dbeafe; color: #1e40af; }
+        .status-cetak { background-color: #fee2e2; color: #991b1b; }
+        .status-finishing { background-color: #e0e7ff; color: #3730a3; }
+        .status-selesai { background-color: #d1fae5; color: #065f46; }
+        .status-diambil { background-color: #e5e7eb; color: #374151; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8">
+        
+        <!-- Header -->
+        <header class="flex items-center justify-between pb-6 border-b border-gray-200 mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">PrintFlow</h1>
+                <p class="text-gray-500 mt-1">Sistem Kasir dan Manajemen Order Percetakan</p>
+            </div>
+            <div class="flex items-center gap-2 text-sm text-gray-600">
+                <i data-lucide="calendar" class="w-5 h-5"></i>
+                <span id="current-date"></span>
+            </div>
+        </header>
+
+        <!-- Main Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+
+            <!-- Kolom Kiri: Form Transaksi -->
+            <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-md h-fit">
+                <h2 class="text-xl font-bold mb-6 border-b pb-4 flex items-center gap-2"><i data-lucide="shopping-cart" class="w-6 h-6 text-indigo-600"></i> Buat Pesanan Baru</h2>
+                
+                <form id="order-form" class="space-y-5">
+                    
+                    <div>
+                        <label for="customer-name" class="block text-sm font-medium text-gray-700 mb-1">Nama Pelanggan</label>
+                        <input type="text" id="customer-name" placeholder="Contoh: Budi Santoso" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 transition">
+                    </div>
+
+                    <div>
+                        <label for="customer-phone" class="block text-sm font-medium text-gray-700 mb-1">No. WhatsApp</label>
+                        <input type="tel" id="customer-phone" placeholder="Contoh: 081234567890" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 transition">
+                    </div>
+
+                    <div>
+                        <label for="product-type" class="block text-sm font-medium text-gray-700 mb-1">Jenis Produk</label>
+                        <select id="product-type" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 transition bg-white">
+                            <option value="">-- Pilih Produk --</option>
+                            <option value="spanduk">Spanduk / Banner</option>
+                            <option value="stiker">Stiker A3+</option>
+                            <option value="kartu-nama">Kartu Nama</option>
+                        </select>
+                    </div>
+
+                    <!-- Dynamic Fields Container -->
+                    <div id="dynamic-fields-container" class="space-y-4 pt-4 border-t border-dashed">
+                        <p class="text-center text-gray-500">Pilih jenis produk untuk menampilkan detail pesanan.</p>
+                    </div>
+                    
+                    <!-- Perhitungan Harga -->
+                    <div class="space-y-3 pt-4 border-t">
+                         <div class="flex justify-between items-center text-lg">
+                            <span class="font-medium text-gray-600">Subtotal</span>
+                            <span id="subtotal" class="font-bold text-gray-900">Rp 0</span>
+                        </div>
+                        <div>
+                            <label for="down-payment" class="block text-sm font-medium text-gray-700 mb-1">Uang Muka (DP)</label>
+                            <input type="number" id="down-payment" placeholder="Masukkan jumlah DP" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 transition">
+                        </div>
+                        <div class="flex justify-between items-center text-lg font-bold text-indigo-600 bg-indigo-50 p-3 rounded-md">
+                            <span>Sisa Bayar</span>
+                            <span id="remaining-balance">Rp 0</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="flex gap-4 pt-4">
+                        <button type="button" id="reset-button" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition">
+                            <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Reset
+                        </button>
+                        <button type="submit" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition">
+                            <i data-lucide="save" class="w-4 h-4"></i> Simpan Pesanan
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Kolom Kanan: Daftar Pesanan -->
+            <div class="lg:col-span-3">
+                 <h2 class="text-xl font-bold mb-6 flex items-center gap-2"><i data-lucide="list-checks" class="w-6 h-6 text-green-600"></i> Daftar Pesanan Aktif</h2>
+                <div id="order-list" class="space-y-4">
+                    <!-- Orders will be dynamically inserted here -->
+                     <div id="no-orders-placeholder" class="text-center py-16 px-6 bg-white rounded-xl shadow-md">
+                        <i data-lucide="file-text" class="w-16 h-16 mx-auto text-gray-300"></i>
+                        <h3 class="mt-4 text-lg font-medium text-gray-900">Belum Ada Pesanan</h3>
+                        <p class="mt-1 text-sm text-gray-500">Pesanan yang dibuat akan muncul di sini.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize Lucide Icons
+            lucide.createIcons();
+
+            // Display current date
+            const dateElement = document.getElementById('current-date');
+            const today = new Date();
+            dateElement.textContent = today.toLocaleDateString('id-ID', {
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+            });
+
+            // DOM Elements
+            const orderForm = document.getElementById('order-form');
+            const productTypeSelect = document.getElementById('product-type');
+            const dynamicFieldsContainer = document.getElementById('dynamic-fields-container');
+            const subtotalEl = document.getElementById('subtotal');
+            const dpEl = document.getElementById('down-payment');
+            const remainingBalanceEl = document.getElementById('remaining-balance');
+            const orderListContainer = document.getElementById('order-list');
+            const noOrdersPlaceholder = document.getElementById('no-orders-placeholder');
+            const resetButton = document.getElementById('reset-button');
+            
+            // Pricing Database (In a real app, this would come from a server)
+            const prices = {
+                spanduk: {
+                    flexi280: 25000, // per m2
+                    flexi340: 30000, // per m2
+                    korea440: 45000, // per m2
+                    finishingMataAyam: 1000 // per pcs
+                },
+                stiker: {
+                    vinyl: 15000, // per lembar A3+
+                    chromo: 10000, // per lembar A3+
+                    transparan: 18000, // per lembar A3+
+                    potongPola: 5000, // per lembar
+                    potongKotak: 1000 // per lembar
+                },
+                kartuNama: {
+                    perBox: 35000, // Art Carton 260gr, 1 Sisi
+                    dua_sisi: 15000, // tambahan biaya
+                    laminasi_doff: 10000, // per box
+                    laminasi_glossy: 10000 // per box
+                }
+            };
+            
+            let orders = JSON.parse(localStorage.getItem('printShopOrders')) || [];
+
+            // --- FUNCTIONS ---
+
+            const formatCurrency = (amount) => {
+                return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
+            };
+            
+            const updateDynamicFields = () => {
+                const product = productTypeSelect.value;
+                let html = '';
+
+                switch (product) {
+                    case 'spanduk':
+                        html = `
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Panjang (m)</label>
+                                    <input type="number" id="spanduk-panjang" step="0.1" placeholder="3" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Lebar (m)</label>
+                                    <input type="number" id="spanduk-lebar" step="0.1" placeholder="1" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Bahan</label>
+                                <select id="spanduk-bahan" class="w-full px-3 py-2 border border-gray-300 rounded-md bg-white">
+                                    <option value="flexi280">Flexi 280gr</option>
+                                    <option value="flexi340">Flexi 340gr</option>
+                                    <option value="korea440">Flexi Korea 440gr</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Finishing (Mata Ayam)</label>
+                                <input type="number" id="spanduk-finishing" placeholder="Jumlah lubang" value="4" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            </div>
+                        `;
+                        break;
+                    case 'stiker':
+                        html = `
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Bahan Stiker A3+</label>
+                                <select id="stiker-bahan" class="w-full px-3 py-2 border border-gray-300 rounded-md bg-white">
+                                    <option value="vinyl">Vinyl</option>
+                                    <option value="chromo">Chromo</option>
+                                    <option value="transparan">Transparan</option>
+                                </select>
+                            </div>
+                             <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Jumlah Lembar</label>
+                                <input type="number" id="stiker-jumlah" value="1" min="1" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Finishing Potong</label>
+                                <select id="stiker-potong" class="w-full px-3 py-2 border border-gray-300 rounded-md bg-white">
+                                    <option value="tidak">Tidak Potong</option>
+                                    <option value="kotak">Potong Kotak</option>
+                                    <option value="pola">Potong Pola (Kiss-Cut)</option>
+                                </select>
+                            </div>
+                        `;
+                        break;
+                    case 'kartu-nama':
+                        html = `
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Jumlah Box (isi 100)</label>
+                                <input type="number" id="kartunama-jumlah" value="1" min="1" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Sisi Cetak</label>
+                                <select id="kartunama-sisi" class="w-full px-3 py-2 border border-gray-300 rounded-md bg-white">
+                                    <option value="1">1 Sisi</option>
+                                    <option value="2">2 Sisi (Bolak-balik)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Laminasi</label>
+                                <select id="kartunama-laminasi" class="w-full px-3 py-2 border border-gray-300 rounded-md bg-white">
+                                    <option value="tidak">Tanpa Laminasi</option>
+                                    <option value="doff">Doff</option>
+                                    <option value="glossy">Glossy</option>
+                                </select>
+                            </div>
+                        `;
+                        break;
+                    default:
+                        html = `<p class="text-center text-gray-500">Pilih jenis produk untuk menampilkan detail pesanan.</p>`;
+                        break;
+                }
+                dynamicFieldsContainer.innerHTML = html;
+                calculatePrice();
+            };
+
+            const calculatePrice = () => {
+                const product = productTypeSelect.value;
+                let subtotal = 0;
+
+                try {
+                    switch (product) {
+                        case 'spanduk':
+                            const panjang = parseFloat(document.getElementById('spanduk-panjang').value) || 0;
+                            const lebar = parseFloat(document.getElementById('spanduk-lebar').value) || 0;
+                            const bahan = document.getElementById('spanduk-bahan').value;
+                            const finishing = parseInt(document.getElementById('spanduk-finishing').value) || 0;
+                            let luas = panjang * lebar;
+                            if (luas > 0 && luas < 1) luas = 1; // Pembulatan ke atas jika kurang dari 1 meter
+                            subtotal = (luas * prices.spanduk[bahan]) + (finishing * prices.spanduk.finishingMataAyam);
+                            break;
+                        case 'stiker':
+                            const bahanStiker = document.getElementById('stiker-bahan').value;
+                            const jumlahStiker = parseInt(document.getElementById('stiker-jumlah').value) || 0;
+                            const potong = document.getElementById('stiker-potong').value;
+                            let potongPrice = 0;
+                            if (potong === 'pola') potongPrice = prices.stiker.potongPola;
+                            if (potong === 'kotak') potongPrice = prices.stiker.potongKotak;
+                            subtotal = (jumlahStiker * prices.stiker[bahanStiker]) + (jumlahStiker * potongPrice);
+                            break;
+                        case 'kartu-nama':
+                            const jumlahBox = parseInt(document.getElementById('kartunama-jumlah').value) || 0;
+                            const sisi = document.getElementById('kartunama-sisi').value;
+                            const laminasi = document.getElementById('kartunama-laminasi').value;
+                            subtotal = jumlahBox * prices.kartuNama.perBox;
+                            if (sisi === '2') subtotal += jumlahBox * prices.kartuNama.dua_sisi;
+                            if (laminasi === 'doff') subtotal += jumlahBox * prices.kartuNama.laminasi_doff;
+                            if (laminasi === 'glossy') subtotal += jumlahBox * prices.kartuNama.laminasi_glossy;
+                            break;
+                    }
+                } catch (e) {
+                    // This handles cases where elements don't exist yet
+                    subtotal = 0;
+                }
+                
+                const dp = parseFloat(dpEl.value) || 0;
+                const remaining = subtotal - dp;
+                
+                subtotalEl.textContent = formatCurrency(subtotal);
+                remainingBalanceEl.textContent = formatCurrency(remaining > 0 ? remaining : 0);
+            };
+
+            const renderOrders = () => {
+                orderListContainer.innerHTML = '';
+                if(orders.length === 0) {
+                    noOrdersPlaceholder.style.display = 'block';
+                } else {
+                    noOrdersPlaceholder.style.display = 'none';
+                    orders.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(order => {
+                        const statusMap = {
+                            antrian: { text: "Antrian Desain", class: "status-antrian" },
+                            desain: { text: "Proses Desain", class: "status-desain" },
+                            cetak: { text: "Proses Cetak", class: "status-cetak" },
+                            finishing: { text: "Finishing", class: "status-finishing" },
+                            selesai: { text: "Siap Diambil", class: "status-selesai" },
+                            diambil: { text: "Sudah Diambil", class: "status-diambil" },
+                        };
+                        const sisaBayar = order.total - order.dp;
+
+                        const orderCard = document.createElement('div');
+                        orderCard.className = 'bg-white p-5 rounded-xl shadow-md border-l-4 border-indigo-500';
+                        orderCard.innerHTML = `
+                            <div class="flex flex-wrap justify-between items-start gap-4">
+                                <div>
+                                    <p class="text-sm text-gray-500">Order ID: ${order.id}</p>
+                                    <p class="text-lg font-bold text-gray-900">${order.customerName}</p>
+                                    <p class="text-sm text-gray-600">${order.customerPhone}</p>
+                                </div>
+                                <div class="flex items-center gap-4">
+                                     <span class="status-badge ${statusMap[order.status].class}">${statusMap[order.status].text}</span>
+                                    <button data-id="${order.id}" class="delete-btn text-gray-400 hover:text-red-600 transition">
+                                        <i data-lucide="trash-2" class="w-5 h-5"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="mt-4 pt-4 border-t border-gray-200">
+                                <p class="font-semibold">${order.productName}</p>
+                                <p class="text-sm text-gray-500">${order.details}</p>
+                                <div class="mt-4 flex flex-wrap justify-between items-center gap-y-2">
+                                    <div>
+                                        <p class="text-sm text-gray-500">Total: <span class="font-medium text-gray-800">${formatCurrency(order.total)}</span></p>
+                                        <p class="text-sm text-gray-500">DP: <span class="font-medium text-gray-800">${formatCurrency(order.dp)}</span></p>
+                                        <p class="text-sm text-green-600 font-bold">Sisa: <span class="font-bold">${formatCurrency(sisaBayar)}</span></p>
+                                    </div>
+                                    <div class="w-full sm:w-auto">
+                                        <label for="status-select-${order.id}" class="sr-only">Ubah Status</label>
+                                        <select data-id="${order.id}" id="status-select-${order.id}" class="status-select w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 transition text-sm bg-white">
+                                            <option value="antrian" ${order.status === 'antrian' ? 'selected' : ''}>Antrian Desain</option>
+                                            <option value="desain" ${order.status === 'desain' ? 'selected' : ''}>Proses Desain</option>
+                                            <option value="cetak" ${order.status === 'cetak' ? 'selected' : ''}>Proses Cetak</option>
+                                            <option value="finishing" ${order.status === 'finishing' ? 'selected' : ''}>Finishing</option>
+                                            <option value="selesai" ${order.status === 'selesai' ? 'selected' : ''}>Siap Diambil</option>
+                                            <option value="diambil" ${order.status === 'diambil' ? 'selected' : ''}>Sudah Diambil</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        orderListContainer.appendChild(orderCard);
+                    });
+                    lucide.createIcons(); // Re-render icons for new elements
+                }
+            };
+            
+            const saveOrders = () => {
+                localStorage.setItem('printShopOrders', JSON.stringify(orders));
+            };
+
+            const resetForm = () => {
+                orderForm.reset();
+                dynamicFieldsContainer.innerHTML = '<p class="text-center text-gray-500">Pilih jenis produk untuk menampilkan detail pesanan.</p>';
+                calculatePrice();
+            }
+
+            // --- EVENT LISTENERS ---
+
+            productTypeSelect.addEventListener('change', updateDynamicFields);
+            orderForm.addEventListener('input', calculatePrice);
+            
+            resetButton.addEventListener('click', resetForm);
+
+            orderForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+
+                const customerName = document.getElementById('customer-name').value;
+                const customerPhone = document.getElementById('customer-phone').value;
+                const productType = document.getElementById('product-type');
+                const selectedProduct = productType.options[productType.selectedIndex];
+                
+                if(!selectedProduct.value) {
+                    alert('Silakan pilih jenis produk terlebih dahulu.');
+                    return;
+                }
+
+                const subtotal = parseFloat(subtotalEl.textContent.replace(/[^0-9]/g, ''));
+                const dp = parseFloat(dpEl.value) || 0;
+
+                let details = '';
+                // Get details from dynamic fields
+                 switch (selectedProduct.value) {
+                    case 'spanduk':
+                        const p = document.getElementById('spanduk-panjang').value;
+                        const l = document.getElementById('spanduk-lebar').value;
+                        const b = document.getElementById('spanduk-bahan').selectedOptions[0].text;
+                        const f = document.getElementById('spanduk-finishing').value;
+                        details = `${p}m x ${l}m, Bahan: ${b}, Finishing: ${f} mata ayam.`;
+                        break;
+                    case 'stiker':
+                        const bahanStiker = document.getElementById('stiker-bahan').selectedOptions[0].text;
+                        const jumlahStiker = document.getElementById('stiker-jumlah').value;
+                        const potong = document.getElementById('stiker-potong').selectedOptions[0].text;
+                        details = `${jumlahStiker} lbr A3+, Bahan: ${bahanStiker}, Potong: ${potong}.`;
+                        break;
+                    case 'kartu-nama':
+                        const box = document.getElementById('kartunama-jumlah').value;
+                        const sisi = document.getElementById('kartunama-sisi').selectedOptions[0].text;
+                        const laminasi = document.getElementById('kartunama-laminasi').selectedOptions[0].text;
+                        details = `${box} box, Cetak ${sisi}, Laminasi: ${laminasi}.`;
+                        break;
+                }
+
+                const newOrder = {
+                    id: 'ORD-' + Date.now(),
+                    customerName,
+                    customerPhone,
+                    productName: selectedProduct.text,
+                    details: details,
+                    total: subtotal,
+                    dp,
+                    status: 'antrian',
+                    date: new Date().toISOString()
+                };
+
+                orders.push(newOrder);
+                saveOrders();
+                renderOrders();
+                resetForm();
+            });
+
+            orderListContainer.addEventListener('click', (e) => {
+                if (e.target.closest('.delete-btn')) {
+                    const button = e.target.closest('.delete-btn');
+                    const orderId = button.dataset.id;
+                    if(confirm('Apakah Anda yakin ingin menghapus pesanan ini?')) {
+                       orders = orders.filter(order => order.id !== orderId);
+                       saveOrders();
+                       renderOrders();
+                    }
+                }
+            });
+
+            orderListContainer.addEventListener('change', (e) => {
+                 if (e.target.classList.contains('status-select')) {
+                    const orderId = e.target.dataset.id;
+                    const newStatus = e.target.value;
+                    const orderIndex = orders.findIndex(order => order.id === orderId);
+                    if(orderIndex > -1) {
+                        orders[orderIndex].status = newStatus;
+                        saveOrders();
+                        renderOrders();
+                    }
+                }
+            });
+
+            // Initial Load
+            renderOrders();
+
+        });
+    </script>
+</body>
+</html>
