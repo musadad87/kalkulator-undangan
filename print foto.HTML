@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aplikasi Pengubah Ukuran Foto</title>
+    <title>Aplikasi Pengubah Ukuran & Crop Foto</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Menambahkan Cropper.js CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -17,6 +19,15 @@
         }
         canvas {
             border: 2px dashed #30363d;
+        }
+        /* Style untuk Cropper.js agar sesuai tema gelap */
+        .cropper-view-box,
+        .cropper-face {
+            outline: 2px solid #2a73cc;
+            outline-color: rgba(42, 115, 204, 0.75);
+        }
+        .cropper-container {
+            background-color: #0d1117;
         }
         .modal {
             display: none;
@@ -65,10 +76,9 @@
 <body class="p-4 sm:p-8 flex items-center justify-center min-h-screen">
 
     <div class="container mx-auto p-6 bg-[#161b22] rounded-2xl shadow-xl border border-[#30363d]">
-        <h1 class="text-3xl sm:text-4xl font-bold text-center mb-6">Aplikasi Pengubah Ukuran Foto</h1>
-        <p class="text-center text-gray-400 mb-8">Unggah foto, ubah ukurannya, dan unduh hasilnya.</p>
+        <h1 class="text-3xl sm:text-4xl font-bold text-center mb-6">Aplikasi Crop & Ubah Ukuran Foto</h1>
+        <p class="text-center text-gray-400 mb-8">Pilih bagian foto, sesuaikan ukurannya, dan unduh hasilnya.</p>
         
-        <!-- Bagian Unggah Foto -->
         <div class="mb-6 flex flex-col items-center">
             <label for="fileInput" class="cursor-pointer bg-[#238636] hover:bg-[#2ea043] text-white font-semibold py-3 px-6 rounded-full transition-colors duration-200 shadow-md hover:shadow-lg">
                 Pilih Foto
@@ -77,94 +87,87 @@
             <p id="fileName" class="mt-4 text-sm text-gray-500"></p>
         </div>
 
-        <!-- Pratinjau Gambar -->
-        <div id="imageContainer" class="hidden mb-6 flex justify-center items-center bg-[#0d1117] rounded-lg p-4 border border-[#30363d]">
-            <img id="imagePreview" class="max-w-full max-h-[400px] rounded-lg" alt="Pratinjau Foto">
+        <!-- Area Cropping Gambar -->
+        <div id="imageContainer" class="hidden mb-6 bg-[#0d1117] rounded-lg p-2 border border-[#30363d]">
+            <img id="imagePreview" class="max-w-full block" alt="Pratinjau Foto">
         </div>
 
-        <!-- Kontrol Ukuran dan Tombol -->
         <div id="controlsContainer" class="hidden flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4 mb-6">
             <div class="flex items-center space-x-2">
-                <label for="sizeSelect" class="font-medium text-gray-300">Ukuran Standar:</label>
+                <label for="sizeSelect" class="font-medium text-gray-300">Ukuran:</label>
                 <select id="sizeSelect" class="bg-[#0d1117] border border-[#30363d] rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-[#238636] transition-colors duration-200">
-                    <option value="custom">Ukuran Khusus</option>
-                    <option value="2x3">2x3 cm</option>
-                    <option value="3x4">3x4 cm</option>
-                    <option value="4x6">4x6 cm</option>
-                    <option value="2R">6x9 cm (2R)</option>
-                    <option value="3R">8.9x12.7 cm (3R)</option>
-                    <option value="4R">10.2x15.2 cm (4R)</option>
-                    <option value="5R">12.7x17.8 cm (5R)</option>
-                    <option value="6R">15.2x20.3 cm (6R)</option>
-                    <option value="7R">17.8x25.4 cm (7R)</option>
-                    <option value="8R">20.3x25.4 cm (8R)</option>
-                    <option value="10R">25.4x30.5 cm (10R)</option>
-                    <option value="12R">30.5x38.1 cm (12R)</option>
-                    <option value="A3">29.7x42 cm (A3)</option>
-                    <option value="A4">21x29.7 cm (A4)</option>
-                    <option value="F4">21.5x33 cm (F4)</option>
+                    <option value="custom">-- Pilih Ukuran --</option>
+                    <optgroup label="Pas Foto (cm)">
+                        <option value="2x3cm">2x3 cm</option>
+                        <option value="3x4cm">3x4 cm</option>
+                        <option value="4x6cm">4x6 cm</option>
+                    </optgroup>
+                    <optgroup label="Ukuran Cetak (R)">
+                        <option value="2R">2R (6x9 cm)</option>
+                        <option value="3R">3R (8.9x12.7 cm)</option>
+                        <option value="4R">4R (10.2x15.2 cm)</option>
+                        <option value="5R">5R (12.7x17.8 cm)</option>
+                        <option value="6R">6R (15.2x20.3 cm)</option>
+                        <option value="8R">8R (20.3x25.4 cm)</option>
+                        <option value="10R">10R (25.4x30.5 cm)</option>
+                        <option value="12R">12R (30.5x38.1 cm)</option>
+                    </optgroup>
+                    <optgroup label="Ukuran Kertas">
+                        <option value="A4">A4 (21x29.7 cm)</option>
+                        <option value="A3">A3 (29.7x42 cm)</option>
+                        <option value="F4">F4 (21.5x33 cm)</option>
+                    </optgroup>
+                    <optgroup label="Rasio Lainnya">
+                        <option value="1x1">1:1 (Persegi)</option>
+                        <option value="16x9">16:9 (Layar Lebar)</option>
+                    </optgroup>
                 </select>
             </div>
             
             <div class="flex items-center space-x-2">
-                <label for="widthInput" class="font-medium text-gray-300">Lebar (px):</label>
-                <input type="number" id="widthInput" placeholder="Lebar" class="w-24 bg-[#0d1117] border border-[#30363d] rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-[#238636] transition-colors duration-200">
-            </div>
-            <div class="flex items-center space-x-2">
-                <label for="heightInput" class="font-medium text-gray-300">Tinggi (px):</label>
-                <input type="number" id="heightInput" placeholder="Tinggi" class="w-24 bg-[#0d1117] border border-[#30363d] rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-[#238636] transition-colors duration-200">
+                <input type="number" id="widthInput" placeholder="Lebar (px)" class="w-24 bg-[#0d1117] border border-[#30363d] rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-[#238636] transition-colors duration-200">
+                <span class="text-gray-400">x</span>
+                <input type="number" id="heightInput" placeholder="Tinggi (px)" class="w-24 bg-[#0d1117] border border-[#30363d] rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-[#238636] transition-colors duration-200">
             </div>
             
-            <button id="rotateBtn" class="bg-[#e4a04e] hover:bg-[#e8b060] text-white font-semibold py-2 px-6 rounded-full transition-colors duration-200 shadow-md">
-                Putar Gambar
-            </button>
-            <button id="resizeBtn" class="bg-[#2a73cc] hover:bg-[#3d83d6] text-white font-semibold py-2 px-6 rounded-full transition-colors duration-200 shadow-md">
-                Ubah Ukuran
-            </button>
-            <button id="downloadBtn" class="bg-[#e4604e] hover:bg-[#e87060] text-white font-semibold py-2 px-6 rounded-full transition-colors duration-200 shadow-md">
-                Unduh Foto
-            </button>
-            <button id="printBtn" class="bg-[#e4604e] hover:bg-[#e87060] text-white font-semibold py-2 px-6 rounded-full transition-colors duration-200 shadow-md">
-                Cetak Foto
-            </button>
+            <button id="rotateBtn" class="bg-[#e4a04e] hover:bg-[#e8b060] text-white font-semibold py-2 px-6 rounded-full transition-colors duration-200 shadow-md">Putar</button>
+            <button id="resizeBtn" class="bg-[#2a73cc] hover:bg-[#3d83d6] text-white font-semibold py-2 px-6 rounded-full transition-colors duration-200 shadow-md">Terapkan & Ubah Ukuran</button>
         </div>
 
-        <!-- Kanvas Hasil -->
-        <div class="mt-8 flex justify-center">
-            <canvas id="outputCanvas" class="rounded-lg shadow-inner"></canvas>
+        <!-- Kanvas Hasil dan Tombol Aksi -->
+        <div id="resultContainer" class="hidden">
+            <h2 class="text-2xl font-bold text-center mb-4">Hasil Akhir</h2>
+            <div class="mt-4 flex justify-center">
+                <canvas id="outputCanvas" class="rounded-lg shadow-inner"></canvas>
+            </div>
+            <div class="flex justify-center space-x-4 mt-6">
+                 <button id="downloadBtn" class="bg-[#238636] hover:bg-[#2ea043] text-white font-semibold py-2 px-6 rounded-full transition-colors duration-200 shadow-md">Unduh Foto</button>
+                 <button id="printBtn" class="bg-[#e4604e] hover:bg-[#e87060] text-white font-semibold py-2 px-6 rounded-full transition-colors duration-200 shadow-md">Cetak Foto</button>
+            </div>
         </div>
     </div>
 
-    <!-- Modal Cetak Foto -->
+    <!-- Modal Cetak Foto (Sama seperti sebelumnya) -->
     <div id="printModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closePrintModal()">&times;</span>
             <h2 class="text-2xl font-bold text-center mb-4">Cetak Foto</h2>
-            
             <div class="flex items-center justify-center space-x-4 mb-4">
                 <label for="copiesInput" class="font-medium text-gray-300">Jumlah Cetakan:</label>
                 <input type="number" id="copiesInput" value="1" min="1" class="w-20 bg-[#0d1117] border border-[#30363d] rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-[#238636] transition-colors duration-200">
             </div>
-            
             <p id="totalPhotos" class="text-center text-sm text-gray-400 mb-4"></p>
-            
-            <div id="printArea" class="print-area">
-                <!-- Foto-foto yang akan dicetak akan ditambahkan di sini oleh JavaScript -->
-            </div>
-            
+            <div id="printArea" class="print-area"></div>
             <div class="flex justify-center space-x-4">
-                <button id="confirmPrintBtn" class="bg-[#238636] hover:bg-[#2ea043] text-white font-semibold py-2 px-6 rounded-full transition-colors duration-200 shadow-md">
-                    Print
-                </button>
-                <button onclick="closePrintModal()" class="bg-[#e4604e] hover:bg-[#e87060] text-white font-semibold py-2 px-6 rounded-full transition-colors duration-200 shadow-md">
-                    Tutup
-                </button>
+                <button id="confirmPrintBtn" class="bg-[#238636] hover:bg-[#2ea043] text-white font-semibold py-2 px-6 rounded-full transition-colors duration-200 shadow-md">Print</button>
+                <button onclick="closePrintModal()" class="bg-[#e4604e] hover:bg-[#e87060] text-white font-semibold py-2 px-6 rounded-full transition-colors duration-200 shadow-md">Tutup</button>
             </div>
         </div>
     </div>
 
+    <!-- Menambahkan Cropper.js Script -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <script>
-        // Mendapatkan referensi ke elemen-elemen HTML
         const fileInput = document.getElementById('fileInput');
         const imagePreview = document.getElementById('imagePreview');
         const sizeSelect = document.getElementById('sizeSelect');
@@ -177,6 +180,7 @@
         const outputCanvas = document.getElementById('outputCanvas');
         const imageContainer = document.getElementById('imageContainer');
         const controlsContainer = document.getElementById('controlsContainer');
+        const resultContainer = document.getElementById('resultContainer');
         const fileNameDisplay = document.getElementById('fileName');
         const ctx = outputCanvas.getContext('2d');
 
@@ -186,125 +190,103 @@
         const printArea = document.getElementById('printArea');
         const totalPhotosDisplay = document.getElementById('totalPhotos');
 
-        let originalImage = null;
-        let currentImage = null;
-
-        // Mendefinisikan ukuran standar dalam pixel (asumsi 300 dpi)
-        const sizes = {
-            'custom': null,
-            '2x3': { width: 236, height: 354 }, // 2x3 cm @ 300 dpi
-            '3x4': { width: 354, height: 472 }, // 3x4 cm @ 300 dpi
-            '4x6': { width: 472, height: 709 }, // 4x6 cm @ 300 dpi
-            '2R': { width: 709, height: 1063 }, // 6x9 cm @ 300 dpi
-            '3R': { width: 1051, height: 1500 }, // 8.9x12.7 cm @ 300 dpi
-            '4R': { width: 1205, height: 1795 }, // 10.2x15.2 cm @ 300 dpi
-            '5R': { width: 1500, height: 2102 }, // 12.7x17.8 cm @ 300 dpi
-            '6R': { width: 1795, height: 2409 }, // 15.2x20.3 cm @ 300 dpi
-            '7R': { width: 2102, height: 2992 }, // 17.8x25.4 cm @ 300 dpi
-            '8R': { width: 2409, height: 3508 }, // 20.3x25.4 cm @ 300 dpi
-            '10R': { width: 2992, height: 3602 }, // 25.4x30.5 cm @ 300 dpi
-            '12R': { width: 3602, height: 4508 }, // 30.5x38.1 cm @ 300 dpi
-            'A3': { width: 3508, height: 4961 }, // 29.7x42 cm @ 300 dpi
-            'A4': { width: 2480, height: 3508 }, // 21x29.7 cm @ 300 dpi
-            'F4': { width: 2480, height: 3898 }, // 21.5x33 cm @ 300 dpi
-        };
+        let cropper = null;
+        let originalImageURL = null;
         
-        // Asumsi DPI (Dots Per Inch) untuk konversi
         const DPI = 300;
+        const CM_TO_INCH = 0.393701;
 
-        // Fungsi untuk menggambar ulang gambar ke kanvas
-        function drawImageToCanvas(image) {
-            outputCanvas.width = image.width;
-            outputCanvas.height = image.height;
-            ctx.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
-            ctx.drawImage(image, 0, 0, image.width, image.height);
-        }
+        const sizesInCm = {
+            '2x3cm': { width: 2, height: 3 },
+            '3x4cm': { width: 3, height: 4 },
+            '4x6cm': { width: 4, height: 6 },
+            '2R': { width: 6, height: 9 },
+            '3R': { width: 8.9, height: 12.7 },
+            '4R': { width: 10.2, height: 15.2 },
+            '5R': { width: 12.7, height: 17.8 },
+            '6R': { width: 15.2, height: 20.3 },
+            '8R': { width: 20.3, height: 25.4 },
+            '10R': { width: 25.4, height: 30.5 },
+            '12R': { width: 30.5, height: 38.1 },
+            'A4': { width: 21.0, height: 29.7 },
+            'A3': { width: 29.7, height: 42.0 },
+            'F4': { width: 21.5, height: 33.0 },
+        };
 
-        // Mendengarkan saat file dipilih
+        const aspectRatios = {
+            'custom': NaN,
+            '2x3cm': 2 / 3,
+            '3x4cm': 3 / 4,
+            '4x6cm': 4 / 6,
+            '2R': 6 / 9,
+            '3R': 8.9 / 12.7,
+            '4R': 10.2 / 15.2,
+            '5R': 12.7 / 17.8,
+            '6R': 15.2 / 20.3,
+            '8R': 20.3 / 25.4,
+            '10R': 25.4 / 30.5,
+            '12R': 30.5 / 38.1,
+            'A4': 21.0 / 29.7,
+            'A3': 29.7 / 42.0,
+            'F4': 21.5 / 33.0,
+            '1x1': 1 / 1,
+            '16x9': 16 / 9,
+        };
+
         fileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
-            if (file) {
-                // Tampilkan nama file
-                fileNameDisplay.textContent = file.name;
+            if (!file) return;
 
-                // Buat URL dari file untuk pratinjau
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    const img = new Image();
-                    img.onload = () => {
-                        originalImage = img;
-                        currentImage = img;
-                        imagePreview.src = event.target.result;
-                        imageContainer.classList.remove('hidden');
-                        controlsContainer.classList.remove('hidden');
+            fileNameDisplay.textContent = file.name;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                if (originalImageURL) {
+                    URL.revokeObjectURL(originalImageURL);
+                }
+                originalImageURL = event.target.result;
+                imagePreview.src = originalImageURL;
+                
+                imageContainer.classList.remove('hidden');
+                controlsContainer.classList.remove('hidden');
+                resultContainer.classList.add('hidden'); // Sembunyikan hasil lama
 
-                        // Mengisi input dengan ukuran asli saat pertama kali
-                        widthInput.value = img.width;
-                        heightInput.value = img.height;
-                        sizeSelect.value = 'custom';
+                if (cropper) {
+                    cropper.destroy();
+                }
 
-                        // Tampilkan gambar asli di kanvas output
-                        drawImageToCanvas(currentImage);
-                    };
-                    img.src = event.target.result;
-                };
-                reader.readAsDataURL(file);
-            }
+                cropper = new Cropper(imagePreview, {
+                    aspectRatio: aspectRatios[sizeSelect.value],
+                    viewMode: 1,
+                    background: false,
+                    autoCropArea: 0.8,
+                    responsive: true,
+                });
+            };
+            reader.readAsDataURL(file);
         });
 
-        // Mendengarkan perubahan pada pilihan ukuran
         sizeSelect.addEventListener('change', (e) => {
-            const selectedSize = e.target.value;
-            if (selectedSize === 'custom') {
-                widthInput.disabled = false;
-                heightInput.disabled = false;
-                if (originalImage) {
-                    widthInput.value = originalImage.width;
-                    heightInput.value = originalImage.height;
-                }
-            } else {
-                widthInput.disabled = true;
-                heightInput.disabled = true;
-                const size = sizes[selectedSize];
-                widthInput.value = size.width;
-                heightInput.value = size.height;
+            if (cropper) {
+                const ratio = aspectRatios[e.target.value];
+                cropper.setAspectRatio(ratio);
+            }
+            
+            // Auto-fill width/height for standard photo sizes
+            const sizeCm = sizesInCm[e.target.value];
+            if(sizeCm) {
+                widthInput.value = Math.round(sizeCm.width * CM_TO_INCH * DPI);
+                heightInput.value = Math.round(sizeCm.height * CM_TO_INCH * DPI);
             }
         });
         
-        // Mendengarkan klik tombol "Putar Gambar"
         rotateBtn.addEventListener('click', () => {
-            if (!currentImage) {
-                alert('Silakan unggah foto terlebih dahulu.');
-                return;
+            if (cropper) {
+                cropper.rotate(90);
             }
-
-            const newCanvas = document.createElement('canvas');
-            const newCtx = newCanvas.getContext('2d');
-            
-            // Atur ukuran kanvas baru untuk gambar yang diputar
-            newCanvas.width = currentImage.height;
-            newCanvas.height = currentImage.width;
-            
-            // Pindahkan titik rotasi ke tengah gambar
-            newCtx.translate(newCanvas.width / 2, newCanvas.height / 2);
-            newCtx.rotate(90 * Math.PI / 180);
-            newCtx.drawImage(currentImage, -currentImage.width / 2, -currentImage.height / 2);
-
-            // Ubah kanvas menjadi objek gambar baru
-            const rotatedImage = new Image();
-            rotatedImage.src = newCanvas.toDataURL();
-            rotatedImage.onload = () => {
-                currentImage = rotatedImage;
-                imagePreview.src = rotatedImage.src;
-                drawImageToCanvas(currentImage);
-                widthInput.value = currentImage.width;
-                heightInput.value = currentImage.height;
-            };
         });
 
-        // Mendengarkan klik tombol "Ubah Ukuran"
         resizeBtn.addEventListener('click', () => {
-            if (!currentImage) {
+            if (!cropper) {
                 alert('Silakan unggah foto terlebih dahulu.');
                 return;
             }
@@ -312,59 +294,55 @@
             const newWidth = parseInt(widthInput.value);
             const newHeight = parseInt(heightInput.value);
 
-            // Validasi input
             if (isNaN(newWidth) || isNaN(newHeight) || newWidth <= 0 || newHeight <= 0) {
-                alert('Silakan masukkan nilai lebar dan tinggi yang valid.');
+                alert('Silakan masukkan nilai lebar dan tinggi yang valid di input box.');
                 return;
             }
 
+            // Dapatkan canvas yang sudah di-crop dan langsung di-resize
+            const croppedCanvas = cropper.getCroppedCanvas({
+                width: newWidth,
+                height: newHeight,
+                imageSmoothingEnabled: true,
+                imageSmoothingQuality: 'high',
+            });
+            
             outputCanvas.width = newWidth;
             outputCanvas.height = newHeight;
-            
-            ctx.drawImage(currentImage, 0, 0, newWidth, newHeight);
-            alert('Foto berhasil diubah ukurannya!');
+            ctx.drawImage(croppedCanvas, 0, 0);
+
+            resultContainer.classList.remove('hidden');
+            alert('Foto berhasil di-crop dan diubah ukurannya!');
         });
 
-        // Mendengarkan klik tombol "Unduh Foto"
         downloadBtn.addEventListener('click', () => {
-            if (outputCanvas.width === 0 || outputCanvas.height === 0) {
-                alert('Tidak ada foto yang diubah ukurannya untuk diunduh.');
-                return;
-            }
-
             const dataURL = outputCanvas.toDataURL('image/jpeg', 0.9);
-            
             const link = document.createElement('a');
             link.href = dataURL;
-            link.download = `foto_resized.jpg`;
-            
+            link.download = `foto_cropped_resized.jpg`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
         });
 
-        // Fungsi untuk menampilkan modal cetak
+        // Fungsi untuk modal cetak (tidak ada perubahan signifikan)
         printBtn.addEventListener('click', () => {
-            if (!currentImage) {
-                alert('Silakan unggah foto terlebih dahulu.');
+             if (outputCanvas.width === 0 || outputCanvas.height === 0) {
+                alert('Tidak ada foto pada hasil akhir untuk dicetak.');
                 return;
             }
-            
             openPrintModal();
         });
 
-        // Fungsi untuk membuka modal cetak
         function openPrintModal() {
             printModal.style.display = 'flex';
             updatePrintPreview();
         }
 
-        // Fungsi untuk menutup modal cetak
         function closePrintModal() {
             printModal.style.display = 'none';
         }
-
-        // Fungsi untuk memperbarui pratinjau cetak
+        
         function updatePrintPreview() {
             const copies = parseInt(copiesInput.value) || 1;
             const photoDataURL = outputCanvas.toDataURL();
@@ -374,7 +352,7 @@
                 const img = document.createElement('img');
                 img.src = photoDataURL;
                 img.className = 'photo-to-print';
-                img.style.width = '100px'; // Ukuran kecil untuk pratinjau
+                img.style.width = '100px';
                 img.style.height = 'auto';
                 printArea.appendChild(img);
             }
@@ -382,66 +360,31 @@
         }
         
         copiesInput.addEventListener('input', updatePrintPreview);
-
-        // Fungsi untuk mencetak
+        
         confirmPrintBtn.addEventListener('click', () => {
             const copies = parseInt(copiesInput.value) || 1;
-            const selectedSize = sizeSelect.value;
-
-            if (selectedSize === 'custom' || !currentImage) {
-                alert('Silakan pilih ukuran standar untuk mencetak.');
-                return;
-            }
-
-            // Dapatkan dimensi dari ukuran standar yang dipilih dalam piksel
-            const printDimensions = sizes[selectedSize];
-            const printWidthPx = printDimensions.width;
-            const printHeightPx = printDimensions.height;
+            const printWidthPx = outputCanvas.width;
+            const printHeightPx = outputCanvas.height;
             
-            // Konversi piksel ke milimeter untuk akurasi cetak
             const printWidthMm = (printWidthPx / DPI) * 25.4;
             const printHeightMm = (printHeightPx / DPI) * 25.4;
-
-            // Buat kanvas sementara untuk mencetak dengan ukuran yang benar
-            const tempCanvas = document.createElement('canvas');
-            const tempCtx = tempCanvas.getContext('2d');
-            tempCanvas.width = printWidthPx;
-            tempCanvas.height = printHeightPx;
-            tempCtx.drawImage(currentImage, 0, 0, printWidthPx, printHeightPx);
-            const printDataURL = tempCanvas.toDataURL();
+            const printDataURL = outputCanvas.toDataURL();
 
             let printImagesHTML = '';
             for (let i = 0; i < copies; i++) {
-                // Terapkan ukuran dalam milimeter ke style
                 printImagesHTML += `<img src="${printDataURL}" style="width: ${printWidthMm}mm; height: ${printHeightMm}mm; margin: 1mm;"/>`;
             }
 
-            const printContent = `
-                <style>
-                    body { font-family: sans-serif; }
-                    .print-area { display: flex; flex-wrap: wrap; justify-content: flex-start; }
-                    @page { 
-                        size: auto; 
-                        margin: 1cm; /* Margin halaman untuk ruang potong */
-                    }
-                </style>
-                <div class="print-area">
-                    ${printImagesHTML}
-                </div>
-            `;
+            const printContent = `<style> @page { size: auto; margin: 1cm; } .print-area { display: flex; flex-wrap: wrap; } </style><div class="print-area">${printImagesHTML}</div>`;
             
             const printWindow = window.open('', '_blank');
-            printWindow.document.write('<html><head><title>Cetak Foto</title></head><body>');
-            printWindow.document.write(printContent);
-            printWindow.document.write('</body></html>');
+            printWindow.document.write(`<html><head><title>Cetak Foto</title></head><body>${printContent}</body></html>`);
             printWindow.document.close();
-
             printWindow.onload = () => {
                 printWindow.focus();
                 printWindow.print();
             };
         });
-
     </script>
 </body>
 </html>
