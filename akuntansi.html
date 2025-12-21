@@ -3,42 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kasir Percetakan V3 - Laporan Bulanan</title>
+    <title>MUSADAD.COM - Sistem Manajemen Percetakan</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { background-color: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
-        .header-app { background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%); color: white; padding: 20px; }
-        .card-omzet { background-color: #d1e7dd; border-left: 5px solid #198754; }
+        body { background-color: #f4f7f6; font-family: 'Segoe UI', sans-serif; }
+        .header-app { background: linear-gradient(to right, #2c3e50, #4ca1af); color: white; padding: 15px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .brand-name { font-weight: 800; letter-spacing: 1px; }
+        .nav-pills .nav-link.active { background-color: #2c3e50; }
+        .nav-link { color: #2c3e50; font-weight: 600; }
+        .card { border: none; box-shadow: 0 2px 15px rgba(0,0,0,0.05); border-radius: 10px; }
+        .btn-custom { border-radius: 8px; font-weight: 600; }
         
-        /* Print Style */
+        /* PENGATURAN CETAK (PRINT) */
         @media print {
             body * { visibility: hidden; }
-            #areaNota, #areaNota * { visibility: visible; }
-            #areaNota { position: absolute; left: 0; top: 0; width: 100%; }
+            
+            /* Jika sedang print Nota */
+            .print-mode-nota #areaNota, .print-mode-nota #areaNota * { visibility: visible; }
+            .print-mode-nota #areaNota { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; box-shadow: none; }
+            
+            /* Jika sedang print Daftar Belanja */
+            .print-mode-belanja #areaBelanja, .print-mode-belanja #areaBelanja * { visibility: visible; }
+            .print-mode-belanja #areaBelanja { position: absolute; left: 0; top: 0; width: 100%; }
+
             .no-print { display: none !important; }
         }
     </style>
 </head>
-<body>
+<body class="">
 
 <div class="header-app mb-4 no-print">
     <div class="container d-flex justify-content-between align-items-center">
+        <h3 class="mb-0 brand-name"><i class="fas fa-print"></i> MUSADAD.COM</h3>
         <div>
-            <h2 class="mb-0">🖨️ Percetakan V3.0</h2>
-            <small>Kasir + Stok + Laporan Bulanan Otomatis</small>
-        </div>
-        <div class="text-end">
-            <button onclick="downloadDatabase()" class="btn btn-warning btn-sm me-2">💾 Backup Data</button>
-            <button onclick="document.getElementById('fileInput').click()" class="btn btn-info btn-sm text-white">📂 Restore Data</button>
-            <input type="file" id="fileInput" style="display:none" onchange="uploadDatabase(this)">
+            <button onclick="downloadDatabase()" class="btn btn-warning btn-sm btn-custom text-white shadow-sm"><i class="fas fa-download"></i> Backup Data</button>
+            <button onclick="document.getElementById('fileInput').click()" class="btn btn-info btn-sm btn-custom text-white shadow-sm"><i class="fas fa-upload"></i> Restore</button>
+            <input type="file" id="fileInput" hidden onchange="uploadDatabase(this)">
         </div>
     </div>
 </div>
 
 <div class="container mb-5">
-    <ul class="nav nav-pills mb-3 no-print" role="tablist">
-        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#kasir">🛒 Kasir</button></li>
-        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#gudang">📦 Stok</button></li>
+    <ul class="nav nav-pills mb-4 p-2 bg-white rounded shadow-sm no-print" role="tablist">
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#kasir">🛒 Kasir & Nota</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#gudang">📦 Stok & Belanja</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#pengeluaran">💸 Pengeluaran (Biaya)</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#laporan">📊 Laporan Keuangan</button></li>
     </ul>
 
@@ -46,46 +56,89 @@
         
         <div class="tab-pane fade show active" id="kasir">
             <div class="row">
-                <div class="col-md-5 no-print">
-                    <div class="card p-3 shadow-sm">
-                        <h5 class="text-primary">Input Transaksi</h5>
-                        <div class="mb-2">
-                            <label>Pilih Barang</label>
-                            <select id="pilihBarang" class="form-select" onchange="updateHargaOtomatis()"></select>
-                        </div>
-                        <div class="row">
-                            <div class="col-6 mb-2">
-                                <label>Harga</label>
+                <div class="col-md-4 no-print">
+                    <div class="card p-3 mb-3">
+                        <h6 class="fw-bold text-secondary">1. Data Pelanggan</h6>
+                        <input type="text" id="custNama" class="form-control mb-2 form-control-sm" placeholder="Nama Pembeli (Wajib)">
+                        <input type="number" id="custTelp" class="form-control mb-2 form-control-sm" placeholder="No. Telepon / WA">
+                    </div>
+                    <div class="card p-3">
+                        <h6 class="fw-bold text-secondary">2. Input Barang</h6>
+                        <label class="small">Pilih Barang</label>
+                        <select id="pilihBarang" class="form-select mb-2" onchange="updateHargaOtomatis()"></select>
+                        
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <label class="small">Harga</label>
                                 <input type="number" id="hargaSaatIni" class="form-control" readonly>
                             </div>
-                            <div class="col-6 mb-2">
-                                <label>Qty</label>
+                            <div class="col-6">
+                                <label class="small">Jumlah</label>
                                 <input type="number" id="qtyBeli" class="form-control" value="1" min="1">
                             </div>
                         </div>
-                        <button onclick="tambahKeKeranjang()" class="btn btn-primary w-100 mt-2">➕ Tambah</button>
+                        <button onclick="tambahKeKeranjang()" class="btn btn-primary w-100 mt-3 btn-custom">➕ Masukkan ke Nota</button>
                     </div>
                 </div>
 
-                <div class="col-md-7">
-                    <div class="card p-4 shadow-sm" id="areaNota">
-                        <div class="text-center mb-3 border-bottom pb-2">
-                            <h4 class="fw-bold mb-0">PERCETAKAN MANDIRI</h4>
-                            <small>Nota Pembayaran Resmi</small>
+                <div class="col-md-8">
+                    <div class="card p-4" id="areaNota">
+                        <div class="text-center border-bottom pb-3 mb-3">
+                            <h2 class="fw-bold mb-0">MUSADAD.COM</h2>
+                            <p class="mb-0 small">Jasa Percetakan, Desain & ATK</p>
+                            <p class="mb-0 small">Jl. Raya Pendidikan No. 123 (WA: 0812-xxxx-xxxx)</p>
                         </div>
-                        <table class="table table-sm">
-                            <thead><tr><th>Item</th><th>Qty</th><th class="text-end">Subtotal</th><th class="no-print">#</th></tr></thead>
+                        
+                        <div class="d-flex justify-content-between mb-3 small">
+                            <div>
+                                <strong>No. Nota:</strong> <span id="notaNo">AUTO</span><br>
+                                <strong>Tanggal:</strong> <span id="notaTgl">-</span>
+                            </div>
+                            <div class="text-end">
+                                <strong>Yth:</strong> <span id="dispNama">-</span><br>
+                                <strong>Telp:</strong> <span id="dispTelp">-</span>
+                            </div>
+                        </div>
+
+                        <table class="table table-sm border-top border-bottom">
+                            <thead>
+                                <tr class="bg-light"><th>Item</th><th class="text-center">Qty</th><th class="text-end">Harga</th><th class="text-end">Total</th><th class="no-print"></th></tr>
+                            </thead>
                             <tbody id="tabelKeranjang"></tbody>
-                            <tfoot>
-                                <tr class="table-active">
-                                    <th colspan="2">TOTAL</th>
-                                    <th class="text-end fs-5" id="totalBayar">Rp 0</th>
-                                    <th></th>
-                                </tr>
-                            </tfoot>
                         </table>
-                        <div class="no-print mt-4">
-                            <button onclick="prosesBayar()" class="btn btn-success w-100 fw-bold">💰 BAYAR & CETAK</button>
+
+                        <div class="row mt-3">
+                            <div class="col-6">
+                                <small class="text-muted">Catatan:<br>Barang yang sudah dibeli tidak dapat ditukar, kecuali perjanjian diawal.</small>
+                            </div>
+                            <div class="col-6">
+                                <table class="table table-borderless table-sm">
+                                    <tr>
+                                        <td class="text-end fw-bold">Grand Total:</td>
+                                        <td class="text-end fw-bold" id="grandTotal">Rp 0</td>
+                                    </tr>
+                                    <tr class="no-print bg-warning bg-opacity-10">
+                                        <td class="text-end align-middle">Uang Muka (DP):</td>
+                                        <td><input type="number" id="inputDP" class="form-control form-control-sm text-end" value="0" onkeyup="hitungSisa()"></td>
+                                    </tr>
+                                    <tr class="d-none print-show-dp"> <td class="text-end">Uang Muka (DP):</td>
+                                        <td class="text-end" id="printDP">Rp 0</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-end fw-bold text-danger">Sisa Bayar:</td>
+                                        <td class="text-end fw-bold text-danger" id="sisaBayar">Rp 0</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center mt-4 pt-4 border-top" style="border-style: dashed !important;">
+                            <small>Terima Kasih atas kepercayaan Anda!</small>
+                        </div>
+
+                        <div class="no-print mt-4 d-grid gap-2">
+                            <button onclick="prosesBayar()" class="btn btn-success btn-lg btn-custom">🖨️ SIMPAN & CETAK NOTA</button>
+                            <button onclick="bersihkanNota()" class="btn btn-outline-secondary btn-sm">Batal / Nota Baru</button>
                         </div>
                     </div>
                 </div>
@@ -93,241 +146,60 @@
         </div>
 
         <div class="tab-pane fade" id="gudang">
-            <div class="card p-3 shadow-sm">
-                <div class="row">
-                    <div class="col-md-4 border-end">
-                        <h5>Tambah Barang</h5>
-                        <input type="text" id="namaProdukBaru" class="form-control mb-2" placeholder="Nama Barang">
-                        <input type="number" id="hargaProdukBaru" class="form-control mb-2" placeholder="Harga Jual">
-                        <input type="number" id="stokProdukBaru" class="form-control mb-2" placeholder="Stok Awal">
-                        <button onclick="tambahProduk()" class="btn btn-primary w-100">Simpan</button>
-                    </div>
-                    <div class="col-md-8">
-                        <table class="table table-striped">
-                            <thead class="table-dark"><tr><th>Barang</th><th>Harga</th><th>Stok</th><th>Aksi</th></tr></thead>
-                            <tbody id="tabelGudang"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="tab-pane fade" id="laporan">
             <div class="row">
-                <div class="col-md-5 mb-3">
-                    <div class="card p-3 shadow-sm card-omzet">
-                        <h5 class="fw-bold">📅 Rekap Pendapatan Bulanan</h5>
-                        <hr>
-                        <table class="table table-borderless">
-                            <thead>
-                                <tr class="border-bottom"><th>Bulan & Tahun</th><th class="text-end">Total Omzet</th></tr>
-                            </thead>
-                            <tbody id="tabelRekapBulanan">
-                                </tbody>
-                        </table>
-                        <small class="text-muted">*Dihitung otomatis dari riwayat transaksi</small>
+                <div class="col-md-4 mb-3 no-print">
+                    <div class="card p-3 bg-light">
+                        <h6 class="fw-bold">Tambah / Edit Barang</h6>
+                        <input type="hidden" id="editId">
+                        <input type="text" id="namaProd" class="form-control mb-2" placeholder="Nama Barang">
+                        <input type="number" id="hargaProd" class="form-control mb-2" placeholder="Harga Jual">
+                        <div class="row g-2">
+                            <div class="col-6"><input type="number" id="stokProd" class="form-control" placeholder="Stok Kini"></div>
+                            <div class="col-6"><input type="number" id="minProd" class="form-control" placeholder="Min. Stok"></div>
+                        </div>
+                        <small class="text-muted d-block mb-2">*Isi Min. Stok agar tahu kapan belanja</small>
+                        <button onclick="simpanProduk()" class="btn btn-primary w-100 btn-custom">Simpan Data</button>
+                    </div>
+                    <div class="card p-3 mt-3 bg-warning bg-opacity-10 border-warning">
+                        <h6 class="fw-bold text-warning-emphasis">Menu Belanja</h6>
+                        <p class="small mb-2">Klik tombol di bawah untuk mencetak daftar barang yang stoknya menipis.</p>
+                        <button onclick="cetakBelanja()" class="btn btn-warning w-100 btn-custom text-white"><i class="fas fa-print"></i> Print Daftar Belanja</button>
                     </div>
                 </div>
 
-                <div class="col-md-7">
-                    <div class="card p-3 shadow-sm">
-                        <div class="d-flex justify-content-between">
-                            <h5>Riwayat Transaksi Harian</h5>
-                            <button onclick="resetData()" class="btn btn-outline-danger btn-sm">Reset</button>
+                <div class="col-md-8">
+                    <div class="card p-3">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0">Daftar Stok Gudang</h5>
+                            <input type="text" id="cariBarang" class="form-control form-control-sm w-50" placeholder="Cari nama barang..." onkeyup="renderGudang()">
                         </div>
-                        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-                            <table class="table table-bordered table-sm mt-2">
-                                <thead class="table-secondary"><tr><th>Waktu</th><th>Detail</th><th class="text-end">Total</th></tr></thead>
-                                <tbody id="tabelLaporan"></tbody>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-dark"><tr><th>Barang</th><th>Harga</th><th>Stok</th><th>Min</th><th>Status</th><th>Aksi</th></tr></thead>
+                                <tbody id="tabelGudang"></tbody>
                             </table>
                         </div>
                     </div>
+
+                    <div id="areaBelanja" class="d-none">
+                        <h3 class="text-center border-bottom pb-2">DAFTAR BELANJA MUSADAD.COM</h3>
+                        <p class="text-center small">Tanggal: <span id="tglBelanja"></span></p>
+                        <table class="table table-bordered mt-3">
+                            <thead><tr><th>No</th><th>Nama Barang</th><th>Sisa Stok</th><th>Target Stok (Min)</th><th>Cek</th></tr></thead>
+                            <tbody id="tabelBelanjaPrint"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
 
-    </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    // --- DATABASE ---
-    let databaseProduk = JSON.parse(localStorage.getItem('db_produk')) || [
-        {id: 1, nama: "Cetak A4", harga: 500, stok: 100}
-    ];
-    // Format data jual: {waktuIso: "2025-01-01T10:00:00", waktuStr: "1/1/2025, 10:00", detail: "...", total: 500}
-    let riwayatJual = JSON.parse(localStorage.getItem('db_jual')) || [];
-    let keranjang = [];
-
-    window.onload = function() { refreshView(); };
-
-    function refreshView() {
-        renderGudang();
-        renderLaporan();
-        renderRekapBulanan(); // Fitur Baru
-        renderPilihanBarang();
-        localStorage.setItem('db_produk', JSON.stringify(databaseProduk));
-        localStorage.setItem('db_jual', JSON.stringify(riwayatJual));
-    }
-
-    // --- LOGIKA REKAP BULANAN (BARU) ---
-    function renderRekapBulanan() {
-        let rekap = {};
-        
-        riwayatJual.forEach(transaksi => {
-            // Ambil Tanggal dari data
-            let tanggal = new Date(transaksi.waktuIso || new Date()); 
-            // Format jadi "Januari 2024"
-            let namaBulan = tanggal.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
-            
-            if (!rekap[namaBulan]) { rekap[namaBulan] = 0; }
-            rekap[namaBulan] += transaksi.total;
-        });
-
-        let tbody = document.getElementById('tabelRekapBulanan');
-        tbody.innerHTML = '';
-        
-        // Tampilkan ke tabel
-        if (Object.keys(rekap).length === 0) {
-            tbody.innerHTML = '<tr><td colspan="2" class="text-center">Belum ada data penjualan</td></tr>';
-        } else {
-            for (let bulan in rekap) {
-                tbody.innerHTML += `
-                    <tr>
-                        <td class="fw-bold">${bulan}</td>
-                        <td class="text-end fw-bold text-success">Rp ${rekap[bulan].toLocaleString()}</td>
-                    </tr>
-                `;
-            }
-        }
-    }
-
-    // --- FUNGSI DOWNLOAD/UPLOAD (DATABASE) ---
-    function downloadDatabase() {
-        const data = { produk: databaseProduk, laporan: riwayatJual };
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
-        const el = document.createElement('a');
-        el.setAttribute("href", dataStr);
-        el.setAttribute("download", "BACKUP_PERCETAKAN_V3.json");
-        document.body.appendChild(el); el.click(); el.remove();
-    }
-
-    function uploadDatabase(input) {
-        const file = input.files[0];
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            try {
-                const data = JSON.parse(e.target.result);
-                if(data.produk && data.laporan) {
-                    databaseProduk = data.produk;
-                    riwayatJual = data.laporan;
-                    refreshView();
-                    alert("Data berhasil dipulihkan!");
-                }
-            } catch(err) { alert("File rusak!"); }
-        };
-        reader.readAsText(file);
-    }
-
-    // --- FUNGSI STANDAR (GUDANG & KASIR) ---
-    function renderGudang() {
-        let tbody = document.getElementById('tabelGudang');
-        tbody.innerHTML = '';
-        databaseProduk.forEach((p, idx) => {
-            tbody.innerHTML += `<tr><td>${p.nama}</td><td>${p.harga}</td><td>${p.stok}</td>
-            <td><button onclick="hapusProduk(${idx})" class="btn btn-sm btn-danger">Hapus</button></td></tr>`;
-        });
-    }
-
-    function tambahProduk() {
-        let nama = document.getElementById('namaProdukBaru').value;
-        let harga = Number(document.getElementById('hargaProdukBaru').value);
-        let stok = Number(document.getElementById('stokProdukBaru').value);
-        if(nama) {
-            databaseProduk.push({id: Date.now(), nama, harga, stok});
-            document.getElementById('namaProdukBaru').value=''; 
-            refreshView();
-        }
-    }
-
-    function hapusProduk(idx) {
-        if(confirm('Hapus barang?')) { databaseProduk.splice(idx,1); refreshView(); }
-    }
-
-    function renderPilihanBarang() {
-        let s = document.getElementById('pilihBarang');
-        s.innerHTML = '<option value="">-- Pilih --</option>';
-        databaseProduk.forEach(p => s.innerHTML += `<option value="${p.id}">${p.nama}</option>`);
-    }
-
-    function updateHargaOtomatis() {
-        let id = document.getElementById('pilihBarang').value;
-        let p = databaseProduk.find(x => x.id == id);
-        if(p) document.getElementById('hargaSaatIni').value = p.harga;
-    }
-
-    function tambahKeKeranjang() {
-        let id = document.getElementById('pilihBarang').value;
-        let qty = Number(document.getElementById('qtyBeli').value);
-        let p = databaseProduk.find(x => x.id == id);
-        if(p && p.stok >= qty) {
-            keranjang.push({id: p.id, nama: p.nama, harga: p.harga, qty, subtotal: p.harga*qty});
-            renderKeranjang();
-        } else { alert('Stok kurang/Barang kosong!'); }
-    }
-
-    function renderKeranjang() {
-        let tbody = document.getElementById('tabelKeranjang');
-        tbody.innerHTML = '';
-        let total = 0;
-        keranjang.forEach((item, idx) => {
-            total += item.subtotal;
-            tbody.innerHTML += `<tr><td>${item.nama}</td><td>${item.qty}</td><td class="text-end">${item.subtotal}</td>
-            <td class="no-print"><button onclick="hapusKeranjang(${idx})" class="btn btn-sm text-danger">x</button></td></tr>`;
-        });
-        document.getElementById('totalBayar').innerText = 'Rp ' + total.toLocaleString();
-    }
-
-    function hapusKeranjang(idx) { keranjang.splice(idx,1); renderKeranjang(); }
-
-    function prosesBayar() {
-        if(keranjang.length === 0) return;
-        
-        // Kurangi Stok
-        keranjang.forEach(item => {
-            let p = databaseProduk.find(x => x.id == item.id);
-            if(p) p.stok -= item.qty;
-        });
-
-        // Simpan Laporan dengan format waktu ISO agar mudah disortir
-        let total = keranjang.reduce((a,b)=>a+b.subtotal,0);
-        let detail = keranjang.map(k=>`${k.nama} (${k.qty})`).join(', ');
-        let now = new Date();
-        
-        riwayatJual.push({
-            waktuIso: now.toISOString(), // Untuk sistem komputer
-            waktuStr: now.toLocaleString(), // Untuk mata manusia
-            detail: detail,
-            total: total
-        });
-
-        refreshView();
-        window.print();
-        keranjang = [];
-        renderKeranjang();
-    }
-
-    function renderLaporan() {
-        let tbody = document.getElementById('tabelLaporan');
-        tbody.innerHTML = '';
-        riwayatJual.slice().reverse().forEach(r => {
-            tbody.innerHTML += `<tr><td>${r.waktuStr}</td><td>${r.detail}</td><td class="text-end">Rp ${r.total.toLocaleString()}</td></tr>`;
-        });
-    }
-
-    function resetData() {
-        if(confirm("Hapus semua data?")) { localStorage.clear(); location.reload(); }
-    }
-</script>
-</body>
-</html>
+        <div class="tab-pane fade" id="pengeluaran">
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <div class="card p-3 shadow-sm border-danger border-start border-4">
+                        <h6 class="fw-bold text-danger">Input Biaya Operasional</h6>
+                        <small class="text-muted mb-2">Contoh: Beli Kertas, Bayar Listrik, Makan</small>
+                        <input type="text" id="ketKeluar" class="form-control mb-2" placeholder="Keterangan Pengeluaran">
+                        <input type="number" id="jmlKeluar" class="form-control mb-2" placeholder="Jumlah Uang (Rp)">
+                        <input type="date" id="tglKeluar" class="form-control mb-3">
+                        <button onclick="simpanPengeluaran()" class="btn btn-danger w-1
