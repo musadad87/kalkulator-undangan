@@ -119,8 +119,10 @@
             <button onclick="downloadDB()" class="btn btn-warning btn-sm text-dark fw-bold shadow">💾 Backup</button>
             <input type="file" id="fileInput" hidden onchange="uploadDB(this)">
             <button onclick="document.getElementById('fileInput').click()" class="btn btn-light btn-sm fw-bold shadow">📂 Restore</button>
-        </div>
-    </div>
+			<button class="btn btn-light btn-sm fw-bold shadow" onclick="handleButtonClick('harga-kertas')">➕ Menu Awal</button>
+			</div>
+			
+		</div>
 </div>
 
 <div class="container mb-5">
@@ -351,6 +353,15 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+function handleButtonClick(action) {
+            console.log(`Tombol "${action}" diklik.`);
+            
+            if (action === 'harga-kertas') {
+			 window.open('https://musadad87.github.io/kalkulator-undangan/', '_blank');
+			
+			}
+			}
+			
     let db = {
         produk: JSON.parse(localStorage.getItem('musadad_prod')) || [],
         nota: JSON.parse(localStorage.getItem('musadad_nota')) || [],
