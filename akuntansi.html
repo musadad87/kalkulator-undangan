@@ -3,216 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MUSADAD.COM V9 - Final Layout</title>
+    <title>MUSADAD SYSTEM V9 PRO</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Roboto+Condensed:wght@400;700&display=swap');
 
         body { background-color: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
-		
+
         /* HEADER APP STYLE */
         .header-app { background: linear-gradient(90deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 15px 0; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .nav-link.active { background-color: #1e3c72 !important; color: white !important; }
         .nav-link { color: #1e3c72; font-weight: bold; }
-        
-        /* TABLE STYLES */
-        .table-masuk { background-color: #d1e7dd; } 
-        .table-modal { background-color: #cfe2ff; } 
-        .table-keluar { background-color: #f8d7da; } 
 
         /* --- NOTA DESIGN (CORE) --- */
         #areaNota {
             background: white;
-            font-family: 'Roboto Condensed', sans-serif; /* Font Nota Ramping & Tegas */
-            color: #000;
-        }
-
-        /* 1. Header Nota Cantik */
-        .nota-brand {
-            font-family: 'Oswald', sans-serif; /* Font Judul Tebal */
-            font-size: 2.5rem;
-            color: #1a2a6c; /* Biru Gelap Elegan */
-            letter-spacing: 2px;
-            margin-bottom: 0;
-            line-height: 1.1;
-            text-transform: uppercase;
-        }
-        .nota-sub {
-            font-family: 'Arial', sans-serif;
-            font-weight: 900;
-            color: #b91d1d; /* Merah Bata */
-            font-size: 0.9rem;
-            letter-spacing: 1px;
-            margin-bottom: 5px;
-            text-transform: uppercase;
-        }
-        .nota-address {
-            font-size: 0.8rem;
-            color: #333;
-            border-top: 2px solid #1a2a6c;
-            border-bottom: 1px solid #1a2a6c;
-            padding: 5px 0;
-            margin-bottom: 15px;
-        }
-
-        /* 2. Tabel Nota */
-        .nota-table thead {
-            background-color: #1a2a6c !important;
-            color: white !important;
-            -webkit-print-color-adjust: exact;
-        }
-        .nota-table th { padding: 8px; font-weight: normal; letter-spacing: 1px; }
-        .nota-table td { padding: 5px 8px; border-bottom: 1px solid #ddd; }
-        .editable-name:hover { background-color: #fff9c4; cursor: text; }
-
-        /* 3. Footer Boxes */
-        .box-payment {
-            border: 1px solid #000;
-            padding: 5px;
-            font-size: 0.7rem;
-            height: 100%;
-        }
-        .box-warning {
-            border: 2px solid red;
-            background-color: #fff5f5;
-            color: red;
-            font-weight: bold;
-            padding: 5px;
-            font-size: 0.65rem;
-            text-align: center;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            -webkit-print-color-adjust: exact;
-        }
-        .box-sign {
-            text-align: center;
-            font-size: 0.8rem;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-        }
-
-        /* PRINT SETTINGS */
-        @media print {
-            body * { visibility: hidden; }
-            .print-nota #areaNota, .print-nota #areaNota * { visibility: visible; }
-            .print-nota #areaNota { position: absolute; left: 0; top: 0; width: 100%; border: none; box-shadow: none; padding: 0; margin: 0; }
-            .print-nota .no-print { display: none !important; }
-            
-            .print-belanja #areaBelanja, .print-belanja #areaBelanja * { visibility: visible; }
-            .print-belanja #areaBelanja { position: absolute; left: 0; top: 0; width: 100%; }
-        }
-		
-		body { background-color: #e9ecef; font-family: 'Segoe UI', sans-serif; }
-        
-        /* HEADER APP (Menu Atas) */
-        .header-app { background: #333; color: white; padding: 10px 0; margin-bottom: 20px; }
-        .nav-link { color: #333; font-weight: bold; }
-        .nav-link.active { background-color: #dc3545 !important; color: white !important; }
-
-        /* --- STYLE NOTA (SESUAI GAMBAR) --- */
-        #areaNota {
-            background: white;
             padding: 30px;
             box-shadow: 0 0 15px rgba(0,0,0,0.1);
-            font-family: 'Arial', sans-serif;
-            color: black;
+            font-family: 'Roboto Condensed', sans-serif;
+            color: #000;
             position: relative;
         }
 
         /* 1. Header Nota */
         .brand-title {
-            color: #c00000; /* Merah Tua */
-            font-weight: bold;
-            font-size: 28px;
+            font-family: 'Oswald', sans-serif;
+            color: #1a2a6c;
+            font-size: 2.5rem;
+            letter-spacing: 2px;
             margin-bottom: 0;
+            line-height: 1.1;
             text-transform: uppercase;
-            line-height: 1;
         }
-        .sub-brand { font-weight: bold; font-size: 16px; color: #333; }
-        .address-text { font-size: 13px; color: #555; line-height: 1.4; margin-top: 5px; }
+        .sub-brand { font-weight: 900; color: #b91d1d; font-size: 0.9rem; letter-spacing: 1px; text-transform: uppercase; }
+        .address-text { font-size: 0.8rem; color: #333; border-top: 2px solid #1a2a6c; border-bottom: 1px solid #1a2a6c; padding: 5px 0; margin-top: 5px; margin-bottom: 15px; }
 
-        /* 2. Info Kanan (Tuan/Tlp) */
+        /* 2. Info Kanan */
         .info-group { display: flex; align-items: center; margin-bottom: 5px; }
         .info-label { width: 70px; font-weight: bold; text-align: right; margin-right: 10px; font-size: 14px; }
-        .info-value { 
-            border-bottom: 1px dotted #000; 
-            width: 100%; 
-            font-size: 14px; 
-            min-height: 24px;
-        }
+        .info-value { border-bottom: 1px dotted #000; width: 100%; font-size: 14px; min-height: 24px; }
 
-        /* 3. Tabel Nota Kuning */
+        /* 3. Tabel Nota */
         .custom-table { width: 100%; border-collapse: collapse; margin-top: 15px; border: 1px solid #000; }
         .custom-table th {
-            background-color: #fff2cc !important; /* KUNING MUDA */
-            border: 1px solid #000;
-            padding: 5px;
+            background-color: #1a2a6c !important;
+            color: white !important;
+            padding: 8px;
             text-align: center;
-            font-weight: bold;
-            font-size: 14px;
-            color: black;
+            font-weight: normal;
+            letter-spacing: 1px;
             -webkit-print-color-adjust: exact;
         }
-        .custom-table td { border: 1px solid #000; padding: 5px; font-size: 14px; }
+        .custom-table td { border-bottom: 1px solid #ddd; padding: 5px 8px; }
         
-        /* 4. Footer & Tanda Tangan */
+        /* INPUT DI DALAM TABEL (Editable) */
+        #notaIsi input {
+            background: transparent;
+            font-family: 'Roboto Condensed', sans-serif;
+            font-size: 14px;
+            color: #000;
+            border-radius: 0;
+            padding: 2px;
+            width: 100%;
+        }
+        #notaIsi input:focus { background: #fff9c4; outline: none; }
+
+        /* 4. Footer & Total */
         .footer-grid { display: flex; justify-content: space-between; margin-top: 20px; }
         .sign-area { width: 40%; text-align: center; margin-top: 10px; }
         .sign-line { border-bottom: 1px solid #000; margin-top: 70px; width: 80%; margin-left: auto; margin-right: auto; }
-
-        /* 5. Totalan Kanan Bawah */
+        
         .total-area { width: 50%; }
         .total-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
         .total-label { font-weight: bold; font-size: 14px; }
-        .total-box { 
-            border: 1px solid #000; 
-            padding: 5px; 
-            width: 150px; 
-            text-align: right; 
-            font-weight: bold; 
-            background: #f9f9f9;
-        }
-        
-        /* 6. Footer Bawah (Warning & Bank) */
-        .bottom-section { 
-            border-top: 2px solid #000; 
-            margin-top: 20px; 
-            padding-top: 10px; 
-            display: flex; 
-            justify-content: space-between;
-        }
+        .total-box { border: 1px solid #000; padding: 5px; width: 150px; text-align: right; font-weight: bold; background: #f9f9f9; }
+
+        /* 5. Footer Bawah */
+        .bottom-section { border-top: 2px solid #000; margin-top: 20px; padding-top: 10px; display: flex; justify-content: space-between; }
         .payment-info { font-size: 11px; font-weight: bold; width: 50%; }
-        .warning-box {
-            border: 1px solid red;
-            background-color: #ffe6e6;
-            color: red;
-            width: 45%;
-            text-align: center;
-            padding: 8px;
-            font-size: 11px;
-            -webkit-print-color-adjust: exact;
-        }
+        .warning-box { border: 2px solid red; background-color: #fff5f5; color: red; width: 45%; text-align: center; padding: 8px; font-size: 11px; font-weight: bold; -webkit-print-color-adjust: exact; }
 
         /* PRINT SETTINGS */
         @media print {
             body * { visibility: hidden; }
-            .header-app, .no-print { display: none !important; }
-            #areaNota, #areaNota * { visibility: visible; }
-            #areaNota { 
-                position: absolute; left: 0; top: 0; width: 100%; 
-                box-shadow: none; margin: 0; padding: 0; 
-            }
-            /* Hapus tombol hapus saat print */
-            .btn-remove { display: none; } 
+            .header-app, .no-print, .nav, .tab-content > .tab-pane:not(.active) { display: none !important; }
+            
+            /* Print Nota Style */
+            .print-nota #areaNota, .print-nota #areaNota * { visibility: visible; }
+            .print-nota #areaNota { position: absolute; left: 0; top: 0; width: 100%; border: none; box-shadow: none; padding: 0; margin: 0; }
+            .print-nota #notaIsi input { border: none; background: transparent; } /* Hilangkan border input saat print */
+            
+            /* Print Belanja Style */
+            .print-belanja #areaBelanja, .print-belanja #areaBelanja * { visibility: visible; }
+            .print-belanja #areaBelanja { position: absolute; left: 0; top: 0; width: 100%; }
         }
-		}
     </style>
 </head>
 <body>
@@ -222,14 +107,13 @@
         <div>
             <h4 class="mb-0 fw-bold"><i class="fas fa-print"></i> MUSADAD SYSTEM V9</h4>
         </div>
-        <div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-info btn-sm text-white fw-bold shadow" onclick="window.open('https://musadad87.github.io/kalkulator-undangan/', '_blank')">➕ Menu Awal</button>
             <button onclick="downloadDB()" class="btn btn-warning btn-sm text-dark fw-bold shadow">💾 Backup</button>
             <input type="file" id="fileInput" hidden onchange="uploadDB(this)">
             <button onclick="document.getElementById('fileInput').click()" class="btn btn-light btn-sm fw-bold shadow">📂 Restore</button>
-			<button class="btn btn-light btn-sm fw-bold shadow" onclick="handleButtonClick('harga-kertas')">➕ Menu Awal</button>
-			</div>
-			
-		</div>
+        </div>
+    </div>
 </div>
 
 <div class="container mb-5">
@@ -273,7 +157,6 @@
 
                 <div class="col-md-8">
                     <div id="areaNota">
-                        
                         <div class="row">
                             <div class="col-7">
                                 <div class="brand-title">MUSADAD.COM</div>
@@ -284,21 +167,10 @@
                                 </div>
                             </div>
                             <div class="col-5">
-                                <div class="info-group">
-                                    <span class="info-label">Tanggal</span>
-                                    <div class="info-value" id="notaTgl"></div>
-                                </div>
-                                <div class="info-group">
-                                    <span class="info-label">Tuan</span>
-                                    <div class="info-value text-uppercase fw-bold" id="notaYth"></div>
-                                </div>
-                                <div class="info-group">
-                                    <span class="info-label">Tlp</span>
-                                    <div class="info-value" id="notaHp"></div>
-                                </div>
-                                <div class="mt-2 text-end">
-                                    <small class="fw-bold">NO: <span id="notaNo">AUTO</span></small>
-                                </div>
+                                <div class="info-group"><span class="info-label">Tanggal</span><div class="info-value" id="notaTgl"></div></div>
+                                <div class="info-group"><span class="info-label">Tuan</span><div class="info-value text-uppercase fw-bold" id="notaYth"></div></div>
+                                <div class="info-group"><span class="info-label">Tlp</span><div class="info-value" id="notaHp"></div></div>
+                                <div class="mt-2 text-end"><small class="fw-bold">NO: <span id="notaNo">AUTO</span></small></div>
                             </div>
                         </div>
 
@@ -313,8 +185,7 @@
                                     <th width="5%" class="no-print">#</th>
                                 </tr>
                             </thead>
-                            <tbody id="notaIsi">
-                                </tbody>
+                            <tbody id="notaIsi"></tbody>
                         </table>
 
                         <div class="footer-grid">
@@ -325,18 +196,12 @@
                             </div>
                             
                             <div class="total-area">
-                                <div class="total-row">
-                                    <span class="total-label">Jumlah Rp.</span>
-                                    <div class="total-box" id="notaTotal">0</div>
-                                </div>
+                                <div class="total-row"><span class="total-label">Jumlah Rp.</span><div class="total-box" id="notaTotal">0</div></div>
                                 <div class="total-row">
                                     <span class="total-label">Uang Muka Rp.</span>
                                     <input type="number" id="inputDP" class="total-box text-end no-border-input" style="background: white;" value="0" onkeyup="hitungSisa()">
                                 </div>
-                                <div class="total-row">
-                                    <span class="total-label text-danger">Kurang Rp.</span>
-                                    <div class="total-box text-danger" id="notaSisa">0</div>
-                                </div>
+                                <div class="total-row"><span class="total-label text-danger">Kurang Rp.</span><div class="total-box text-danger" id="notaSisa">0</div></div>
                             </div>
                         </div>
 
@@ -351,7 +216,6 @@
                                 Barang-barang yang sudah dibeli tidak bisa ditukar / dikembalikan
                             </div>
                         </div>
-
                     </div>
                     
                     <div class="d-grid gap-2 mt-3 no-print">
@@ -359,7 +223,6 @@
                         <button onclick="resetNota()" class="btn btn-secondary">Reset / Batal</button>
                     </div>
                 </div>
-            </div>
             </div>
         </div>
 
@@ -402,38 +265,64 @@
         </div>
 
         <div class="tab-pane fade" id="tabLaporan">
+            <div class="card p-3 shadow-sm mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0"><i class="fas fa-chart-line"></i> Dashboard Keuangan</h5>
+                    <button onclick="resetData()" class="btn btn-outline-danger btn-sm"><i class="fas fa-trash"></i> Reset Data</button>
+                </div>
+                <div class="row text-center g-2">
+                    <div class="col-md-4">
+                        <div class="p-3 bg-success text-white rounded shadow-sm">
+                            <small>Total Pemasukan</small>
+                            <h4 class="fw-bold mb-0" id="totMasuk">0</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-danger text-white rounded shadow-sm">
+                            <small>Total Pengeluaran</small>
+                            <h4 class="fw-bold mb-0" id="totKeluar">0</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-primary text-white rounded shadow-sm">
+                            <small>Saldo Bersih</small>
+                            <h4 class="fw-bold mb-0" id="totProfit">0</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="row">
                 <div class="col-md-4 mb-3">
                     <div class="card p-3 border-success mb-2 bg-success bg-opacity-10">
-                        <h6 class="fw-bold text-success">Input Pemasukan (Modal)</h6>
-                        <input type="date" id="inTgl" class="form-control mb-1">
-                        <input type="text" id="inKet" class="form-control mb-1" placeholder="Ket (Cth: Modal)">
-                        <input type="number" id="inJml" class="form-control mb-2" placeholder="Rp">
-                        <button onclick="simpanPemasukanLain()" class="btn btn-success w-100 btn-sm">Simpan</button>
+                        <h6 class="fw-bold text-success">Input Pemasukan (Modal/Lainnya)</h6>
+                        <input type="date" id="inTgl" class="form-control mb-1 bg-white">
+                        <input type="text" id="inKet" class="form-control mb-1 bg-white" placeholder="Ket (Cth: Modal Awal)">
+                        <input type="number" id="inJml" class="form-control mb-2 bg-white" placeholder="Rp">
+                        <button onclick="simpanPemasukanLain()" class="btn btn-success w-100 btn-sm fw-bold">Simpan Pemasukan</button>
                     </div>
                     <div class="card p-3 border-danger bg-danger bg-opacity-10">
-                        <h6 class="fw-bold text-danger">Input Pengeluaran</h6>
-                        <input type="date" id="expTgl" class="form-control mb-1">
-                        <input type="text" id="expKet" class="form-control mb-1" placeholder="Ket (Cth: Listrik)">
-                        <input type="number" id="expJml" class="form-control mb-2" placeholder="Rp">
-                        <button onclick="simpanPengeluaran()" class="btn btn-danger w-100 btn-sm">Simpan</button>
+                        <h6 class="fw-bold text-danger">Input Pengeluaran (Biaya)</h6>
+                        <input type="date" id="expTgl" class="form-control mb-1 bg-white">
+                        <input type="text" id="expKet" class="form-control mb-1 bg-white" placeholder="Ket (Cth: Listrik, Kertas)">
+                        <input type="number" id="expJml" class="form-control mb-2 bg-white" placeholder="Rp">
+                        <button onclick="simpanPengeluaran()" class="btn btn-danger w-100 btn-sm fw-bold">Simpan Pengeluaran</button>
                     </div>
                 </div>
 
                 <div class="col-md-8">
-                    <div class="card p-3 shadow-sm">
-                        <div class="d-flex justify-content-between mb-2">
-                            <h5 class="fw-bold">Laporan Keuangan</h5>
-                            <button onclick="resetData()" class="btn btn-outline-secondary btn-sm">Reset</button>
-                        </div>
-                        <div class="row text-center mb-2 g-1 small">
-                            <div class="col-4"><div class="p-1 bg-success text-white">Masuk<br><span id="totMasuk">0</span></div></div>
-                            <div class="col-4"><div class="p-1 bg-danger text-white">Keluar<br><span id="totKeluar">0</span></div></div>
-                            <div class="col-4"><div class="p-1 bg-primary text-white">Saldo<br><span id="totProfit">0</span></div></div>
-                        </div>
+                    <div class="card p-0 shadow-sm overflow-hidden">
+                        <div class="card-header bg-light fw-bold">Rincian Transaksi</div>
                         <div style="height: 400px; overflow-y: auto;">
-                            <table class="table table-bordered table-sm small">
-                                <thead class="table-secondary sticky-top"><tr><th>Tgl</th><th>Ket</th><th class="text-end">Masuk</th><th class="text-end">Keluar</th></tr></thead>
+                            <table class="table table-bordered table-striped table-sm small mb-0">
+                                <thead class="table-dark sticky-top">
+                                    <tr>
+                                        <th>Tanggal</th>
+                                        <th>Keterangan</th>
+                                        <th class="text-end">Masuk</th>
+                                        <th class="text-end">Keluar</th>
+                                    </tr>
+                                </thead>
                                 <tbody id="tabelLaporan"></tbody>
                             </table>
                         </div>
@@ -447,15 +336,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-function handleButtonClick(action) {
-            console.log(`Tombol "${action}" diklik.`);
-            
-            if (action === 'harga-kertas') {
-			 window.open('https://musadad87.github.io/kalkulator-undangan/', '_blank');
-			
-			}
-			}
-			
     let db = {
         produk: JSON.parse(localStorage.getItem('musadad_prod')) || [],
         nota: JSON.parse(localStorage.getItem('musadad_nota')) || [],
@@ -485,6 +365,7 @@ function handleButtonClick(action) {
         document.getElementById('notaTgl').innerText = today.toLocaleDateString('id-ID');
     }
 
+    // --- LOGIKA KASIR (DIPERBARUI DENGAN EDITABLE) ---
     function renderStokOption() {
         let dl = document.getElementById('listBarang'); dl.innerHTML = '';
         db.produk.forEach(p => dl.innerHTML += `<option value="${p.nama}">Stok: ${p.stok} | Rp ${p.harga}</option>`);
@@ -501,29 +382,42 @@ function handleButtonClick(action) {
         let qty = Number(document.getElementById('qtyBarang').value);
         let p = db.produk.find(x => x.nama === val);
         
-        if(!p) return alert("Barang tidak ditemukan!");
-        if(p.stok < qty) return alert("Stok kurang!");
+        if(!p) {
+             // Izinkan tambah barang manual jika tidak ada di stok (opsional)
+             let hargaManual = Number(document.getElementById('hargaBarang').value) || 0;
+             if(val && hargaManual) {
+                keranjang.push({ id: 'manual_'+Date.now(), nama: val, harga: hargaManual, qty: qty, total: hargaManual * qty });
+             } else {
+                 return alert("Barang tidak ditemukan atau harga kosong!");
+             }
+        } else {
+            // Cek stok (peringatan saja, jangan diblokir kalau mau fleksibel)
+            if(p.stok < qty) alert("Peringatan: Stok di sistem kurang!");
+            keranjang.push({ id: p.id, nama: p.nama, harga: p.harga, qty: qty, total: p.harga * qty });
+        }
 
-        keranjang.push({ id: p.id, nama: p.nama, harga: p.harga, qty: qty, total: p.harga * qty });
         renderNotaIsi();
         document.getElementById('inputBarang').value = ""; document.getElementById('hargaBarang').value = ""; document.getElementById('qtyBarang').value = "1"; document.getElementById('inputBarang').focus();
     }
 
+    // FUNGSI RENDER NOTA BARU (EDITABLE)
     function renderNotaIsi() {
         let tbody = document.getElementById('notaIsi'); tbody.innerHTML = '';
         let total = 0;
+        
         keranjang.forEach((item, idx) => {
             total += item.total;
             tbody.innerHTML += `
                 <tr>
-                    <td class="text-center">${idx + 1}</td>
-                    <td contenteditable="true" class="editable-name" id="item_name_${idx}">${item.nama}</td>
-                    <td class="text-center">${item.qty}</td>
-                    <td class="text-end">${item.harga.toLocaleString()}</td>
-                    <td class="text-end fw-bold">${item.total.toLocaleString()}</td>
-                    <td class="no-print"><a href="#" onclick="keranjang.splice(${idx},1); renderNotaIsi()" class="text-danger">x</a></td>
+                    <td class="text-center align-middle">${idx + 1}</td>
+                    <td class="p-0"><input type="text" class="form-control form-control-sm border-0 shadow-none fw-bold" value="${item.nama}" onchange="updateItemKeranjang(${idx}, 'nama', this.value)"></td>
+                    <td class="p-0" width="10%"><input type="number" class="form-control form-control-sm border-0 shadow-none text-center" value="${item.qty}" onchange="updateItemKeranjang(${idx}, 'qty', this.value)"></td>
+                    <td class="p-0" width="20%"><input type="number" class="form-control form-control-sm border-0 shadow-none text-end" value="${item.harga}" onchange="updateItemKeranjang(${idx}, 'harga', this.value)"></td>
+                    <td class="text-end align-middle fw-bold px-2">${item.total.toLocaleString()}</td>
+                    <td class="no-print align-middle text-center"><a href="#" onclick="keranjang.splice(${idx},1); renderNotaIsi()" class="text-danger"><i class="fas fa-times"></i></a></td>
                 </tr>`;
         });
+        
         document.getElementById('notaTotal').innerText = total.toLocaleString();
         document.getElementById('notaTotal').dataset.val = total;
         document.getElementById('notaYth').innerText = document.getElementById('custNama').value || "..................";
@@ -531,20 +425,31 @@ function handleButtonClick(action) {
         hitungSisa();
     }
 
+    function updateItemKeranjang(index, field, value) {
+        if (field === 'qty') {
+            keranjang[index].qty = Number(value);
+            keranjang[index].total = keranjang[index].qty * keranjang[index].harga;
+        } else if (field === 'harga') {
+            keranjang[index].harga = Number(value);
+            keranjang[index].total = keranjang[index].qty * keranjang[index].harga;
+        } else if (field === 'nama') {
+            keranjang[index].nama = value;
+        }
+        renderNotaIsi();
+    }
+
     function hitungSisa() {
         let total = Number(document.getElementById('notaTotal').dataset.val || 0);
         let dp = Number(document.getElementById('inputDP').value || 0);
         let sisa = dp - total;
-        document.getElementById('notaSisa').innerText = sisa >= 0 ? " " + sisa.toLocaleString() : "KURANG: " + Math.abs(sisa).toLocaleString();
-        document.getElementById('printDP').innerText = dp.toLocaleString();
+        document.getElementById('notaSisa').innerText = sisa >= 0 ? "LUNAS (" + sisa.toLocaleString() + ")" : "KURANG: " + Math.abs(sisa).toLocaleString();
     }
 
     function simpanDanCetak() {
         if(keranjang.length === 0) return alert("Keranjang kosong!");
         
+        // Kurangi Stok
         keranjang.forEach((item, idx) => {
-            let el = document.getElementById(`item_name_${idx}`);
-            if(el) item.nama = el.innerText;
             let p = db.produk.find(x => x.id == item.id);
             if(p) p.stok -= item.qty;
         });
@@ -567,12 +472,22 @@ function handleButtonClick(action) {
         keranjang = []; document.getElementById('custNama').value = ''; document.getElementById('inputDP').value = ''; renderNotaIsi(); initView();
     }
 
+    function resetNota() {
+        if(confirm("Batalkan transaksi ini?")) {
+            keranjang = [];
+            document.getElementById('custNama').value = "";
+            document.getElementById('custTelp').value = "";
+            document.getElementById('inputDP').value = "0";
+            renderNotaIsi();
+        }
+    }
+
     function renderRiwayatNota() {
         let key = document.getElementById('cariNota').value.toLowerCase();
         let tbody = document.getElementById('tabelRiwayatNota'); tbody.innerHTML = '';
         db.nota.slice().reverse().forEach(n => {
             if(n.nama?.toLowerCase().includes(key) || n.no.toLowerCase().includes(key)) {
-                tbody.innerHTML += `<tr><td>${n.no}</td><td>${n.nama}</td><td><button onclick="cetakUlang('${n.no}')" class="btn btn-sm btn-outline-primary py-0">Print</button></td></tr>`;
+                tbody.innerHTML += `<tr><td>${n.no}</td><td>${n.nama}</td><td><button onclick="cetakUlang('${n.no}')" class="btn btn-sm btn-outline-primary py-0"><i class="fas fa-print"></i></button></td></tr>`;
             }
         });
     }
@@ -582,18 +497,32 @@ function handleButtonClick(action) {
         if(!n) return;
         document.getElementById('notaNo').innerText = n.no;
         document.getElementById('notaYth').innerText = n.nama;
+        
+        // Render ulang isi nota untuk cetak (read only mode)
         let tbody = document.getElementById('notaIsi'); tbody.innerHTML = '';
         n.items.forEach((item, idx) => {
-            tbody.innerHTML += `<tr><td class="text-center">${idx+1}</td><td>${item.nama}</td><td class="text-center">${item.qty}</td><td class="text-end">${item.harga.toLocaleString()}</td><td class="text-end fw-bold">${item.total.toLocaleString()}</td><td></td></tr>`;
+            tbody.innerHTML += `
+                <tr>
+                    <td class="text-center">${idx + 1}</td>
+                    <td>${item.nama}</td>
+                    <td class="text-center">${item.qty}</td>
+                    <td class="text-end">${item.harga.toLocaleString()}</td>
+                    <td class="text-end fw-bold">${item.total.toLocaleString()}</td>
+                    <td></td>
+                </tr>`;
         });
+        
         document.getElementById('notaTotal').innerText = n.total.toLocaleString();
-        document.getElementById('printDP').innerText = n.dp.toLocaleString();
+        document.getElementById('inputDP').value = n.dp;
         document.getElementById('notaSisa').innerText = n.sisaInfo;
         
         document.body.classList.add('print-nota'); window.print(); document.body.classList.remove('print-nota');
-        initView();
+        
+        // Kembalikan ke mode kasir kosong setelah print ulang
+        initView(); renderNotaIsi();
     }
 
+    // --- LOGIKA GUDANG ---
     function tambahProduk() {
         let nama = document.getElementById('prodNama').value;
         if(nama) { db.produk.push({ id: Date.now(), nama, harga: Number(document.getElementById('prodHarga').value), stok: Number(document.getElementById('prodStok').value), min: Number(document.getElementById('prodMin').value) }); simpanKeBrowser(); initView(); }
@@ -611,6 +540,7 @@ function handleButtonClick(action) {
         if(no>1) { document.body.classList.add('print-belanja'); window.print(); document.body.classList.remove('print-belanja'); } else alert("Stok Aman");
     }
 
+    // --- LOGIKA LAPORAN ---
     function simpanPengeluaran() {
         let tgl=document.getElementById('expTgl').value; let ket=document.getElementById('expKet').value; let jml=Number(document.getElementById('expJml').value);
         if(tgl&&ket&&jml) { db.pengeluaran.push({tglStr:tgl, ket, jml}); simpanKeBrowser(); renderLaporan(); document.getElementById('expKet').value=''; document.getElementById('expJml').value=''; }
@@ -621,21 +551,75 @@ function handleButtonClick(action) {
     }
     function renderLaporan() {
         let tbody = document.getElementById('tabelLaporan'); tbody.innerHTML = ''; let allData = [];
-        db.nota.forEach(n => allData.push({d: new Date(n.tgl), tgl: new Date(n.tgl).toLocaleString('id-ID'), ket: `Nota: ${n.no}`, in: n.total, out: 0, type:'in'}));
+        
+        // Gabungkan semua data
+        db.nota.forEach(n => allData.push({d: new Date(n.tgl), tgl: new Date(n.tgl).toLocaleString('id-ID'), ket: `Nota: ${n.no} (${n.nama})`, in: n.total, out: 0, type:'in'}));
         db.pengeluaran.forEach(e => allData.push({d: new Date(e.tglStr), tgl: new Date(e.tglStr).toLocaleDateString('id-ID'), ket: `Biaya: ${e.ket}`, in: 0, out: e.jml, type:'out'}));
         db.pemasukanLain.forEach(i => allData.push({d: new Date(i.tglStr), tgl: new Date(i.tglStr).toLocaleDateString('id-ID'), ket: `Modal: ${i.ket}`, in: i.jml, out: 0, type:'modal'}));
-        allData.sort((a,b)=>b.d-a.d);
-        let totM=0, totK=0;
-        allData.forEach(d=>{
-            totM+=d.in; totK+=d.out;
-            let cls = d.type=='in'?'table-masuk':(d.type=='modal'?'table-modal':'table-keluar');
-            tbody.innerHTML += `<tr class="${cls}"><td>${d.tgl}</td><td>${d.ket}</td><td class="text-end">${d.in>0?d.in.toLocaleString():'-'}</td><td class="text-end">${d.out>0?d.out.toLocaleString():'-'}</td></tr>`;
+        
+        allData.sort((a, b) => b.d - a.d); // Urutkan terbaru
+
+        let totMasuk = 0, totKeluar = 0;
+        
+        allData.forEach(item => {
+            totMasuk += item.in;
+            totKeluar += item.out;
+            let warna = item.type === 'out' ? 'text-danger' : (item.type === 'modal' ? 'text-success' : 'text-primary');
+            
+            tbody.innerHTML += `
+                <tr>
+                    <td>${item.tgl}</td>
+                    <td class="${warna}">${item.ket}</td>
+                    <td class="text-end">${item.in > 0 ? item.in.toLocaleString() : '-'}</td>
+                    <td class="text-end text-danger">${item.out > 0 ? item.out.toLocaleString() : '-'}</td>
+                </tr>
+            `;
         });
-        document.getElementById('totMasuk').innerText = totM.toLocaleString(); document.getElementById('totKeluar').innerText = totK.toLocaleString(); document.getElementById('totProfit').innerText = (totM-totK).toLocaleString();
+
+        document.getElementById('totMasuk').innerText = totMasuk.toLocaleString();
+        document.getElementById('totKeluar').innerText = totKeluar.toLocaleString();
+        document.getElementById('totProfit').innerText = (totMasuk - totKeluar).toLocaleString();
     }
-    function resetData(){ if(confirm("Reset Data?")) { localStorage.clear(); location.reload(); }}
-    function downloadDB(){ let a=document.createElement('a'); a.href="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(db)); a.download="BACKUP_MUSADAD_V9.json"; document.body.appendChild(a); a.click(); a.remove(); }
-    function uploadDB(i){ let r=new FileReader(); r.onload=e=>{ try{ let d=JSON.parse(e.target.result); if(d.produk){ db=d; simpanKeBrowser(); location.reload(); } }catch(x){alert("Error");} }; r.readAsText(i.files[0]); }
+
+    // --- SYSTEM UTILS ---
+    function resetData() {
+        if(confirm("PERINGATAN: Semua data (Produk, Riwayat Nota, Laporan) akan dihapus permanen! Lanjutkan?")) {
+            localStorage.clear();
+            location.reload();
+        }
+    }
+    function downloadDB() {
+        let dataStr = JSON.stringify(db);
+        let dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+        let exportFileDefaultName = 'BACKUP_MUSADAD_V9_' + new Date().toISOString().split('T')[0] + '.json';
+        let linkElement = document.createElement('a');
+        linkElement.setAttribute('href', dataUri);
+        linkElement.setAttribute('download', exportFileDefaultName);
+        linkElement.click();
+    }
+    function uploadDB(input) {
+        let file = input.files[0];
+        if (!file) return;
+        let reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                let content = JSON.parse(e.target.result);
+                if(content.produk && content.nota) {
+                    localStorage.setItem('musadad_prod', JSON.stringify(content.produk));
+                    localStorage.setItem('musadad_nota', JSON.stringify(content.nota));
+                    localStorage.setItem('musadad_exp', JSON.stringify(content.pengeluaran || []));
+                    localStorage.setItem('musadad_income', JSON.stringify(content.pemasukanLain || []));
+                    alert("Data berhasil dipulihkan!");
+                    location.reload();
+                } else {
+                    alert("Format file salah!");
+                }
+            } catch (err) {
+                alert("File corrupt atau bukan JSON valid.");
+            }
+        };
+        reader.readAsText(file);
+    }
 </script>
 </body>
 </html>
