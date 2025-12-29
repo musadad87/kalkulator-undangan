@@ -3,60 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aplikasi Manajemen Pengguna</title>
-    <!-- Memuat Tailwind CSS untuk styling modern -->
+    <title>Aplikasi Manajemen Pengguna (Firebase)</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Memuat Pustaka SheetJS untuk fungsionalitas Excel -->
+    <!-- SheetJS untuk Excel -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
-    <!-- Memuat Google Fonts untuk tipografi yang lebih baik -->
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Menggunakan font Inter sebagai default */
-        body {
-            font-family: 'Inter', sans-serif;
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1f2937; }
+        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+        
+        /* Loading overlay */
+        #loading-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(17, 24, 39, 0.8); z-index: 50;
+            display: flex; justify-content: center; align-items: center;
+            backdrop-filter: blur(4px);
         }
-        /* Custom scrollbar untuk tampilan yang lebih baik */
-        ::-webkit-scrollbar {
-            width: 8px;
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            width: 36px; height: 36px; border-radius: 50%;
+            border-left-color: #3b82f6; animation: spin 1s linear infinite;
         }
-        ::-webkit-scrollbar-track {
-            background: #1f2937;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #4b5563;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #6b7280;
-        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-200 flex items-center justify-center min-h-screen p-4">
 
+    <!-- Loading Overlay -->
+    <div id="loading-overlay">
+        <div class="text-center">
+            <div class="spinner mx-auto mb-2"></div>
+            <p class="text-sm text-gray-300">Menghubungkan ke Database...</p>
+        </div>
+    </div>
+
     <div class="w-full max-w-4xl bg-gray-800 rounded-2xl shadow-2xl p-8 space-y-8">
-        <!-- Judul Aplikasi -->
-        <h1 class="text-3xl font-bold text-center text-white">Manajemen Data Pengguna</h1>
+        <h1 class="text-3xl font-bold text-center text-white">Manajemen Data Pengguna (Online)</h1>
         
-        <!-- Form Input Data -->
+        <!-- Status Koneksi -->
+        <div class="flex justify-center">
+            <span id="connection-status" class="px-3 py-1 text-xs rounded-full bg-yellow-500/20 text-yellow-300 border border-yellow-500/50">
+                Menunggu Koneksi...
+            </span>
+        </div>
+
         <form id="user-form" class="space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Input Nomor Unik Dihapus -->
-
-                <!-- Input Email -->
                 <div>
                     <label for="email" class="block mb-2 text-sm font-medium text-gray-300">Email</label>
                     <input type="email" id="email" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="nama@email.com" required>
                 </div>
-                
-                <!-- Input Password -->
                 <div>
                     <label for="password" class="block mb-2 text-sm font-medium text-gray-300">Password</label>
                     <input type="text" id="password" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="Masukkan password" required>
                 </div>
-
-                <!-- Pilihan Status -->
                 <div class="md:col-span-2">
                     <label class="block mb-2 text-sm font-medium text-gray-300">Status</label>
                     <div class="flex items-center gap-x-6 mt-2">
@@ -73,31 +80,28 @@
             </div>
         </form>
 
-        <!-- Tombol Aksi -->
         <div class="flex flex-wrap justify-center gap-4 pt-4 border-t border-gray-700">
-            <button type="button" id="btn-tambah" class="text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition-transform transform hover:scale-105">Tambah Data</button>
-            <button type="button" id="btn-simpan" class="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition-transform transform hover:scale-105">Simpan Perubahan</button>
-            <button type="button" id="btn-hapus" class="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition-transform transform hover:scale-105">Hapus Data</button>
-            <button type="button" id="btn-batal" class="text-gray-900 bg-gray-300 hover:bg-gray-400 focus:ring-4 focus:outline-none focus:ring-gray-500 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition-transform transform hover:scale-105">Batal</button>
+            <button type="button" id="btn-tambah" class="text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-800 font-medium rounded-lg text-sm px-5 py-2.5 transition-transform transform hover:scale-105">Tambah Data</button>
+            <button type="button" id="btn-simpan" class="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 transition-transform transform hover:scale-105 hidden">Simpan Perubahan</button>
+            <button type="button" id="btn-hapus" class="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-800 font-medium rounded-lg text-sm px-5 py-2.5 transition-transform transform hover:scale-105 hidden">Hapus Data</button>
+            <button type="button" id="btn-batal" class="text-gray-900 bg-gray-300 hover:bg-gray-400 focus:ring-4 focus:outline-none focus:ring-gray-500 font-medium rounded-lg text-sm px-5 py-2.5 transition-transform transform hover:scale-105 hidden">Batal</button>
         </div>
-         <!-- Tombol Aksi Database -->
+
         <div class="flex flex-wrap justify-center gap-4 pt-4 border-t border-gray-700">
-            <button type="button" id="btn-download-json" class="text-white bg-purple-600 hover:bg-purple-700 focus:ring-4 focus:outline-none focus:ring-purple-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition-transform transform hover:scale-105">Download JSON</button>
-            <button type="button" id="btn-upload-json" class="text-white bg-yellow-500 hover:bg-yellow-600 focus:ring-4 focus:outline-none focus:ring-yellow-700 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition-transform transform hover:scale-105">Upload JSON</button>
+            <button type="button" id="btn-download-json" class="text-white bg-purple-600 hover:bg-purple-700 focus:ring-4 focus:outline-none focus:ring-purple-800 font-medium rounded-lg text-sm px-5 py-2.5 hover:scale-105 transition-transform">Download JSON</button>
+            <button type="button" id="btn-upload-json" class="text-white bg-yellow-500 hover:bg-yellow-600 focus:ring-4 focus:outline-none focus:ring-yellow-700 font-medium rounded-lg text-sm px-5 py-2.5 hover:scale-105 transition-transform">Upload JSON</button>
             <input type="file" id="upload-file-json" class="hidden" accept=".json">
 
-            <button type="button" id="btn-download-excel" class="text-white bg-teal-600 hover:bg-teal-700 focus:ring-4 focus:outline-none focus:ring-teal-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition-transform transform hover:scale-105">Download Excel</button>
-            <button type="button" id="btn-upload-excel" class="text-white bg-orange-500 hover:bg-orange-600 focus:ring-4 focus:outline-none focus:ring-orange-700 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition-transform transform hover:scale-105">Upload Excel</button>
+            <button type="button" id="btn-download-excel" class="text-white bg-teal-600 hover:bg-teal-700 focus:ring-4 focus:outline-none focus:ring-teal-800 font-medium rounded-lg text-sm px-5 py-2.5 hover:scale-105 transition-transform">Download Excel</button>
+            <button type="button" id="btn-upload-excel" class="text-white bg-orange-500 hover:bg-orange-600 focus:ring-4 focus:outline-none focus:ring-orange-700 font-medium rounded-lg text-sm px-5 py-2.5 hover:scale-105 transition-transform">Upload Excel</button>
             <input type="file" id="upload-file-excel" class="hidden" accept=".xlsx, .xls">
         </div>
 
-
-        <!-- Tampilan Database -->
         <div class="pt-8 border-t border-gray-700">
-            <h2 class="text-xl font-semibold text-center text-white mb-4">Data Tersimpan</h2>
-            <div class="relative overflow-x-auto shadow-md rounded-lg">
+            <h2 class="text-xl font-semibold text-center text-white mb-4">Data Database</h2>
+            <div class="relative overflow-x-auto shadow-md rounded-lg max-h-96 overflow-y-auto">
                 <table class="w-full text-sm text-left text-gray-400">
-                    <thead class="text-xs text-gray-300 uppercase bg-gray-700">
+                    <thead class="text-xs text-gray-300 uppercase bg-gray-700 sticky top-0 z-10">
                         <tr>
                             <th scope="col" class="px-6 py-3">No. Unik</th>
                             <th scope="col" class="px-6 py-3">Email</th>
@@ -107,267 +111,318 @@
                         </tr>
                     </thead>
                     <tbody id="user-table-body">
-                        <!-- Data akan dimasukkan di sini oleh JavaScript -->
-                        <tr class="bg-gray-800 border-b border-gray-700">
-                           <td colspan="5" class="px-6 py-4 text-center">Belum ada data.</td>
-                        </tr>
+                        <!-- Data will be injected here -->
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Mengambil elemen-elemen dari DOM
-            const form = document.getElementById('user-form');
-            const emailInput = document.getElementById('email');
-            const passwordInput = document.getElementById('password');
-            const tableBody = document.getElementById('user-table-body');
+    <!-- Firebase Logic -->
+    <script type="module">
+        // Import Firebase dari CDN resmi (Versi 11 yang kompatibel)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
-            const btnTambah = document.getElementById('btn-tambah');
-            const btnSimpan = document.getElementById('btn-simpan');
-            const btnHapus = document.getElementById('btn-hapus');
-            const btnBatal = document.getElementById('btn-batal');
-            
-            // Tombol JSON
-            const btnDownloadJson = document.getElementById('btn-download-json');
-            const btnUploadJson = document.getElementById('btn-upload-json');
-            const uploadFileJson = document.getElementById('upload-file-json');
+        // Konfigurasi Firebase dari User
+        const firebaseConfig = {
+            apiKey: "AIzaSyA46mqToU4xqGVo65BTwg2yWBOvvmNnZ6Q",
+            authDomain: "crested-primacy-482717-k6.firebaseapp.com",
+            projectId: "crested-primacy-482717-k6",
+            storageBucket: "crested-primacy-482717-k6.firebasestorage.app",
+            messagingSenderId: "634237688418",
+            appId: "1:634237688418:web:143aff832703552a650f3b",
+            measurementId: "G-SEN1WR0RG9"
+        };
 
-            // Tombol Excel
-            const btnDownloadExcel = document.getElementById('btn-download-excel');
-            const btnUploadExcel = document.getElementById('btn-upload-excel');
-            const uploadFileExcel = document.getElementById('upload-file-excel');
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
+        // State & DOM Elements
+        let currentUser = null;
+        let usersData = []; // Cache lokal untuk data Firestore
+        let selectedDocId = null; // ID dokumen Firestore untuk edit/hapus
+        
+        // App ID Global (sebagai simulasi environment multi-tenant, kita hardcode string unik)
+        // Gunakan path: artifacts/APP_ID/public/data/users
+        const APP_ID = "app-manajemen-user-001"; 
+        const COLLECTION_PATH = `artifacts/${APP_ID}/public/data/users`;
 
-            // "Database" lokal menggunakan array
-            let users = [];
-            let selectedNomor = null; // Untuk menyimpan nomor unik dari baris yang dipilih
+        const ui = {
+            form: document.getElementById('user-form'),
+            email: document.getElementById('email'),
+            password: document.getElementById('password'),
+            tableBody: document.getElementById('user-table-body'),
+            btnTambah: document.getElementById('btn-tambah'),
+            btnSimpan: document.getElementById('btn-simpan'),
+            btnHapus: document.getElementById('btn-hapus'),
+            btnBatal: document.getElementById('btn-batal'),
+            loading: document.getElementById('loading-overlay'),
+            status: document.getElementById('connection-status'),
+            // File I/O
+            btnDlJson: document.getElementById('btn-download-json'),
+            btnUpJson: document.getElementById('btn-upload-json'),
+            fileJson: document.getElementById('upload-file-json'),
+            btnDlExcel: document.getElementById('btn-download-excel'),
+            btnUpExcel: document.getElementById('btn-upload-excel'),
+            fileExcel: document.getElementById('upload-file-excel'),
+        };
 
-            // --- Fungsi untuk Local Storage ---
-            const saveData = () => {
-                localStorage.setItem('userDatabase', JSON.stringify(users));
-            };
+        // 1. Authenticate & Connect
+        const initApp = async () => {
+            try {
+                // Sign in secara anonim agar diizinkan akses DB
+                await signInAnonymously(auth);
+            } catch (error) {
+                console.error("Auth Error:", error);
+                alert("Gagal koneksi ke server auth: " + error.message);
+            }
+        };
 
-            const loadData = () => {
-                const data = localStorage.getItem('userDatabase');
-                if (data) {
-                    users = JSON.parse(data);
-                }
-                renderTable();
-            };
-            
-            // Fungsi untuk merender (menampilkan) data ke tabel
-            const renderTable = () => {
-                tableBody.innerHTML = ''; // Kosongkan tabel sebelum diisi ulang
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                ui.status.innerText = "Terhubung (Online)";
+                ui.status.className = "px-3 py-1 text-xs rounded-full bg-green-500/20 text-green-300 border border-green-500/50";
                 
-                if (users.length === 0) {
-                    tableBody.innerHTML = `<tr class="bg-gray-800 border-b border-gray-700"><td colspan="5" class="px-6 py-4 text-center">Belum ada data.</td></tr>`;
-                    return;
-                }
-
-                users.forEach(user => {
-                    const tr = document.createElement('tr');
-                    tr.className = 'bg-gray-800 border-b border-gray-700 hover:bg-gray-600';
-                    tr.innerHTML = `
-                        <td class="px-6 py-4 font-medium text-white whitespace-nowrap">${user.nomor}</td>
-                        <td class="px-6 py-4">${user.email}</td>
-                        <td class="px-6 py-4">${user.password}</td>
-                        <td class="px-6 py-4">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.status === 'Aktif' ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'}">
-                                ${user.status}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <button class="font-medium text-blue-500 hover:underline btn-edit" data-nomor="${user.nomor}">Edit</button>
-                        </td>
-                    `;
-                    tableBody.appendChild(tr);
-                });
-            };
-
-            // Fungsi untuk membersihkan form
-            const clearForm = () => {
-                form.reset();
-                selectedNomor = null;
-            };
-
-            // Event listener untuk tombol Tambah Data
-            btnTambah.addEventListener('click', () => {
-                const nomor = Date.now(); // Nomor unik dibuat otomatis menggunakan timestamp
-                const email = emailInput.value;
-                const password = passwordInput.value;
-                const status = document.querySelector('input[name="status"]:checked').value;
-
-                if (!email || !password) {
-                    alert('Kolom email dan password harus diisi!');
-                    return;
-                }
-
-                users.push({ nomor, email, password, status });
-                saveData();
-                renderTable();
-                clearForm();
-            });
-
-            // Event listener untuk tombol Simpan Perubahan
-            btnSimpan.addEventListener('click', () => {
-                if (selectedNomor === null) {
-                    alert('Pilih data yang ingin diubah dengan menekan tombol "Edit" pada tabel.');
-                    return;
-                }
-
-                const userIndex = users.findIndex(user => user.nomor === selectedNomor);
-                if (userIndex > -1) {
-                    users[userIndex].email = emailInput.value;
-                    users[userIndex].password = passwordInput.value;
-                    users[userIndex].status = document.querySelector('input[name="status"]:checked').value;
-                    
-                    saveData();
-                    renderTable();
-                    clearForm();
-                }
-            });
-
-            // Event listener untuk tombol Hapus Data
-            btnHapus.addEventListener('click', () => {
-                 if (selectedNomor === null) {
-                    alert('Pilih data yang ingin dihapus dengan menekan tombol "Edit" pada tabel.');
-                    return;
-                }
-                
-                if (confirm(`Apakah Anda yakin ingin menghapus data dengan nomor unik ${selectedNomor}?`)) {
-                    users = users.filter(user => user.nomor !== selectedNomor);
-                    saveData();
-                    renderTable();
-                    clearForm();
-                }
-            });
-            
-            // Event listener untuk tombol Batal
-            btnBatal.addEventListener('click', clearForm);
-
-            // --- Fungsi Download dan Upload JSON ---
-            btnDownloadJson.addEventListener('click', () => {
-                if (users.length === 0) {
-                    alert('Database kosong, tidak ada yang bisa di-download.');
-                    return;
-                }
-                const dataStr = JSON.stringify(users, null, 2);
-                const dataBlob = new Blob([dataStr], { type: 'application/json' });
-                const url = URL.createObjectURL(dataBlob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'database_pengguna.json';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            });
-
-            btnUploadJson.addEventListener('click', () => {
-                uploadFileJson.click();
-            });
-
-            uploadFileJson.addEventListener('change', (event) => {
-                const file = event.target.files[0];
-                if (!file) return;
-
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    try {
-                        const newUsers = JSON.parse(e.target.result);
-                        // Validasi sederhana
-                        if (Array.isArray(newUsers) && newUsers.every(u => u.nomor && u.email && u.password && u.status)) {
-                            if (confirm('Ini akan menggantikan semua data yang ada. Lanjutkan?')) {
-                                users = newUsers;
-                                saveData();
-                                renderTable();
-                                alert('Database JSON berhasil di-upload!');
-                            }
-                        } else {
-                            alert('Format file JSON tidak valid!');
-                        }
-                    } catch (error) {
-                        alert('Gagal membaca file. Pastikan file adalah JSON yang valid.');
-                    }
-                };
-                reader.readAsText(file);
-                event.target.value = null; // Reset input file
-            });
-
-            // --- Fungsi Download dan Upload EXCEL ---
-            btnDownloadExcel.addEventListener('click', () => {
-                if (users.length === 0) {
-                    alert('Database kosong, tidak ada yang bisa di-download.');
-                    return;
-                }
-                const worksheet = XLSX.utils.json_to_sheet(users);
-                const workbook = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(workbook, worksheet, "Pengguna");
-                XLSX.writeFile(workbook, "database_pengguna.xlsx");
-            });
-
-            btnUploadExcel.addEventListener('click', () => {
-                uploadFileExcel.click();
-            });
-
-            uploadFileExcel.addEventListener('change', (event) => {
-                const file = event.target.files[0];
-                if (!file) return;
-
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    try {
-                        const data = new Uint8Array(e.target.result);
-                        const workbook = XLSX.read(data, { type: 'array' });
-                        const sheetName = workbook.SheetNames[0];
-                        const worksheet = workbook.Sheets[sheetName];
-                        const newUsers = XLSX.utils.sheet_to_json(worksheet);
-
-                        // Validasi sederhana
-                        if (Array.isArray(newUsers) && newUsers.length > 0 && newUsers.every(u => u.nomor && u.email && u.password && u.status)) {
-                             if (confirm('Ini akan menggantikan semua data yang ada. Lanjutkan?')) {
-                                users = newUsers;
-                                saveData();
-                                renderTable();
-                                alert('Database Excel berhasil di-upload!');
-                            }
-                        } else {
-                            alert('Format file Excel tidak valid! Pastikan kolomnya adalah: nomor, email, password, status.');
-                        }
-                    } catch (error) {
-                        console.error(error);
-                        alert('Gagal membaca file. Pastikan file adalah Excel yang valid.');
-                    }
-                };
-                reader.readAsArrayBuffer(file);
-                event.target.value = null; // Reset input file
-            });
-
-
-            // Event listener untuk tabel (menggunakan event delegation untuk tombol Edit)
-            tableBody.addEventListener('click', (e) => {
-                if (e.target.classList.contains('btn-edit')) {
-                    const nomorToEdit = parseInt(e.target.getAttribute('data-nomor'));
-                    const user = users.find(u => u.nomor === nomorToEdit);
-
-                    if (user) {
-                        emailInput.value = user.email;
-                        passwordInput.value = user.password;
-                        document.querySelector(`input[name="status"][value="${user.status}"]`).checked = true;
-                        
-                        selectedNomor = user.nomor;
-                    }
-                }
-            });
-
-            // Muat data dari local storage dan render tabel saat halaman pertama kali dimuat
-            loadData();
+                // Mulai mendengarkan data realtime
+                setupRealtimeListener();
+            } else {
+                ui.status.innerText = "Terputus";
+                ui.status.className = "px-3 py-1 text-xs rounded-full bg-red-500/20 text-red-300 border border-red-500/50";
+            }
         });
-    </script>
 
+        // 2. Realtime Listener (Pengganti Load LocalStorage)
+        function setupRealtimeListener() {
+            const q = query(collection(db, 'artifacts', APP_ID, 'public', 'data', 'users'), orderBy('nomor', 'desc'));
+            
+            onSnapshot(q, (snapshot) => {
+                ui.loading.style.display = 'none'; // Hide loading saat data pertama masuk
+                
+                usersData = snapshot.docs.map(doc => ({
+                    docId: doc.id, // ID internal Firestore
+                    ...doc.data()
+                }));
+                
+                renderTable();
+            }, (error) => {
+                console.error("Firestore Error:", error);
+                ui.loading.style.display = 'none';
+                ui.tableBody.innerHTML = `<tr><td colspan="5" class="text-center text-red-400 py-4">Gagal memuat data: ${error.message}</td></tr>`;
+            });
+        }
+
+        // 3. Render UI
+        function renderTable() {
+            ui.tableBody.innerHTML = '';
+            
+            if (usersData.length === 0) {
+                ui.tableBody.innerHTML = `<tr class="bg-gray-800 border-b border-gray-700"><td colspan="5" class="px-6 py-4 text-center">Belum ada data di cloud.</td></tr>`;
+                return;
+            }
+
+            usersData.forEach(user => {
+                const tr = document.createElement('tr');
+                tr.className = 'bg-gray-800 border-b border-gray-700 hover:bg-gray-700 transition-colors';
+                tr.innerHTML = `
+                    <td class="px-6 py-4 font-medium text-white whitespace-nowrap">${user.nomor}</td>
+                    <td class="px-6 py-4">${user.email}</td>
+                    <td class="px-6 py-4 font-mono text-gray-500 text-xs">***</td>
+                    <td class="px-6 py-4">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.status === 'Aktif' ? 'bg-green-900 text-green-300 border border-green-700' : 'bg-red-900 text-red-300 border border-red-700'}">
+                            ${user.status}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <button class="font-medium text-blue-400 hover:text-blue-300 hover:underline btn-edit" data-id="${user.docId}">Edit</button>
+                    </td>
+                `;
+                ui.tableBody.appendChild(tr);
+            });
+        }
+
+        // 4. CRUD Operations
+        
+        // CREATE
+        ui.btnTambah.addEventListener('click', async () => {
+            const email = ui.email.value;
+            const password = ui.password.value;
+            const status = document.querySelector('input[name="status"]:checked').value;
+
+            if (!email || !password) return alert('Email dan password wajib diisi!');
+
+            ui.btnTambah.innerText = "Menyimpan...";
+            ui.btnTambah.disabled = true;
+
+            try {
+                await addDoc(collection(db, 'artifacts', APP_ID, 'public', 'data', 'users'), {
+                    nomor: Date.now(), // Tetap pakai timestamp sebagai nomor unik visual
+                    email,
+                    password, // Warning: Simpan password plaintext tidak aman untuk prod, oke untuk demo
+                    status
+                });
+                resetForm();
+            } catch (e) {
+                alert("Gagal menyimpan: " + e.message);
+            } finally {
+                ui.btnTambah.innerText = "Tambah Data";
+                ui.btnTambah.disabled = false;
+            }
+        });
+
+        // UPDATE
+        ui.btnSimpan.addEventListener('click', async () => {
+            if (!selectedDocId) return;
+
+            const email = ui.email.value;
+            const password = ui.password.value;
+            const status = document.querySelector('input[name="status"]:checked').value;
+
+            try {
+                await updateDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'users', selectedDocId), {
+                    email, password, status
+                });
+                resetForm();
+            } catch (e) {
+                alert("Gagal update: " + e.message);
+            }
+        });
+
+        // DELETE
+        ui.btnHapus.addEventListener('click', async () => {
+            if (!selectedDocId) return;
+            
+            if (confirm("Yakin hapus data ini dari server?")) {
+                try {
+                    await deleteDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'users', selectedDocId));
+                    resetForm();
+                } catch (e) {
+                    alert("Gagal hapus: " + e.message);
+                }
+            }
+        });
+
+        // SELECT (Prepare for Edit)
+        ui.tableBody.addEventListener('click', (e) => {
+            if (e.target.classList.contains('btn-edit')) {
+                const docId = e.target.getAttribute('data-id');
+                const user = usersData.find(u => u.docId === docId);
+
+                if (user) {
+                    selectedDocId = docId;
+                    ui.email.value = user.email;
+                    ui.password.value = user.password;
+                    document.querySelector(`input[name="status"][value="${user.status}"]`).checked = true;
+
+                    // Toggle Buttons
+                    ui.btnTambah.classList.add('hidden');
+                    ui.btnSimpan.classList.remove('hidden');
+                    ui.btnHapus.classList.remove('hidden');
+                    ui.btnBatal.classList.remove('hidden');
+                    
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            }
+        });
+
+        ui.btnBatal.addEventListener('click', resetForm);
+
+        function resetForm() {
+            ui.form.reset();
+            selectedDocId = null;
+            ui.btnTambah.classList.remove('hidden');
+            ui.btnSimpan.classList.add('hidden');
+            ui.btnHapus.classList.add('hidden');
+            ui.btnBatal.classList.add('hidden');
+        }
+
+        // 5. File Operations (JSON/Excel) - Modified to Sync with Firestore
+        
+        // Download (Ambil dari usersData memory yang sudah sync dengan Cloud)
+        ui.btnDlJson.addEventListener('click', () => {
+            if(usersData.length === 0) return alert("Data kosong.");
+            const cleanData = usersData.map(({docId, ...rest}) => rest); // Hapus internal ID
+            downloadFile(JSON.stringify(cleanData, null, 2), 'database_firebase.json', 'application/json');
+        });
+
+        ui.btnDlExcel.addEventListener('click', () => {
+            if(usersData.length === 0) return alert("Data kosong.");
+            const cleanData = usersData.map(({docId, ...rest}) => rest);
+            const ws = XLSX.utils.json_to_sheet(cleanData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Pengguna");
+            XLSX.writeFile(wb, "database_firebase.xlsx");
+        });
+
+        // Upload (Baca file -> Loop -> AddDoc ke Firestore)
+        ui.btnUpJson.onclick = () => ui.fileJson.click();
+        ui.fileJson.onchange = (e) => processUpload(e.target.files[0], 'json');
+        
+        ui.btnUpExcel.onclick = () => ui.fileExcel.click();
+        ui.fileExcel.onchange = (e) => processUpload(e.target.files[0], 'excel');
+
+        async function processUpload(file, type) {
+            if (!file) return;
+            if (!confirm("Upload akan MENAMBAHKAN data ini ke database Firebase. Lanjutkan?")) return;
+
+            ui.loading.style.display = 'flex'; // Show loading
+            
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                let newData = [];
+                try {
+                    if (type === 'json') {
+                        newData = JSON.parse(e.target.result);
+                    } else {
+                        const data = new Uint8Array(e.target.result);
+                        const wb = XLSX.read(data, { type: 'array' });
+                        newData = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+                    }
+
+                    if (!Array.isArray(newData)) throw new Error("Format data salah");
+
+                    // Batch upload (Firestore batch limit 500, kita loop simple saja untuk demo)
+                    let count = 0;
+                    for (const row of newData) {
+                        if (row.email && row.password) {
+                            await addDoc(collection(db, 'artifacts', APP_ID, 'public', 'data', 'users'), {
+                                nomor: row.nomor || Date.now(),
+                                email: row.email,
+                                password: row.password,
+                                status: row.status || 'Aktif'
+                            });
+                            count++;
+                        }
+                    }
+                    alert(`Berhasil mengimpor ${count} data ke Firebase!`);
+
+                } catch (err) {
+                    alert("Gagal upload: " + err.message);
+                } finally {
+                    ui.loading.style.display = 'none';
+                    e.target.value = ''; // Reset input
+                }
+            };
+            
+            if (type === 'json') reader.readAsText(file);
+            else reader.readAsArrayBuffer(file);
+        }
+
+        function downloadFile(content, fileName, mimeType) {
+            const a = document.createElement('a');
+            const file = new Blob([content], {type: mimeType});
+            a.href = URL.createObjectURL(file);
+            a.download = fileName;
+            a.click();
+        }
+
+        // Start App
+        initApp();
+
+    </script>
 </body>
 </html>
-
