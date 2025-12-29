@@ -45,6 +45,13 @@
         .editing-mode { border: 3px solid #ffc107; position: relative; }
         .editing-badge { background: #ffc107; color: black; position: absolute; top: 0; right: 0; padding: 5px 10px; font-weight: bold; z-index: 100; }
 
+        /* Filter Laporan Buttons */
+        .btn-filter-group .btn.active {
+            background-color: #1e3c72;
+            color: white;
+            border-color: #1e3c72;
+        }
+
         @media print {
             body * { visibility: hidden; }
             .header-app, .no-print, .nav, .tab-content > .tab-pane:not(.active) { display: none !important; }
@@ -79,11 +86,22 @@
     </ul>
 
     <div class="tab-content">
+        <!-- TAB KASIR -->
         <div class="tab-pane fade show active" id="tabKasir">
             <div class="row">
                 <div class="col-md-4 no-print">
+                    <!-- INPUT PULSA SECTION (BARU) -->
+                    <div class="card p-3 shadow-sm mb-3 border-0 bg-info bg-opacity-10">
+                        <h6 class="fw-bold text-primary"><i class="fas fa-mobile-alt"></i> Menu Pulsa / Token</h6>
+                        <input type="text" id="pulsaKet" class="form-control form-control-sm mb-2" placeholder="Ket (Cth: Tsel 10k / Token 20k)">
+                        <input type="number" id="pulsaNo" class="form-control form-control-sm mb-2" placeholder="No HP / ID Pelanggan">
+                        <input type="number" id="pulsaHarga" class="form-control form-control-sm mb-2" placeholder="Harga Jual">
+                        <button onclick="tambahPulsa()" class="btn btn-primary btn-sm w-100 fw-bold"><i class="fas fa-plus-circle"></i> MASUKKAN KE NOTA</button>
+                    </div>
+
+                    <!-- INPUT TRANSAKSI BARANG -->
                     <div class="card p-3 shadow-sm mb-3 border-0">
-                        <h6 class="fw-bold text-primary">Input Transaksi</h6>
+                        <h6 class="fw-bold text-dark">Input Barang / Jasa</h6>
                         <input type="text" id="custNama" class="form-control form-control-sm mb-2" placeholder="Nama Pelanggan">
                         <input type="text" id="custTelp" class="form-control form-control-sm mb-2" placeholder="No HP/WA">
                         <hr class="my-2">
@@ -94,7 +112,7 @@
                             <div class="col-8"><input type="number" id="hargaBarang" class="form-control form-control-sm" placeholder="Harga" readonly></div>
                             <div class="col-4"><input type="number" id="qtyBarang" class="form-control form-control-sm" value="1"></div>
                         </div>
-                        <button onclick="tambahItem()" class="btn btn-primary btn-sm w-100 mt-3 fw-bold">➕ MASUKKAN</button>
+                        <button onclick="tambahItem()" class="btn btn-dark btn-sm w-100 mt-3 fw-bold">➕ MASUKKAN BARANG</button>
                     </div>
 
                     <div class="card p-3 shadow-sm border-0">
@@ -151,6 +169,7 @@
             </div>
         </div>
 
+        <!-- TAB GUDANG -->
         <div class="tab-pane fade" id="tabGudang">
             <div class="row">
                 <div class="col-md-4 no-print mb-3">
@@ -189,16 +208,28 @@
             </div>
         </div>
 
+        <!-- TAB LAPORAN -->
         <div class="tab-pane fade" id="tabLaporan">
             <div class="card p-3 shadow-sm mb-3">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5 class="fw-bold mb-0"><i class="fas fa-chart-line"></i> Dashboard Keuangan</h5>
                     <button onclick="resetData()" class="btn btn-outline-danger btn-sm"><i class="fas fa-trash"></i> Reset Data</button>
                 </div>
+
+                <!-- FILTER BUTTONS -->
+                <div class="btn-group w-100 mb-3 btn-filter-group shadow-sm" role="group">
+                    <button type="button" id="btn-hari" class="btn btn-outline-secondary fw-bold" onclick="setFilter('hari')">Hari Ini</button>
+                    <button type="button" id="btn-minggu" class="btn btn-outline-secondary fw-bold" onclick="setFilter('minggu')">Minggu Ini</button>
+                    <button type="button" id="btn-bulan" class="btn btn-outline-secondary fw-bold active" onclick="setFilter('bulan')">Bulan Ini</button>
+                    <button type="button" id="btn-tahun" class="btn btn-outline-secondary fw-bold" onclick="setFilter('tahun')">Tahun Ini</button>
+                    <button type="button" id="btn-semua" class="btn btn-outline-secondary fw-bold" onclick="setFilter('semua')">Semua</button>
+                </div>
+                <div class="text-center mb-2"><small class="text-muted fw-bold" id="filterInfoText">Menampilkan Data: Bulan Ini</small></div>
+
                 <div class="row text-center g-2">
-                    <div class="col-md-4"><div class="p-3 bg-success text-white rounded shadow-sm"><small>Total Pemasukan</small><h4 class="fw-bold mb-0" id="totMasuk">0</h4></div></div>
-                    <div class="col-md-4"><div class="p-3 bg-danger text-white rounded shadow-sm"><small>Total Pengeluaran</small><h4 class="fw-bold mb-0" id="totKeluar">0</h4></div></div>
-                    <div class="col-md-4"><div class="p-3 bg-primary text-white rounded shadow-sm"><small>Saldo Bersih</small><h4 class="fw-bold mb-0" id="totProfit">0</h4></div></div>
+                    <div class="col-md-4"><div class="p-3 bg-success text-white rounded shadow-sm"><small>Pemasukan</small><h4 class="fw-bold mb-0" id="totMasuk">0</h4></div></div>
+                    <div class="col-md-4"><div class="p-3 bg-danger text-white rounded shadow-sm"><small>Pengeluaran</small><h4 class="fw-bold mb-0" id="totKeluar">0</h4></div></div>
+                    <div class="col-md-4"><div class="p-3 bg-primary text-white rounded shadow-sm"><small>Saldo</small><h4 class="fw-bold mb-0" id="totProfit">0</h4></div></div>
                 </div>
             </div>
 
@@ -222,7 +253,7 @@
 
                 <div class="col-md-8">
                     <div class="card p-0 shadow-sm overflow-hidden">
-                        <div class="card-header bg-light fw-bold">Rincian Transaksi (Urut Waktu)</div>
+                        <div class="card-header bg-light fw-bold">Rincian Transaksi</div>
                         <div style="height: 400px; overflow-y: auto;">
                             <table class="table table-bordered table-striped table-sm small mb-0">
                                 <thead class="table-dark sticky-top"><tr><th>Tanggal</th><th>Keterangan</th><th class="text-end">Masuk</th><th class="text-end">Keluar</th></tr></thead>
@@ -247,12 +278,14 @@
     let keranjang = [];
     let editProdukIndex = -1; // Mode Edit Gudang
     let activeNotaNo = null; // Mode Edit Nota (Menyimpan No Nota yg sedang diedit)
+    let currentFilter = 'bulan'; // Default filter laporan
 
     window.onload = function() {
         let todayStr = new Date().toISOString().split('T')[0];
         document.getElementById('expTgl').value = todayStr;
         document.getElementById('inTgl').value = todayStr;
         initView();
+        setFilter('bulan'); // Set awal
     };
 
     function simpanKeBrowser() {
@@ -273,7 +306,7 @@
         }
     }
 
-    // --- LOGIKA KASIR + FITUR EDIT NOTA ---
+    // --- LOGIKA KASIR + FITUR EDIT NOTA + PULSA ---
     function renderStokOption() {
         let dl = document.getElementById('listBarang'); dl.innerHTML = '';
         db.produk.forEach(p => dl.innerHTML += `<option value="${p.nama}">Stok: ${p.stok} | Rp ${p.harga}</option>`);
@@ -283,6 +316,28 @@
         let val = document.getElementById('inputBarang').value;
         let p = db.produk.find(x => x.nama === val);
         if(p) { document.getElementById('hargaBarang').value = p.harga; document.getElementById('qtyBarang').focus(); }
+    }
+
+    // Fitur Tambah Pulsa (BARU)
+    function tambahPulsa() {
+        let ket = document.getElementById('pulsaKet').value;
+        let no = document.getElementById('pulsaNo').value;
+        let harga = Number(document.getElementById('pulsaHarga').value);
+
+        if(!ket || !harga) return alert("Keterangan Provider dan Harga wajib diisi!");
+        
+        // Buat nama item otomatis
+        let namaItem = `PULSA/TOKEN: ${ket} (${no ? no : '-'})`;
+        let idItem = 'pulsa_' + Date.now();
+
+        // Masukkan ke keranjang (Bypass stok karena pulsa digital)
+        keranjang.push({ id: idItem, nama: namaItem, harga: harga, qty: 1, total: harga });
+        renderNotaIsi();
+        
+        // Reset Form Pulsa
+        document.getElementById('pulsaKet').value = "";
+        document.getElementById('pulsaNo').value = "";
+        document.getElementById('pulsaHarga').value = "";
     }
 
     function tambahItem() {
@@ -416,6 +471,10 @@
         
         // Scroll ke atas
         window.scrollTo(0,0);
+        // Switch tab ke Kasir jika ada di tab lain
+        let triggerEl = document.querySelector('button[data-bs-target="#tabKasir"]');
+        let tab = bootstrap.Tab.getOrCreateInstance(triggerEl);
+        tab.show();
     }
 
     function resetNota() {
@@ -506,17 +565,80 @@
     }
 
     // --- LOGIKA LAPORAN ---
+    function setFilter(mode) {
+        currentFilter = mode;
+        // Update Button Active State
+        document.querySelectorAll('.btn-filter-group button').forEach(btn => btn.classList.remove('active'));
+        
+        // FIX: Cari tombol berdasarkan ID, bukan event.target untuk menghindari error saat onload
+        let activeBtn = document.getElementById('btn-' + mode);
+        if(activeBtn) {
+            activeBtn.classList.add('active');
+        }
+        
+        let label = "Semua Waktu";
+        if(mode === 'hari') label = "Hari Ini (" + new Date().toLocaleDateString('id-ID') + ")";
+        if(mode === 'minggu') label = "Minggu Ini (Senin - Minggu)";
+        if(mode === 'bulan') label = "Bulan Ini (" + new Date().toLocaleString('id-ID', {month:'long', year:'numeric'}) + ")";
+        if(mode === 'tahun') label = "Tahun Ini (" + new Date().getFullYear() + ")";
+        document.getElementById('filterInfoText').innerText = "Menampilkan Data: " + label;
+        
+        renderLaporan();
+    }
+
     function simpanPengeluaran() { let tgl=document.getElementById('expTgl').value; let ket=document.getElementById('expKet').value; let jml=Number(document.getElementById('expJml').value); if(tgl&&ket&&jml) { db.pengeluaran.push({tglStr:tgl, ket, jml}); simpanKeBrowser(); renderLaporan(); document.getElementById('expKet').value=''; document.getElementById('expJml').value=''; } }
     function simpanPemasukanLain() { let tgl=document.getElementById('inTgl').value; let ket=document.getElementById('inKet').value; let jml=Number(document.getElementById('inJml').value); if(tgl&&ket&&jml) { db.pemasukanLain.push({tglStr:tgl, ket, jml}); simpanKeBrowser(); renderLaporan(); document.getElementById('inKet').value=''; document.getElementById('inJml').value=''; } }
     
     function renderLaporan() {
-        let tbody = document.getElementById('tabelLaporan'); tbody.innerHTML = ''; let allData = [];
-        db.nota.forEach(n => { allData.push({dateObj: new Date(n.tgl), displayTgl: new Date(n.tgl).toLocaleString('id-ID'), ket: `Penjualan: ${n.no} (${n.nama})`, in: n.total, out: 0, color: 'text-primary'}); });
-        db.pengeluaran.forEach(e => { allData.push({dateObj: new Date(e.tglStr), displayTgl: new Date(e.tglStr).toLocaleDateString('id-ID'), ket: `Biaya: ${e.ket}`, in: 0, out: e.jml, color: 'text-danger'}); });
-        db.pemasukanLain.forEach(i => { allData.push({dateObj: new Date(i.tglStr), displayTgl: new Date(i.tglStr).toLocaleDateString('id-ID'), ket: `Modal/Lain: ${i.ket}`, in: i.jml, out: 0, color: 'text-success'}); });
-        allData.sort((a, b) => b.dateObj - a.dateObj);
+        let tbody = document.getElementById('tabelLaporan'); tbody.innerHTML = ''; 
+        let allData = [];
+        let today = new Date();
+        today.setHours(0,0,0,0);
+
+        // Helper untuk filter tanggal
+        function isSameDay(d1, d2) { return d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate(); }
+        function isSameMonth(d1, d2) { return d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth(); }
+        function isSameYear(d1, d2) { return d1.getFullYear() === d2.getFullYear(); }
+        function isSameWeek(d) {
+            let onejan = new Date(d.getFullYear(), 0, 1);
+            let today = new Date(new Date().getFullYear(), 0, 1);
+            let dayOfYear = ((d - onejan + 86400000) / 86400000);
+            let todayDayOfYear = ((new Date() - today + 86400000) / 86400000);
+            return Math.ceil(dayOfYear / 7) === Math.ceil(todayDayOfYear / 7);
+        }
+
+        // 1. Kumpulkan Data (Nota, Expense, Income)
+        db.nota.forEach(n => { 
+            allData.push({dateObj: new Date(n.tgl), displayTgl: new Date(n.tgl).toLocaleString('id-ID'), ket: `Penjualan: ${n.no} (${n.nama})`, in: n.total, out: 0, color: 'text-primary'}); 
+        });
+        db.pengeluaran.forEach(e => { 
+            allData.push({dateObj: new Date(e.tglStr), displayTgl: new Date(e.tglStr).toLocaleDateString('id-ID'), ket: `Biaya: ${e.ket}`, in: 0, out: e.jml, color: 'text-danger'}); 
+        });
+        db.pemasukanLain.forEach(i => { 
+            allData.push({dateObj: new Date(i.tglStr), displayTgl: new Date(i.tglStr).toLocaleDateString('id-ID'), ket: `Modal/Lain: ${i.ket}`, in: i.jml, out: 0, color: 'text-success'}); 
+        });
+
+        // 2. Filter Data Berdasarkan Mode
+        let filteredData = allData.filter(item => {
+            let d = item.dateObj;
+            if (currentFilter === 'semua') return true;
+            if (currentFilter === 'hari') return isSameDay(d, today);
+            if (currentFilter === 'minggu') {
+                // Sederhana: 7 hari terakhir
+                let diffTime = Math.abs(today - d);
+                let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+                return diffDays <= 7; 
+            }
+            if (currentFilter === 'bulan') return isSameMonth(d, today);
+            if (currentFilter === 'tahun') return isSameYear(d, today);
+            return true;
+        });
+
+        // 3. Sort & Render
+        filteredData.sort((a, b) => b.dateObj - a.dateObj);
+        
         let totMasuk = 0, totKeluar = 0;
-        allData.forEach(item => {
+        filteredData.forEach(item => {
             totMasuk += item.in; totKeluar += item.out;
             tbody.innerHTML += `<tr><td class="small">${item.displayTgl}</td><td class="${item.color}">${item.ket}</td><td class="text-end">${item.in > 0 ? item.in.toLocaleString() : '-'}</td><td class="text-end text-danger">${item.out > 0 ? item.out.toLocaleString() : '-'}</td></tr>`;
         });
