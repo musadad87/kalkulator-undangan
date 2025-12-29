@@ -3,17 +3,300 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MUSADAD SYSTEM V9 PRO - EDITABLE</title>
+    <title>MUSADAD SYSTEM V9 PRO - ONLINE</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- FIREBASE SDK -->
+    <script type="module">
+        // IMPORT FIREBASE DARI CDN (Agar jalan di browser)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        // --- KONFIGURASI DATABASE ANDA ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyAXOHHI9ytfcjK1sc4ZoErSheJ3zPyM3u4",
+            authDomain: "x-casing-482715-v7.firebaseapp.com",
+            projectId: "x-casing-482715-v7",
+            storageBucket: "x-casing-482715-v7.firebasestorage.app",
+            messagingSenderId: "752575391484",
+            appId: "1:752575391484:web:5d455dc03149f5f8d4d979",
+            measurementId: "G-8R1HZBEXL0"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        
+        // Inisialisasi Auth dan Database
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        // ID Toko Anda
+        const appId = 'toko-musadad-v9'; 
+
+        // Variabel Global
+        window.localCache = { produk: [], nota: [], pengeluaran: [], pemasukanLain: [] };
+        window.activeNotaId = null; 
+        window.editProdukId = null;
+        window.keranjang = [];
+        window.currentFilter = 'bulan';
+        
+        // State untuk Edit Keuangan
+        window.editingExpId = null;
+        window.editingInId = null;
+
+        // --- AUTHENTICATION ---
+        signInAnonymously(auth).catch((error) => {
+            console.error("Gagal Login:", error);
+            alert("Gagal koneksi ke server. Pastikan 'Anonymous Auth' aktif di Firebase Console.");
+        });
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                console.log("Terhubung ke Database. User ID:", user.uid);
+                document.getElementById('statusKoneksi').innerHTML = '<span class="badge bg-success"><i class="fas fa-wifi"></i> Online</span>';
+                mulaiDengarData();
+            } else {
+                document.getElementById('statusKoneksi').innerHTML = '<span class="badge bg-danger"><i class="fas fa-times"></i> Offline</span>';
+            }
+        });
+
+        // --- FUNGSI REALTIME DATABASE ---
+        function mulaiDengarData() {
+            const basePath = `data_toko/${appId}`;
+
+            // 1. Dengar Data PRODUK
+            onSnapshot(collection(db, basePath, 'produk'), (snapshot) => {
+                window.localCache.produk = [];
+                snapshot.forEach((doc) => {
+                    window.localCache.produk.push({ docId: doc.id, ...doc.data() });
+                });
+                renderGudang();
+                renderStokOption();
+            });
+
+            // 2. Dengar Data NOTA
+            onSnapshot(collection(db, basePath, 'nota'), (snapshot) => {
+                window.localCache.nota = [];
+                snapshot.forEach((doc) => {
+                    window.localCache.nota.push({ docId: doc.id, ...doc.data() });
+                });
+                window.localCache.nota.sort((a, b) => new Date(b.tgl) - new Date(a.tgl));
+                renderRiwayatNota();
+                renderLaporan();
+                if (!window.activeNotaId) updateAutoNoNota();
+            });
+
+            // 3. Dengar PENGELUARAN
+            onSnapshot(collection(db, basePath, 'pengeluaran'), (snapshot) => {
+                window.localCache.pengeluaran = [];
+                snapshot.forEach((doc) => window.localCache.pengeluaran.push({ docId: doc.id, ...doc.data() }));
+                renderLaporan();
+            });
+
+            // 4. Dengar PEMASUKAN LAIN
+            onSnapshot(collection(db, basePath, 'pemasukanLain'), (snapshot) => {
+                window.localCache.pemasukanLain = [];
+                snapshot.forEach((doc) => window.localCache.pemasukanLain.push({ docId: doc.id, ...doc.data() }));
+                renderLaporan();
+            });
+        }
+
+        // --- EXPORT DATABASE FUNCTIONS ---
+        // RESTORE DATA OFFLINE (JSON)
+        window.restoreData = async (input) => {
+            const file = input.files[0];
+            if (!file) return;
+
+            if(!confirm("Apakah Anda yakin ingin menggabungkan data dari file JSON ini ke Database Online?")) return;
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    let count = 0;
+                    
+                    // Helper function untuk import batch kecil (karena Firestore punya limit)
+                    const importCollection = async (collName, items) => {
+                        if (!items || items.length === 0) return;
+                        const colRef = collection(db, `data_toko/${appId}/${collName}`);
+                        for (const item of items) {
+                            // Hapus ID lama agar dibuatkan ID baru oleh Firestore
+                            const { docId, id, ...cleanItem } = item; 
+                            await addDoc(colRef, cleanItem);
+                            count++;
+                        }
+                    };
+
+                    document.getElementById('statusKoneksi').innerHTML = '<span class="badge bg-warning text-dark">Mengupload Data...</span>';
+                    
+                    await importCollection('produk', data.produk);
+                    await importCollection('nota', data.nota);
+                    await importCollection('pengeluaran', data.pengeluaran);
+                    await importCollection('pemasukanLain', data.pemasukanLain);
+
+                    alert(`Berhasil merestore ${count} data!`);
+                    input.value = ''; // Reset input
+                    document.getElementById('statusKoneksi').innerHTML = '<span class="badge bg-success"><i class="fas fa-wifi"></i> Online</span>';
+                } catch (err) {
+                    alert("Gagal membaca file JSON: " + err.message);
+                    console.error(err);
+                }
+            };
+            reader.readAsText(file);
+        };
+
+        // GUDANG
+        window.simpanProduk = async () => {
+            const nama = document.getElementById('prodNama').value;
+            const harga = Number(document.getElementById('prodHarga').value);
+            const stok = Number(document.getElementById('prodStok').value);
+            const min = Number(document.getElementById('prodMin').value);
+            
+            if(!nama) return alert("Nama wajib diisi!");
+            const btn = document.getElementById('btnSimpanProduk');
+            btn.disabled = true; btn.innerText = "Menyimpan...";
+
+            try {
+                if (window.editProdukId) {
+                    await updateDoc(doc(db, `data_toko/${appId}/produk`, window.editProdukId), { nama, harga, stok, min });
+                } else {
+                    await addDoc(collection(db, `data_toko/${appId}/produk`), { nama, harga, stok, min, createdAt: Date.now() });
+                }
+                resetFormGudang();
+            } catch (e) { alert("Gagal simpan: " + e.message); } finally { btn.disabled = false; }
+        };
+
+        window.hapusProduk = async (docId) => {
+            if(!confirm("Hapus barang ini permanen?")) return;
+            try { await deleteDoc(doc(db, `data_toko/${appId}/produk`, docId)); } catch(e) { alert("Gagal hapus: " + e.message); }
+        };
+
+        // TRANSAKSI
+        window.simpanDanCetak = async () => {
+            if(window.keranjang.length === 0) return alert("Keranjang kosong!");
+            const btn = document.getElementById('btnSimpan');
+            btn.innerText = "Memproses..."; btn.disabled = true;
+
+            try {
+                const colProdukPath = `data_toko/${appId}/produk`;
+                
+                // 1. Restore Stok Lama (Jika Edit Nota)
+                if (window.activeNotaId) {
+                    const oldNota = window.localCache.nota.find(n => n.docId === window.activeNotaId);
+                    if (oldNota) {
+                        for (const item of oldNota.items) {
+                            const prodRef = window.localCache.produk.find(p => p.docId == item.id); 
+                            if (prodRef) {
+                                await updateDoc(doc(db, colProdukPath, prodRef.docId), { stok: prodRef.stok + item.qty });
+                            }
+                        }
+                    }
+                }
+
+                // 2. Potong Stok Baru
+                for (const item of window.keranjang) {
+                    if (!String(item.id).startsWith('manual_') && !String(item.id).startsWith('pulsa_')) {
+                        const prodRef = window.localCache.produk.find(p => p.docId === item.id);
+                        if (prodRef) {
+                            await updateDoc(doc(db, colProdukPath, prodRef.docId), { stok: prodRef.stok - item.qty });
+                        }
+                    }
+                }
+
+                // 3. Simpan Nota
+                const notaData = {
+                    no: document.getElementById('notaNo').innerText,
+                    tgl: new Date().toISOString(),
+                    nama: document.getElementById('custNama').value,
+                    items: window.keranjang,
+                    total: Number(document.getElementById('notaTotal').dataset.val),
+                    dp: Number(document.getElementById('inputDP').value),
+                    sisaInfo: document.getElementById('notaSisa').innerText
+                };
+
+                if (window.activeNotaId) {
+                    await updateDoc(doc(db, `data_toko/${appId}/nota`, window.activeNotaId), notaData);
+                    alert("Nota berhasil diupdate!");
+                } else {
+                    await addDoc(collection(db, `data_toko/${appId}/nota`), notaData);
+                }
+
+                document.body.classList.add('print-nota');
+                window.print();
+                document.body.classList.remove('print-nota');
+                resetNota();
+
+            } catch (e) { console.error(e); alert("Terjadi kesalahan: " + e.message); } finally { btn.disabled = false; }
+        };
+
+        // KEUANGAN (PENGELUARAN & PEMASUKAN LAIN)
+        window.simpanPengeluaran = async () => {
+            const tgl = document.getElementById('expTgl').value; 
+            const ket = document.getElementById('expKet').value; 
+            const jml = Number(document.getElementById('expJml').value);
+            
+            if(tgl && ket && jml) {
+                const btn = document.getElementById('btnSimpanExp');
+                btn.innerText = "Menyimpan..."; btn.disabled = true;
+                
+                try {
+                    if (window.editingExpId) {
+                        await updateDoc(doc(db, `data_toko/${appId}/pengeluaran`, window.editingExpId), { tglStr: tgl, ket, jml });
+                        alert("Pengeluaran diupdate!");
+                        window.editingExpId = null;
+                        document.getElementById('btnSimpanExp').innerText = "Simpan Pengeluaran";
+                        document.getElementById('btnSimpanExp').classList.replace('btn-warning', 'btn-danger');
+                    } else {
+                        await addDoc(collection(db, `data_toko/${appId}/pengeluaran`), { tglStr: tgl, ket, jml });
+                    }
+                    document.getElementById('expKet').value=''; document.getElementById('expJml').value='';
+                } catch(e) { alert(e.message); } finally { btn.innerText = "Simpan Pengeluaran"; btn.disabled = false; }
+            }
+        };
+
+        window.simpanPemasukanLain = async () => {
+            const tgl = document.getElementById('inTgl').value; 
+            const ket = document.getElementById('inKet').value; 
+            const jml = Number(document.getElementById('inJml').value);
+            
+            if(tgl && ket && jml) {
+                const btn = document.getElementById('btnSimpanIn');
+                btn.innerText = "Menyimpan..."; btn.disabled = true;
+
+                try {
+                    if (window.editingInId) {
+                        await updateDoc(doc(db, `data_toko/${appId}/pemasukanLain`, window.editingInId), { tglStr: tgl, ket, jml });
+                        alert("Pemasukan diupdate!");
+                        window.editingInId = null;
+                        document.getElementById('btnSimpanIn').innerText = "Simpan Pemasukan";
+                        document.getElementById('btnSimpanIn').classList.replace('btn-warning', 'btn-success');
+                    } else {
+                        await addDoc(collection(db, `data_toko/${appId}/pemasukanLain`), { tglStr: tgl, ket, jml });
+                    }
+                    document.getElementById('inKet').value=''; document.getElementById('inJml').value='';
+                } catch(e) { alert(e.message); } finally { btn.innerText = "Simpan Pemasukan"; btn.disabled = false; }
+            }
+        };
+        
+        window.onload = function() {
+            let todayStr = new Date().toISOString().split('T')[0];
+            document.getElementById('expTgl').value = todayStr;
+            document.getElementById('inTgl').value = todayStr;
+            setFilter('bulan');
+        }
+
+    </script>
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Roboto+Condensed:wght@400;700&display=swap');
         body { background-color: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
         .header-app { background: linear-gradient(90deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 15px 0; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .nav-link.active { background-color: #1e3c72 !important; color: white !important; }
         .nav-link { color: #1e3c72; font-weight: bold; }
-        
-        /* NOTA STYLE */
         #areaNota { background: white; padding: 30px; box-shadow: 0 0 15px rgba(0,0,0,0.1); font-family: 'Roboto Condensed', sans-serif; color: #000; position: relative; }
         .brand-title { font-family: 'Oswald', sans-serif; color: #1a2a6c; font-size: 2.5rem; letter-spacing: 2px; margin-bottom: 0; line-height: 1.1; text-transform: uppercase; }
         .sub-brand { font-weight: 900; color: #b91d1d; font-size: 0.9rem; letter-spacing: 1px; text-transform: uppercase; }
@@ -24,12 +307,8 @@
         .custom-table { width: 100%; border-collapse: collapse; margin-top: 15px; border: 1px solid #000; }
         .custom-table th { background-color: #1a2a6c !important; color: white !important; padding: 8px; text-align: center; font-weight: normal; letter-spacing: 1px; -webkit-print-color-adjust: exact; }
         .custom-table td { border-bottom: 1px solid #ddd; padding: 5px 8px; }
-        
-        /* Input Tabel Nota */
         #notaIsi input { background: transparent; font-family: 'Roboto Condensed', sans-serif; font-size: 14px; color: #000; border-radius: 0; padding: 2px; width: 100%; }
         #notaIsi input:focus { background: #fff9c4; outline: none; }
-
-        /* Footer Nota */
         .footer-grid { display: flex; justify-content: space-between; margin-top: 20px; }
         .sign-area { width: 40%; text-align: center; margin-top: 10px; }
         .sign-line { border-bottom: 1px solid #000; margin-top: 70px; width: 80%; margin-left: auto; margin-right: auto; }
@@ -40,18 +319,9 @@
         .bottom-section { border-top: 2px solid #000; margin-top: 20px; padding-top: 10px; display: flex; justify-content: space-between; }
         .payment-info { font-size: 11px; font-weight: bold; width: 50%; }
         .warning-box { border: 2px solid red; background-color: #fff5f5; color: red; width: 45%; text-align: center; padding: 8px; font-size: 11px; font-weight: bold; -webkit-print-color-adjust: exact; }
-        
-        /* Highlight Mode Edit */
         .editing-mode { border: 3px solid #ffc107; position: relative; }
         .editing-badge { background: #ffc107; color: black; position: absolute; top: 0; right: 0; padding: 5px 10px; font-weight: bold; z-index: 100; }
-
-        /* Filter Laporan Buttons */
-        .btn-filter-group .btn.active {
-            background-color: #1e3c72;
-            color: white;
-            border-color: #1e3c72;
-        }
-
+        .btn-filter-group .btn.active { background-color: #1e3c72; color: white; border-color: #1e3c72; }
         @media print {
             body * { visibility: hidden; }
             .header-app, .no-print, .nav, .tab-content > .tab-pane:not(.active) { display: none !important; }
@@ -66,14 +336,18 @@
 </head>
 <body>
 
+<!-- Hidden File Input untuk Restore -->
+<input type="file" id="jsonFile" accept=".json" style="display:none" onchange="restoreData(this)">
+
 <div class="header-app mb-3 no-print">
     <div class="container d-flex justify-content-between align-items-center">
-        <div><h4 class="mb-0 fw-bold"><i class="fas fa-print"></i> MUSADAD SYSTEM V9</h4></div>
+        <div>
+            <h4 class="mb-0 fw-bold"><i class="fas fa-cloud"></i> MUSADAD ONLINE V9</h4>
+            <div id="statusKoneksi" class="small">Menghubungkan...</div>
+        </div>
         <div class="d-flex gap-2">
-            <button class="btn btn-info btn-sm text-white fw-bold shadow" onclick="window.open('https://musadad87.github.io/kalkulator-undangan/', '_blank')">➕ Menu Awal</button>
-            <button onclick="downloadDB()" class="btn btn-warning btn-sm text-dark fw-bold shadow">💾 Backup</button>
-            <input type="file" id="fileInput" hidden onchange="uploadDB(this)">
-            <button onclick="document.getElementById('fileInput').click()" class="btn btn-light btn-sm fw-bold shadow">📂 Restore</button>
+            <button class="btn btn-warning btn-sm text-dark fw-bold shadow" onclick="document.getElementById('jsonFile').click()">📂 Restore Data Offline</button>
+            <button onclick="alert('Data sudah otomatis tersimpan di Cloud!')" class="btn btn-success btn-sm fw-bold shadow"><i class="fas fa-check-circle"></i> Auto-Save On</button>
         </div>
     </div>
 </div>
@@ -90,7 +364,7 @@
         <div class="tab-pane fade show active" id="tabKasir">
             <div class="row">
                 <div class="col-md-4 no-print">
-                    <!-- INPUT PULSA SECTION (BARU) -->
+                    <!-- INPUT PULSA SECTION -->
                     <div class="card p-3 shadow-sm mb-3 border-0 bg-info bg-opacity-10">
                         <h6 class="fw-bold text-primary"><i class="fas fa-mobile-alt"></i> Menu Pulsa / Token</h6>
                         <input type="text" id="pulsaKet" class="form-control form-control-sm mb-2" placeholder="Ket (Cth: Tsel 10k / Token 20k)">
@@ -116,12 +390,12 @@
                     </div>
 
                     <div class="card p-3 shadow-sm border-0">
-                        <h6 class="fw-bold text-dark">Riwayat Nota (Bisa Edit)</h6>
+                        <h6 class="fw-bold text-dark">Riwayat Nota (Terbaru)</h6>
                         <input type="text" id="cariNota" class="form-control form-control-sm mb-2" placeholder="Cari..." onkeyup="renderRiwayatNota()">
                         <div style="max-height: 200px; overflow-y: auto;">
                             <table class="table table-sm table-hover small font-monospace">
                                 <thead class="table-light"><tr><th>No</th><th>Nama</th><th class="text-end">Aksi</th></tr></thead>
-                                <tbody id="tabelRiwayatNota"></tbody>
+                                <tbody id="tabelRiwayatNota"><tr><td colspan="3" class="text-center">Memuat data...</td></tr></tbody>
                             </table>
                         </div>
                     </div>
@@ -140,7 +414,7 @@
                                 <div class="info-group"><span class="info-label">Tanggal</span><div class="info-value" id="notaTgl"></div></div>
                                 <div class="info-group"><span class="info-label">Tuan</span><div class="info-value text-uppercase fw-bold" id="notaYth"></div></div>
                                 <div class="info-group"><span class="info-label">Tlp</span><div class="info-value" id="notaHp"></div></div>
-                                <div class="mt-2 text-end"><small class="fw-bold">NO: <span id="notaNo">AUTO</span></small></div>
+                                <div class="mt-2 text-end"><small class="fw-bold">NO: <span id="notaNo">LOADING...</span></small></div>
                             </div>
                         </div>
                         <table class="custom-table">
@@ -184,7 +458,7 @@
                             <div class="col-6"><input type="number" id="prodStok" class="form-control" placeholder="Stok"></div>
                             <div class="col-6"><input type="number" id="prodMin" class="form-control" placeholder="Min"></div>
                         </div>
-                        <button onclick="simpanProduk()" id="btnSimpanProduk" class="btn btn-primary w-100">Simpan</button>
+                        <button onclick="simpanProduk()" id="btnSimpanProduk" class="btn btn-primary w-100">Simpan Ke Cloud</button>
                     </div>
                     <button onclick="cetakBelanja()" class="btn btn-warning w-100 mt-3 fw-bold">Print Daftar Belanja</button>
                 </div>
@@ -195,7 +469,7 @@
                         <div class="table-responsive">
                             <table class="table table-hover align-middle small table-striped" id="tabelGudang">
                                 <thead class="table-dark"><tr><th>Barang (Klik utk Edit)</th><th>Harga</th><th>Stok</th><th>Min</th><th>Hapus</th></tr></thead>
-                                <tbody id="isiTabelGudang"></tbody>
+                                <tbody id="isiTabelGudang"><tr><td colspan="5" class="text-center">Menghubungkan ke database...</td></tr></tbody>
                             </table>
                         </div>
                     </div>
@@ -212,8 +486,7 @@
         <div class="tab-pane fade" id="tabLaporan">
             <div class="card p-3 shadow-sm mb-3">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="fw-bold mb-0"><i class="fas fa-chart-line"></i> Dashboard Keuangan</h5>
-                    <button onclick="resetData()" class="btn btn-outline-danger btn-sm"><i class="fas fa-trash"></i> Reset Data</button>
+                    <h5 class="fw-bold mb-0"><i class="fas fa-chart-line"></i> Dashboard Keuangan (Realtime)</h5>
                 </div>
 
                 <!-- FILTER BUTTONS -->
@@ -240,14 +513,14 @@
                         <input type="date" id="inTgl" class="form-control mb-1 bg-white">
                         <input type="text" id="inKet" class="form-control mb-1 bg-white" placeholder="Ket (Cth: Modal Awal)">
                         <input type="number" id="inJml" class="form-control mb-2 bg-white" placeholder="Rp">
-                        <button onclick="simpanPemasukanLain()" class="btn btn-success w-100 btn-sm fw-bold">Simpan Pemasukan</button>
+                        <button onclick="simpanPemasukanLain()" id="btnSimpanIn" class="btn btn-success w-100 btn-sm fw-bold">Simpan Pemasukan</button>
                     </div>
                     <div class="card p-3 border-danger bg-danger bg-opacity-10">
                         <h6 class="fw-bold text-danger">Input Pengeluaran (Biaya)</h6>
                         <input type="date" id="expTgl" class="form-control mb-1 bg-white">
                         <input type="text" id="expKet" class="form-control mb-1 bg-white" placeholder="Ket (Cth: Listrik, Kertas)">
                         <input type="number" id="expJml" class="form-control mb-2 bg-white" placeholder="Rp">
-                        <button onclick="simpanPengeluaran()" class="btn btn-danger w-100 btn-sm fw-bold">Simpan Pengeluaran</button>
+                        <button onclick="simpanPengeluaran()" id="btnSimpanExp" class="btn btn-danger w-100 btn-sm fw-bold">Simpan Pengeluaran</button>
                     </div>
                 </div>
 
@@ -256,8 +529,8 @@
                         <div class="card-header bg-light fw-bold">Rincian Transaksi</div>
                         <div style="height: 400px; overflow-y: auto;">
                             <table class="table table-bordered table-striped table-sm small mb-0">
-                                <thead class="table-dark sticky-top"><tr><th>Tanggal</th><th>Keterangan</th><th class="text-end">Masuk</th><th class="text-end">Keluar</th></tr></thead>
-                                <tbody id="tabelLaporan"></tbody>
+                                <thead class="table-dark sticky-top"><tr><th>Tanggal</th><th>Keterangan</th><th class="text-end">Masuk</th><th class="text-end">Keluar</th><th class="text-center">Edit</th></tr></thead>
+                                <tbody id="tabelLaporan"><tr><td colspan="5" class="text-center">Memuat data...</td></tr></tbody>
                             </table>
                         </div>
                     </div>
@@ -267,83 +540,46 @@
     </div>
 </div>
 
+<!-- BOOTSTRAP JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- LOGIKA UI (NON-FIREBASE) -->
 <script>
-    let db = {
-        produk: JSON.parse(localStorage.getItem('musadad_prod')) || [],
-        nota: JSON.parse(localStorage.getItem('musadad_nota')) || [],
-        pengeluaran: JSON.parse(localStorage.getItem('musadad_exp')) || [],
-        pemasukanLain: JSON.parse(localStorage.getItem('musadad_income')) || []
-    };
-    let keranjang = [];
-    let editProdukIndex = -1; // Mode Edit Gudang
-    let activeNotaNo = null; // Mode Edit Nota (Menyimpan No Nota yg sedang diedit)
-    let currentFilter = 'bulan'; // Default filter laporan
-
-    window.onload = function() {
-        let todayStr = new Date().toISOString().split('T')[0];
-        document.getElementById('expTgl').value = todayStr;
-        document.getElementById('inTgl').value = todayStr;
-        initView();
-        setFilter('bulan'); // Set awal
-    };
-
-    function simpanKeBrowser() {
-        localStorage.setItem('musadad_prod', JSON.stringify(db.produk));
-        localStorage.setItem('musadad_nota', JSON.stringify(db.nota));
-        localStorage.setItem('musadad_exp', JSON.stringify(db.pengeluaran));
-        localStorage.setItem('musadad_income', JSON.stringify(db.pemasukanLain));
+    function updateAutoNoNota() {
+        if(window.activeNotaId) return; 
+        let today = new Date();
+        let count = window.localCache.nota.length + 1;
+        document.getElementById('notaNo').innerText = `INV/${today.getDate()}${today.getMonth()+1}/${count}`;
+        document.getElementById('notaTgl').innerText = today.toLocaleDateString('id-ID');
     }
 
-    function initView() {
-        renderStokOption(); renderGudang(); renderRiwayatNota(); renderLaporan();
-        
-        // Cek jika tidak sedang edit nota, set nomor baru
-        if (!activeNotaNo) {
-            let today = new Date();
-            document.getElementById('notaNo').innerText = `INV/${today.getDate()}${today.getMonth()+1}/${db.nota.length + 1}`;
-            document.getElementById('notaTgl').innerText = today.toLocaleDateString('id-ID');
-        }
-    }
-
-    // --- LOGIKA KASIR + FITUR EDIT NOTA + PULSA ---
     function renderStokOption() {
         let dl = document.getElementById('listBarang'); dl.innerHTML = '';
-        db.produk.forEach(p => dl.innerHTML += `<option value="${p.nama}">Stok: ${p.stok} | Rp ${p.harga}</option>`);
+        window.localCache.produk.forEach(p => dl.innerHTML += `<option value="${p.nama}">Stok: ${p.stok} | Rp ${p.harga}</option>`);
     }
 
-    function updateHarga() {
+    window.updateHarga = () => {
         let val = document.getElementById('inputBarang').value;
-        let p = db.produk.find(x => x.nama === val);
+        let p = window.localCache.produk.find(x => x.nama === val);
         if(p) { document.getElementById('hargaBarang').value = p.harga; document.getElementById('qtyBarang').focus(); }
     }
 
-    // Fitur Tambah Pulsa (BARU)
-    function tambahPulsa() {
+    window.tambahPulsa = () => {
         let ket = document.getElementById('pulsaKet').value;
         let no = document.getElementById('pulsaNo').value;
         let harga = Number(document.getElementById('pulsaHarga').value);
-
-        if(!ket || !harga) return alert("Keterangan Provider dan Harga wajib diisi!");
-        
-        // Buat nama item otomatis
+        if(!ket || !harga) return alert("Keterangan dan Harga wajib diisi!");
         let namaItem = `PULSA/TOKEN: ${ket} (${no ? no : '-'})`;
         let idItem = 'pulsa_' + Date.now();
-
-        // Masukkan ke keranjang (Bypass stok karena pulsa digital)
-        keranjang.push({ id: idItem, nama: namaItem, harga: harga, qty: 1, total: harga });
+        window.keranjang.push({ id: idItem, nama: namaItem, harga: harga, qty: 1, total: harga });
         renderNotaIsi();
-        
-        // Reset Form Pulsa
-        document.getElementById('pulsaKet').value = "";
-        document.getElementById('pulsaNo').value = "";
-        document.getElementById('pulsaHarga').value = "";
+        document.getElementById('pulsaKet').value = ""; document.getElementById('pulsaNo').value = ""; document.getElementById('pulsaHarga').value = "";
     }
 
-    function tambahItem() {
+    window.tambahItem = () => {
         let val = document.getElementById('inputBarang').value;
         let qty = Number(document.getElementById('qtyBarang').value);
-        let p = db.produk.find(x => x.nama === val);
+        let p = window.localCache.produk.find(x => x.nama === val);
         let harga = 0, idItem = '';
 
         if(!p) {
@@ -351,18 +587,19 @@
              if(!val || !harga) return alert("Barang tidak ditemukan atau harga kosong!");
              idItem = 'manual_'+Date.now();
         } else {
-            if(p.stok < qty) alert("Peringatan: Stok di sistem kurang!");
-            harga = p.harga; idItem = p.id;
+            if(p.stok < qty) alert(`Perhatian: Stok sistem tinggal ${p.stok}`);
+            harga = p.harga; 
+            idItem = p.docId; 
         }
 
-        keranjang.push({ id: idItem, nama: val, harga: harga, qty: qty, total: harga * qty });
+        window.keranjang.push({ id: idItem, nama: val, harga: harga, qty: qty, total: harga * qty });
         renderNotaIsi();
         document.getElementById('inputBarang').value = ""; document.getElementById('hargaBarang').value = ""; document.getElementById('qtyBarang').value = "1"; document.getElementById('inputBarang').focus();
     }
 
     function renderNotaIsi() {
         let tbody = document.getElementById('notaIsi'); tbody.innerHTML = ''; let total = 0;
-        keranjang.forEach((item, idx) => {
+        window.keranjang.forEach((item, idx) => {
             total += item.total;
             tbody.innerHTML += `
                 <tr>
@@ -371,283 +608,279 @@
                     <td class="p-0" width="10%"><input type="number" class="form-control form-control-sm border-0 shadow-none text-center" value="${item.qty}" onchange="updateItemKeranjang(${idx}, 'qty', this.value)"></td>
                     <td class="p-0" width="20%"><input type="number" class="form-control form-control-sm border-0 shadow-none text-end" value="${item.harga}" onchange="updateItemKeranjang(${idx}, 'harga', this.value)"></td>
                     <td class="text-end align-middle fw-bold px-2">${item.total.toLocaleString()}</td>
-                    <td class="no-print align-middle text-center"><a href="#" onclick="keranjang.splice(${idx},1); renderNotaIsi()" class="text-danger"><i class="fas fa-times"></i></a></td>
+                    <td class="no-print align-middle text-center"><a href="#" onclick="hapusItemKeranjang(${idx})" class="text-danger"><i class="fas fa-times"></i></a></td>
                 </tr>`;
         });
         document.getElementById('notaTotal').innerText = total.toLocaleString();
         document.getElementById('notaTotal').dataset.val = total;
         document.getElementById('notaYth').innerText = document.getElementById('custNama').value || "..................";
         document.getElementById('notaHp').innerText = document.getElementById('custTelp').value || "";
-        hitungSisa();
+        window.hitungSisa();
     }
 
-    function updateItemKeranjang(index, field, value) {
-        if (field === 'qty') { keranjang[index].qty = Number(value); keranjang[index].total = keranjang[index].qty * keranjang[index].harga; }
-        else if (field === 'harga') { keranjang[index].harga = Number(value); keranjang[index].total = keranjang[index].qty * keranjang[index].harga; }
-        else if (field === 'nama') { keranjang[index].nama = value; }
+    window.hapusItemKeranjang = (idx) => {
+        window.keranjang.splice(idx,1); 
         renderNotaIsi();
     }
 
-    function hitungSisa() {
+    window.updateItemKeranjang = (index, field, value) => {
+        if (field === 'qty') { window.keranjang[index].qty = Number(value); window.keranjang[index].total = window.keranjang[index].qty * window.keranjang[index].harga; }
+        else if (field === 'harga') { window.keranjang[index].harga = Number(value); window.keranjang[index].total = window.keranjang[index].qty * window.keranjang[index].harga; }
+        else if (field === 'nama') { window.keranjang[index].nama = value; }
+        renderNotaIsi();
+    }
+
+    window.hitungSisa = () => {
         let total = Number(document.getElementById('notaTotal').dataset.val || 0);
         let dp = Number(document.getElementById('inputDP').value || 0);
         let sisa = dp - total;
         document.getElementById('notaSisa').innerText = sisa >= 0 ? "LUNAS (" + sisa.toLocaleString() + ")" : "KURANG: " + Math.abs(sisa).toLocaleString();
     }
 
-    // --- FUNGSI UTAMA: SIMPAN & UPDATE ---
-    function simpanDanCetak() {
-        if(keranjang.length === 0) return alert("Keranjang kosong!");
-
-        // 1. Jika Mode EDIT: Kembalikan Stok Lama Dulu
-        if (activeNotaNo) {
-            let oldNota = db.nota.find(n => n.no === activeNotaNo);
-            if (oldNota) {
-                oldNota.items.forEach(oldItem => {
-                    let prod = db.produk.find(p => p.id == oldItem.id);
-                    if (prod) prod.stok += oldItem.qty; // Restore stok
-                });
-            }
-        }
-
-        // 2. Potong Stok Berdasarkan Keranjang Saat Ini (Baik Baru maupun Edit)
-        keranjang.forEach((item) => {
-            let p = db.produk.find(x => x.id == item.id);
-            if(p) p.stok -= item.qty;
-        });
-
-        // 3. Siapkan Data Nota
-        let notaData = {
-            no: document.getElementById('notaNo').innerText,
-            tgl: new Date().toISOString(), // Update tanggal ke waktu edit/simpan
-            nama: document.getElementById('custNama').value,
-            items: [...keranjang],
-            total: Number(document.getElementById('notaTotal').dataset.val),
-            dp: Number(document.getElementById('inputDP').value),
-            sisaInfo: document.getElementById('notaSisa').innerText
-        };
-
-        if (activeNotaNo) {
-            // MODE UPDATE: Timpa data lama
-            let idx = db.nota.findIndex(n => n.no === activeNotaNo);
-            if (idx !== -1) db.nota[idx] = notaData;
-            alert("Data Nota Berhasil Diperbarui!");
-        } else {
-            // MODE BARU: Tambah baru
-            db.nota.push(notaData);
-        }
-
-        simpanKeBrowser();
-        
-        // Print
-        document.body.classList.add('print-nota');
-        window.print();
-        document.body.classList.remove('print-nota');
-
-        // Reset Total
-        resetNota(); 
-    }
-
-    // Fungsi Masuk Mode Edit Nota
-    function editNota(noNota) {
-        let n = db.nota.find(x => x.no === noNota);
-        if(!n) return;
-
-        // Load Data ke Form
-        activeNotaNo = n.no; // Set Flag Edit
-        document.getElementById('notaNo').innerText = n.no;
-        document.getElementById('custNama').value = n.nama;
-        document.getElementById('inputDP').value = n.dp;
-        
-        // Load Keranjang (Deep Copy biar aman)
-        keranjang = JSON.parse(JSON.stringify(n.items));
-        
-        // Update Tampilan UI
-        renderNotaIsi();
-        document.getElementById('btnSimpan').innerHTML = '<i class="fas fa-save"></i> UPDATE PERUBAHAN';
-        document.getElementById('btnSimpan').classList.replace('btn-primary', 'btn-warning');
-        document.getElementById('areaNota').classList.add('editing-mode');
-        document.getElementById('badgeEditMode').classList.remove('d-none');
-        
-        // Scroll ke atas
-        window.scrollTo(0,0);
-        // Switch tab ke Kasir jika ada di tab lain
-        let triggerEl = document.querySelector('button[data-bs-target="#tabKasir"]');
-        let tab = bootstrap.Tab.getOrCreateInstance(triggerEl);
-        tab.show();
-    }
-
-    function resetNota() {
-        keranjang = [];
+    window.resetNota = () => {
+        window.keranjang = [];
         document.getElementById('custNama').value = "";
         document.getElementById('custTelp').value = "";
         document.getElementById('inputDP').value = "0";
         document.getElementById('areaNota').classList.remove('editing-mode');
         document.getElementById('badgeEditMode').classList.add('d-none');
-        
-        // Reset Tombol Simpan
         document.getElementById('btnSimpan').innerHTML = '<i class="fas fa-print"></i> SIMPAN & CETAK';
         document.getElementById('btnSimpan').classList.replace('btn-warning', 'btn-primary');
-        
-        activeNotaNo = null; // Matikan Mode Edit
+        window.activeNotaId = null;
         renderNotaIsi();
-        initView(); // Reset Nomor Nota ke Auto Baru
+        updateAutoNoNota();
     }
 
-    function renderRiwayatNota() {
+    window.renderGudang = () => {
+        let key = document.getElementById('cariGudang').value.toLowerCase(); 
+        let tbody = document.getElementById('isiTabelGudang'); 
+        tbody.innerHTML = '';
+        window.localCache.produk.forEach((p) => {
+            if(p.nama.toLowerCase().includes(key)) {
+                tbody.innerHTML += `
+                <tr onclick="editProduk('${p.docId}')">
+                    <td class="fw-bold text-primary">${p.nama}</td>
+                    <td>${p.harga.toLocaleString()}</td>
+                    <td class="${p.stok<=p.min?'text-danger fw-bold':''}">${p.stok}</td>
+                    <td>${p.min}</td>
+                    <td onclick="event.stopPropagation()">
+                        <button onclick="hapusProduk('${p.docId}')" class="btn btn-danger btn-sm py-0">Hapus</button>
+                    </td>
+                </tr>`;
+            }
+        });
+        if(window.localCache.produk.length === 0) tbody.innerHTML = '<tr><td colspan="5" class="text-center">Data kosong</td></tr>';
+    }
+
+    window.editProduk = (docId) => {
+        window.editProdukId = docId; 
+        let p = window.localCache.produk.find(x => x.docId === docId);
+        if(!p) return;
+        document.getElementById('prodNama').value = p.nama; 
+        document.getElementById('prodHarga').value = p.harga; 
+        document.getElementById('prodStok').value = p.stok; 
+        document.getElementById('prodMin').value = p.min;
+        
+        document.getElementById('btnSimpanProduk').innerText = "Update Barang"; 
+        document.getElementById('btnSimpanProduk').classList.replace('btn-primary', 'btn-success');
+        document.getElementById('formTitle').innerText = "Edit Barang: " + p.nama; 
+        document.getElementById('btnBatalEdit').style.display = 'block';
+    }
+
+    window.resetFormGudang = () => {
+        window.editProdukId = null; 
+        document.getElementById('prodNama').value = ""; 
+        document.getElementById('prodHarga').value = ""; 
+        document.getElementById('prodStok').value = ""; 
+        document.getElementById('prodMin').value = "";
+        
+        document.getElementById('btnSimpanProduk').innerText = "Simpan Ke Cloud"; 
+        document.getElementById('btnSimpanProduk').classList.replace('btn-success', 'btn-primary');
+        document.getElementById('formTitle').innerText = "Tambah Produk Baru"; 
+        document.getElementById('btnBatalEdit').style.display = 'none';
+    }
+
+    window.cetakBelanja = () => {
+        let tbody = document.getElementById('isiBelanja'); tbody.innerHTML = ''; let no=1;
+        window.localCache.produk.forEach(p => { 
+            if(p.stok <= p.min) tbody.innerHTML += `<tr><td>${no++}</td><td>${p.nama}</td><td>${p.stok}</td><td>[ ]</td></tr>`; 
+        });
+        if(no>1) { 
+            document.body.classList.add('print-belanja'); 
+            window.print(); 
+            document.body.classList.remove('print-belanja'); 
+        } else alert("Stok Aman");
+    }
+
+    window.renderRiwayatNota = () => {
         let key = document.getElementById('cariNota').value.toLowerCase();
         let tbody = document.getElementById('tabelRiwayatNota'); tbody.innerHTML = '';
-        // Clone array lalu reverse biar paling atas yg terbaru
-        db.nota.slice().reverse().forEach(n => {
-            if(n.nama?.toLowerCase().includes(key) || n.no.toLowerCase().includes(key)) {
+        
+        window.localCache.nota.forEach(n => {
+            if((n.nama && n.nama.toLowerCase().includes(key)) || (n.no && n.no.toLowerCase().includes(key))) {
                 tbody.innerHTML += `
                 <tr>
                     <td>${n.no}</td>
                     <td>${n.nama}</td>
                     <td class="text-end">
-                        <button onclick="editNota('${n.no}')" class="btn btn-sm btn-warning py-0 me-1" title="Edit"><i class="fas fa-pencil-alt"></i></button>
-                        <button onclick="cetakUlang('${n.no}')" class="btn btn-sm btn-outline-primary py-0" title="Print"><i class="fas fa-print"></i></button>
+                        <button onclick="editNota('${n.docId}')" class="btn btn-sm btn-warning py-0 me-1" title="Edit"><i class="fas fa-pencil-alt"></i></button>
+                        <button onclick="cetakUlang('${n.docId}')" class="btn btn-sm btn-outline-primary py-0" title="Print"><i class="fas fa-print"></i></button>
                     </td>
                 </tr>`;
             }
         });
     }
 
-    function cetakUlang(no) {
-        let n = db.nota.find(x => x.no === no); if(!n) return;
-        document.getElementById('notaNo').innerText = n.no; document.getElementById('notaYth').innerText = n.nama;
+    window.editNota = (docId) => {
+        let n = window.localCache.nota.find(x => x.docId === docId);
+        if(!n) return;
+
+        window.activeNotaId = docId;
+        document.getElementById('notaNo').innerText = n.no;
+        document.getElementById('custNama').value = n.nama;
+        document.getElementById('inputDP').value = n.dp;
+        
+        window.keranjang = JSON.parse(JSON.stringify(n.items));
+        renderNotaIsi();
+        
+        document.getElementById('btnSimpan').innerHTML = '<i class="fas fa-save"></i> UPDATE DATABASE';
+        document.getElementById('btnSimpan').classList.replace('btn-primary', 'btn-warning');
+        document.getElementById('areaNota').classList.add('editing-mode');
+        document.getElementById('badgeEditMode').classList.remove('d-none');
+        
+        window.scrollTo(0,0);
+        document.querySelector('button[data-bs-target="#tabKasir"]').click();
+    }
+
+    window.cetakUlang = (docId) => {
+        let n = window.localCache.nota.find(x => x.docId === docId); if(!n) return;
+        document.getElementById('notaNo').innerText = n.no; 
+        document.getElementById('notaYth').innerText = n.nama;
         let tbody = document.getElementById('notaIsi'); tbody.innerHTML = '';
         n.items.forEach((item, idx) => {
             tbody.innerHTML += `<tr><td class="text-center">${idx + 1}</td><td>${item.nama}</td><td class="text-center">${item.qty}</td><td class="text-end">${item.harga.toLocaleString()}</td><td class="text-end fw-bold">${item.total.toLocaleString()}</td><td></td></tr>`;
         });
-        document.getElementById('notaTotal').innerText = n.total.toLocaleString(); document.getElementById('inputDP').value = n.dp; document.getElementById('notaSisa').innerText = n.sisaInfo;
-        document.body.classList.add('print-nota'); window.print(); document.body.classList.remove('print-nota');
-        resetNota(); // Balik ke mode awal
-    }
-
-    // --- LOGIKA GUDANG & LAINNYA ---
-    function simpanProduk() {
-        let nama = document.getElementById('prodNama').value;
-        let harga = Number(document.getElementById('prodHarga').value);
-        let stok = Number(document.getElementById('prodStok').value);
-        let min = Number(document.getElementById('prodMin').value);
-        if(!nama) return alert("Nama barang wajib diisi!");
-
-        if(editProdukIndex === -1) { db.produk.push({ id: Date.now(), nama, harga, stok, min }); } 
-        else { db.produk[editProdukIndex].nama = nama; db.produk[editProdukIndex].harga = harga; db.produk[editProdukIndex].stok = stok; db.produk[editProdukIndex].min = min; }
-
-        simpanKeBrowser(); initView(); resetFormGudang();
-    }
-    function editProduk(index) {
-        editProdukIndex = index; let p = db.produk[index];
-        document.getElementById('prodNama').value = p.nama; document.getElementById('prodHarga').value = p.harga; document.getElementById('prodStok').value = p.stok; document.getElementById('prodMin').value = p.min;
-        document.getElementById('btnSimpanProduk').innerText = "Update Barang"; document.getElementById('btnSimpanProduk').classList.replace('btn-primary', 'btn-success');
-        document.getElementById('formTitle').innerText = "Edit Barang: " + p.nama; document.getElementById('btnBatalEdit').style.display = 'block';
-    }
-    function resetFormGudang() {
-        editProdukIndex = -1; document.getElementById('prodNama').value = ""; document.getElementById('prodHarga').value = ""; document.getElementById('prodStok').value = ""; document.getElementById('prodMin').value = "";
-        document.getElementById('btnSimpanProduk').innerText = "Simpan"; document.getElementById('btnSimpanProduk').classList.replace('btn-success', 'btn-primary');
-        document.getElementById('formTitle').innerText = "Tambah Produk Baru"; document.getElementById('btnBatalEdit').style.display = 'none';
-    }
-    function renderGudang() {
-        let key = document.getElementById('cariGudang').value.toLowerCase(); let tbody = document.getElementById('isiTabelGudang'); tbody.innerHTML = '';
-        db.produk.forEach((p, idx) => {
-            if(p.nama.toLowerCase().includes(key)) {
-                tbody.innerHTML += `<tr onclick="editProduk(${idx})"><td class="fw-bold text-primary">${p.nama}</td><td>${p.harga.toLocaleString()}</td><td class="${p.stok<=p.min?'text-danger fw-bold':''}">${p.stok}</td><td>${p.min}</td><td onclick="event.stopPropagation()"><button onclick="hapusProduk(${idx})" class="btn btn-danger btn-sm py-0">Hapus</button></td></tr>`;
-            }
-        });
-    }
-    function hapusProduk(idx) { if(confirm("Hapus barang ini?")) { db.produk.splice(idx,1); simpanKeBrowser(); initView(); } }
-    function cetakBelanja() {
-        let tbody = document.getElementById('isiBelanja'); tbody.innerHTML = ''; let no=1;
-        db.produk.forEach(p => { if(p.stok<=p.min) tbody.innerHTML += `<tr><td>${no++}</td><td>${p.nama}</td><td>${p.stok}</td><td>[ ]</td></tr>`; });
-        if(no>1) { document.body.classList.add('print-belanja'); window.print(); document.body.classList.remove('print-belanja'); } else alert("Stok Aman");
-    }
-
-    // --- LOGIKA LAPORAN ---
-    function setFilter(mode) {
-        currentFilter = mode;
-        // Update Button Active State
-        document.querySelectorAll('.btn-filter-group button').forEach(btn => btn.classList.remove('active'));
+        document.getElementById('notaTotal').innerText = n.total.toLocaleString(); 
+        document.getElementById('inputDP').value = n.dp; 
+        document.getElementById('notaSisa').innerText = n.sisaInfo;
         
-        // FIX: Cari tombol berdasarkan ID, bukan event.target untuk menghindari error saat onload
+        document.body.classList.add('print-nota'); 
+        window.print(); 
+        document.body.classList.remove('print-nota');
+        resetNota();
+    }
+
+    window.setFilter = (mode) => {
+        window.currentFilter = mode;
+        document.querySelectorAll('.btn-filter-group button').forEach(btn => btn.classList.remove('active'));
         let activeBtn = document.getElementById('btn-' + mode);
-        if(activeBtn) {
-            activeBtn.classList.add('active');
-        }
+        if(activeBtn) activeBtn.classList.add('active');
         
         let label = "Semua Waktu";
-        if(mode === 'hari') label = "Hari Ini (" + new Date().toLocaleDateString('id-ID') + ")";
-        if(mode === 'minggu') label = "Minggu Ini (Senin - Minggu)";
-        if(mode === 'bulan') label = "Bulan Ini (" + new Date().toLocaleString('id-ID', {month:'long', year:'numeric'}) + ")";
-        if(mode === 'tahun') label = "Tahun Ini (" + new Date().getFullYear() + ")";
+        if(mode === 'hari') label = "Hari Ini";
+        if(mode === 'minggu') label = "Minggu Ini";
+        if(mode === 'bulan') label = "Bulan Ini";
+        if(mode === 'tahun') label = "Tahun Ini";
         document.getElementById('filterInfoText').innerText = "Menampilkan Data: " + label;
         
         renderLaporan();
     }
 
-    function simpanPengeluaran() { let tgl=document.getElementById('expTgl').value; let ket=document.getElementById('expKet').value; let jml=Number(document.getElementById('expJml').value); if(tgl&&ket&&jml) { db.pengeluaran.push({tglStr:tgl, ket, jml}); simpanKeBrowser(); renderLaporan(); document.getElementById('expKet').value=''; document.getElementById('expJml').value=''; } }
-    function simpanPemasukanLain() { let tgl=document.getElementById('inTgl').value; let ket=document.getElementById('inKet').value; let jml=Number(document.getElementById('inJml').value); if(tgl&&ket&&jml) { db.pemasukanLain.push({tglStr:tgl, ket, jml}); simpanKeBrowser(); renderLaporan(); document.getElementById('inKet').value=''; document.getElementById('inJml').value=''; } }
-    
-    function renderLaporan() {
+    // FUNGSI EDIT TRANSAKSI LAPORAN
+    window.editTransaksi = (type, docId) => {
+        if(type === 'nota') {
+            editNota(docId); // Panggil fungsi editNota yang sudah ada (pindah ke Tab Kasir)
+        } 
+        else if (type === 'exp') {
+            let item = window.localCache.pengeluaran.find(x => x.docId === docId);
+            if(item) {
+                window.editingExpId = docId;
+                document.getElementById('expTgl').value = item.tglStr;
+                document.getElementById('expKet').value = item.ket;
+                document.getElementById('expJml').value = item.jml;
+                
+                document.getElementById('btnSimpanExp').innerText = "Update Pengeluaran";
+                document.getElementById('btnSimpanExp').classList.replace('btn-danger', 'btn-warning');
+                document.getElementById('expKet').focus();
+            }
+        }
+        else if (type === 'in') {
+            let item = window.localCache.pemasukanLain.find(x => x.docId === docId);
+            if(item) {
+                window.editingInId = docId;
+                document.getElementById('inTgl').value = item.tglStr;
+                document.getElementById('inKet').value = item.ket;
+                document.getElementById('inJml').value = item.jml;
+                
+                document.getElementById('btnSimpanIn').innerText = "Update Pemasukan";
+                document.getElementById('btnSimpanIn').classList.replace('btn-success', 'btn-warning');
+                document.getElementById('inKet').focus();
+            }
+        }
+    }
+
+    window.renderLaporan = () => {
         let tbody = document.getElementById('tabelLaporan'); tbody.innerHTML = ''; 
         let allData = [];
         let today = new Date();
         today.setHours(0,0,0,0);
 
-        // Helper untuk filter tanggal
         function isSameDay(d1, d2) { return d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate(); }
         function isSameMonth(d1, d2) { return d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth(); }
         function isSameYear(d1, d2) { return d1.getFullYear() === d2.getFullYear(); }
-        function isSameWeek(d) {
-            let onejan = new Date(d.getFullYear(), 0, 1);
-            let today = new Date(new Date().getFullYear(), 0, 1);
-            let dayOfYear = ((d - onejan + 86400000) / 86400000);
-            let todayDayOfYear = ((new Date() - today + 86400000) / 86400000);
-            return Math.ceil(dayOfYear / 7) === Math.ceil(todayDayOfYear / 7);
-        }
 
-        // 1. Kumpulkan Data (Nota, Expense, Income)
-        db.nota.forEach(n => { 
-            allData.push({dateObj: new Date(n.tgl), displayTgl: new Date(n.tgl).toLocaleString('id-ID'), ket: `Penjualan: ${n.no} (${n.nama})`, in: n.total, out: 0, color: 'text-primary'}); 
+        window.localCache.nota.forEach(n => { 
+            allData.push({
+                type: 'nota', docId: n.docId,
+                dateObj: new Date(n.tgl), displayTgl: new Date(n.tgl).toLocaleString('id-ID'), 
+                ket: `Penjualan: ${n.no} (${n.nama})`, in: n.total, out: 0, color: 'text-primary'
+            }); 
         });
-        db.pengeluaran.forEach(e => { 
-            allData.push({dateObj: new Date(e.tglStr), displayTgl: new Date(e.tglStr).toLocaleDateString('id-ID'), ket: `Biaya: ${e.ket}`, in: 0, out: e.jml, color: 'text-danger'}); 
+        window.localCache.pengeluaran.forEach(e => { 
+            allData.push({
+                type: 'exp', docId: e.docId,
+                dateObj: new Date(e.tglStr), displayTgl: new Date(e.tglStr).toLocaleDateString('id-ID'), 
+                ket: `Biaya: ${e.ket}`, in: 0, out: e.jml, color: 'text-danger'
+            }); 
         });
-        db.pemasukanLain.forEach(i => { 
-            allData.push({dateObj: new Date(i.tglStr), displayTgl: new Date(i.tglStr).toLocaleDateString('id-ID'), ket: `Modal/Lain: ${i.ket}`, in: i.jml, out: 0, color: 'text-success'}); 
+        window.localCache.pemasukanLain.forEach(i => { 
+            allData.push({
+                type: 'in', docId: i.docId,
+                dateObj: new Date(i.tglStr), displayTgl: new Date(i.tglStr).toLocaleDateString('id-ID'), 
+                ket: `Modal/Lain: ${i.ket}`, in: i.jml, out: 0, color: 'text-success'
+            }); 
         });
 
-        // 2. Filter Data Berdasarkan Mode
         let filteredData = allData.filter(item => {
             let d = item.dateObj;
-            if (currentFilter === 'semua') return true;
-            if (currentFilter === 'hari') return isSameDay(d, today);
-            if (currentFilter === 'minggu') {
-                // Sederhana: 7 hari terakhir
-                let diffTime = Math.abs(today - d);
-                let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-                return diffDays <= 7; 
-            }
-            if (currentFilter === 'bulan') return isSameMonth(d, today);
-            if (currentFilter === 'tahun') return isSameYear(d, today);
+            if (window.currentFilter === 'semua') return true;
+            if (window.currentFilter === 'hari') return isSameDay(d, today);
+            if (window.currentFilter === 'minggu') { let diff = Math.ceil(Math.abs(today - d) / (1000 * 60 * 60 * 24)); return diff <= 7; }
+            if (window.currentFilter === 'bulan') return isSameMonth(d, today);
+            if (window.currentFilter === 'tahun') return isSameYear(d, today);
             return true;
         });
 
-        // 3. Sort & Render
         filteredData.sort((a, b) => b.dateObj - a.dateObj);
         
         let totMasuk = 0, totKeluar = 0;
         filteredData.forEach(item => {
             totMasuk += item.in; totKeluar += item.out;
-            tbody.innerHTML += `<tr><td class="small">${item.displayTgl}</td><td class="${item.color}">${item.ket}</td><td class="text-end">${item.in > 0 ? item.in.toLocaleString() : '-'}</td><td class="text-end text-danger">${item.out > 0 ? item.out.toLocaleString() : '-'}</td></tr>`;
+            tbody.innerHTML += `
+            <tr>
+                <td class="small">${item.displayTgl}</td>
+                <td class="${item.color}">${item.ket}</td>
+                <td class="text-end">${item.in > 0 ? item.in.toLocaleString() : '-'}</td>
+                <td class="text-end text-danger">${item.out > 0 ? item.out.toLocaleString() : '-'}</td>
+                <td class="text-center">
+                    <button onclick="editTransaksi('${item.type}', '${item.docId}')" class="btn btn-sm btn-outline-warning py-0"><i class="fas fa-edit"></i></button>
+                </td>
+            </tr>`;
         });
-        document.getElementById('totMasuk').innerText = totMasuk.toLocaleString(); document.getElementById('totKeluar').innerText = totKeluar.toLocaleString(); document.getElementById('totProfit').innerText = (totMasuk - totKeluar).toLocaleString();
+        document.getElementById('totMasuk').innerText = totMasuk.toLocaleString(); 
+        document.getElementById('totKeluar').innerText = totKeluar.toLocaleString(); 
+        document.getElementById('totProfit').innerText = (totMasuk - totKeluar).toLocaleString();
     }
-
-    function resetData() { if(confirm("Hapus SEMUA data permanen?")) { localStorage.clear(); location.reload(); } }
-    function downloadDB() { let dataStr = JSON.stringify(db); let linkElement = document.createElement('a'); linkElement.setAttribute('href', 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr)); linkElement.setAttribute('download', 'BACKUP_MUSADAD_V9_' + new Date().toISOString().split('T')[0] + '.json'); linkElement.click(); }
-    function uploadDB(input) { let file = input.files[0]; if (!file) return; let reader = new FileReader(); reader.onload = function(e) { try { let content = JSON.parse(e.target.result); if(content.produk && content.nota) { localStorage.setItem('musadad_prod', JSON.stringify(content.produk)); localStorage.setItem('musadad_nota', JSON.stringify(content.nota)); localStorage.setItem('musadad_exp', JSON.stringify(content.pengeluaran || [])); localStorage.setItem('musadad_income', JSON.stringify(content.pemasukanLain || [])); alert("Data berhasil dipulihkan!"); location.reload(); } else alert("Format file salah!"); } catch (err) { alert("File corrupt."); } }; reader.readAsText(file); }
 </script>
 </body>
 </html>
