@@ -9,7 +9,7 @@
     
     <!-- FIREBASE SDK -->
     <script type="module">
-        // IMPORT FIREBASE DARI CDN (Agar jalan di browser)
+        // IMPORT FIREBASE DARI CDN
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -26,15 +26,9 @@
             measurementId: "G-8R1HZBEXL0"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(app);
-        
-        // Inisialisasi Auth dan Database
         const auth = getAuth(app);
         const db = getFirestore(app);
-        
-        // ID Toko Anda
         const appId = 'toko-musadad-v9'; 
 
         // Variabel Global
@@ -44,7 +38,8 @@
         window.keranjang = [];
         window.currentFilter = 'bulan';
         
-        // State untuk Edit Keuangan
+        // Config Sort & Edit
+        window.sortGudangState = { col: 'stok', order: 'asc' }; // Default: Stok Kecil ke Besar
         window.editingExpId = null;
         window.editingInId = null;
 
@@ -119,12 +114,10 @@
                     const data = JSON.parse(e.target.result);
                     let count = 0;
                     
-                    // Helper function untuk import batch kecil (karena Firestore punya limit)
                     const importCollection = async (collName, items) => {
                         if (!items || items.length === 0) return;
                         const colRef = collection(db, `data_toko/${appId}/${collName}`);
                         for (const item of items) {
-                            // Hapus ID lama agar dibuatkan ID baru oleh Firestore
                             const { docId, id, ...cleanItem } = item; 
                             await addDoc(colRef, cleanItem);
                             count++;
@@ -139,11 +132,10 @@
                     await importCollection('pemasukanLain', data.pemasukanLain);
 
                     alert(`Berhasil merestore ${count} data!`);
-                    input.value = ''; // Reset input
+                    input.value = ''; 
                     document.getElementById('statusKoneksi').innerHTML = '<span class="badge bg-success"><i class="fas fa-wifi"></i> Online</span>';
                 } catch (err) {
                     alert("Gagal membaca file JSON: " + err.message);
-                    console.error(err);
                 }
             };
             reader.readAsText(file);
@@ -184,7 +176,6 @@
             try {
                 const colProdukPath = `data_toko/${appId}/produk`;
                 
-                // 1. Restore Stok Lama (Jika Edit Nota)
                 if (window.activeNotaId) {
                     const oldNota = window.localCache.nota.find(n => n.docId === window.activeNotaId);
                     if (oldNota) {
@@ -197,7 +188,6 @@
                     }
                 }
 
-                // 2. Potong Stok Baru
                 for (const item of window.keranjang) {
                     if (!String(item.id).startsWith('manual_') && !String(item.id).startsWith('pulsa_')) {
                         const prodRef = window.localCache.produk.find(p => p.docId === item.id);
@@ -207,7 +197,6 @@
                     }
                 }
 
-                // 3. Simpan Nota
                 const notaData = {
                     no: document.getElementById('notaNo').innerText,
                     tgl: new Date().toISOString(),
@@ -233,7 +222,7 @@
             } catch (e) { console.error(e); alert("Terjadi kesalahan: " + e.message); } finally { btn.disabled = false; }
         };
 
-        // KEUANGAN (PENGELUARAN & PEMASUKAN LAIN)
+        // KEUANGAN
         window.simpanPengeluaran = async () => {
             const tgl = document.getElementById('expTgl').value; 
             const ket = document.getElementById('expKet').value; 
@@ -322,6 +311,12 @@
         .editing-mode { border: 3px solid #ffc107; position: relative; }
         .editing-badge { background: #ffc107; color: black; position: absolute; top: 0; right: 0; padding: 5px 10px; font-weight: bold; z-index: 100; }
         .btn-filter-group .btn.active { background-color: #1e3c72; color: white; border-color: #1e3c72; }
+        
+        /* Tambahan Style untuk Header Tabel yang bisa diurutkan */
+        .sortable-header { cursor: pointer; user-select: none; }
+        .sortable-header:hover { background-color: #333 !important; }
+        .sort-icon { font-size: 0.8em; margin-left: 5px; opacity: 0.7; }
+
         @media print {
             body * { visibility: hidden; }
             .header-app, .no-print, .nav, .tab-content > .tab-pane:not(.active) { display: none !important; }
@@ -336,7 +331,6 @@
 </head>
 <body>
 
-<!-- Hidden File Input untuk Restore -->
 <input type="file" id="jsonFile" accept=".json" style="display:none" onchange="restoreData(this)">
 
 <div class="header-app mb-3 no-print">
@@ -364,7 +358,6 @@
         <div class="tab-pane fade show active" id="tabKasir">
             <div class="row">
                 <div class="col-md-4 no-print">
-                    <!-- INPUT PULSA SECTION -->
                     <div class="card p-3 shadow-sm mb-3 border-0 bg-info bg-opacity-10">
                         <h6 class="fw-bold text-primary"><i class="fas fa-mobile-alt"></i> Menu Pulsa / Token</h6>
                         <input type="text" id="pulsaKet" class="form-control form-control-sm mb-2" placeholder="Ket (Cth: Tsel 10k / Token 20k)">
@@ -373,7 +366,6 @@
                         <button onclick="tambahPulsa()" class="btn btn-primary btn-sm w-100 fw-bold"><i class="fas fa-plus-circle"></i> MASUKKAN KE NOTA</button>
                     </div>
 
-                    <!-- INPUT TRANSAKSI BARANG -->
                     <div class="card p-3 shadow-sm mb-3 border-0">
                         <h6 class="fw-bold text-dark">Input Barang / Jasa</h6>
                         <input type="text" id="custNama" class="form-control form-control-sm mb-2" placeholder="Nama Pelanggan">
@@ -468,7 +460,15 @@
                         <input type="text" id="cariGudang" class="form-control mb-3" placeholder="Cari stok..." onkeyup="renderGudang()">
                         <div class="table-responsive">
                             <table class="table table-hover align-middle small table-striped" id="tabelGudang">
-                                <thead class="table-dark"><tr><th>Barang (Klik utk Edit)</th><th>Harga</th><th>Stok</th><th>Min</th><th>Hapus</th></tr></thead>
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th class="sortable-header" onclick="aturSort('nama')">Barang <i class="fas fa-sort sort-icon"></i></th>
+                                        <th class="sortable-header" onclick="aturSort('harga')">Harga <i class="fas fa-sort sort-icon"></i></th>
+                                        <th class="sortable-header" onclick="aturSort('stok')">Stok <i class="fas fa-sort sort-icon"></i></th>
+                                        <th>Min</th>
+                                        <th>Hapus</th>
+                                    </tr>
+                                </thead>
                                 <tbody id="isiTabelGudang"><tr><td colspan="5" class="text-center">Menghubungkan ke database...</td></tr></tbody>
                             </table>
                         </div>
@@ -489,7 +489,6 @@
                     <h5 class="fw-bold mb-0"><i class="fas fa-chart-line"></i> Dashboard Keuangan (Realtime)</h5>
                 </div>
 
-                <!-- FILTER BUTTONS -->
                 <div class="btn-group w-100 mb-3 btn-filter-group shadow-sm" role="group">
                     <button type="button" id="btn-hari" class="btn btn-outline-secondary fw-bold" onclick="setFilter('hari')">Hari Ini</button>
                     <button type="button" id="btn-minggu" class="btn btn-outline-secondary fw-bold" onclick="setFilter('minggu')">Minggu Ini</button>
@@ -540,10 +539,8 @@
     </div>
 </div>
 
-<!-- BOOTSTRAP JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- LOGIKA UI (NON-FIREBASE) -->
 <script>
     function updateAutoNoNota() {
         if(window.activeNotaId) return; 
@@ -651,25 +648,58 @@
         updateAutoNoNota();
     }
 
+    // FUNGSI SORT GUDANG
+    window.aturSort = (column) => {
+        if(window.sortGudangState.col === column) {
+            // Jika kolom sama diklik, balik urutannya (asc <-> desc)
+            window.sortGudangState.order = window.sortGudangState.order === 'asc' ? 'desc' : 'asc';
+        } else {
+            // Jika kolom baru, default ke 'asc'
+            window.sortGudangState.col = column;
+            window.sortGudangState.order = 'asc';
+        }
+        renderGudang();
+    }
+
     window.renderGudang = () => {
         let key = document.getElementById('cariGudang').value.toLowerCase(); 
         let tbody = document.getElementById('isiTabelGudang'); 
         tbody.innerHTML = '';
-        window.localCache.produk.forEach((p) => {
-            if(p.nama.toLowerCase().includes(key)) {
-                tbody.innerHTML += `
-                <tr onclick="editProduk('${p.docId}')">
-                    <td class="fw-bold text-primary">${p.nama}</td>
-                    <td>${p.harga.toLocaleString()}</td>
-                    <td class="${p.stok<=p.min?'text-danger fw-bold':''}">${p.stok}</td>
-                    <td>${p.min}</td>
-                    <td onclick="event.stopPropagation()">
-                        <button onclick="hapusProduk('${p.docId}')" class="btn btn-danger btn-sm py-0">Hapus</button>
-                    </td>
-                </tr>`;
-            }
+        
+        // 1. Filter dulu
+        let filteredData = window.localCache.produk.filter(p => p.nama.toLowerCase().includes(key));
+
+        // 2. Sorting
+        let col = window.sortGudangState.col;
+        let order = window.sortGudangState.order;
+
+        filteredData.sort((a, b) => {
+            let valA = a[col];
+            let valB = b[col];
+            
+            // Handle text sorting (case insensitive)
+            if (typeof valA === 'string') valA = valA.toLowerCase();
+            if (typeof valB === 'string') valB = valB.toLowerCase();
+
+            if (valA < valB) return order === 'asc' ? -1 : 1;
+            if (valA > valB) return order === 'asc' ? 1 : -1;
+            return 0;
         });
-        if(window.localCache.produk.length === 0) tbody.innerHTML = '<tr><td colspan="5" class="text-center">Data kosong</td></tr>';
+
+        // 3. Render HTML
+        filteredData.forEach((p) => {
+            tbody.innerHTML += `
+            <tr onclick="editProduk('${p.docId}')">
+                <td class="fw-bold text-primary">${p.nama}</td>
+                <td>${p.harga.toLocaleString()}</td>
+                <td class="${p.stok<=p.min?'text-danger fw-bold':''}">${p.stok}</td>
+                <td>${p.min}</td>
+                <td onclick="event.stopPropagation()">
+                    <button onclick="hapusProduk('${p.docId}')" class="btn btn-danger btn-sm py-0">Hapus</button>
+                </td>
+            </tr>`;
+        });
+        if(filteredData.length === 0) tbody.innerHTML = '<tr><td colspan="5" class="text-center">Data kosong / tidak ditemukan</td></tr>';
     }
 
     window.editProduk = (docId) => {
@@ -786,10 +816,9 @@
         renderLaporan();
     }
 
-    // FUNGSI EDIT TRANSAKSI LAPORAN
     window.editTransaksi = (type, docId) => {
         if(type === 'nota') {
-            editNota(docId); // Panggil fungsi editNota yang sudah ada (pindah ke Tab Kasir)
+            editNota(docId); 
         } 
         else if (type === 'exp') {
             let item = window.localCache.pengeluaran.find(x => x.docId === docId);
