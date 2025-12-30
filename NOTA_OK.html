@@ -3,990 +3,913 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aplikasi Nota dengan LocalStorage - MUSADAD.COM</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        .print-area { background: white; }
-        .invoice-table th, .invoice-table td { border: 1px solid black; }
-
-        @media print {
-            body * { visibility: hidden; }
-            .print-area, .print-area * { visibility: visible; }
-            .print-area { 
-                position: absolute; 
-                left: 0; 
-                top: 0; 
-                width: 100%; 
-            }
-            /* Menyesuaikan warna untuk cetak */
-            .print-area .bg-yellow-200 { background-color: #fce76b !important; -webkit-print-color-adjust: exact; color-adjust: exact; }
-            .print-area .text-red-600 { color: #dc2626 !important; -webkit-print-color-adjust: exact; color-adjust: exact; }
-        }
-
-        /* Gaya untuk Modal Database */
-        .modal {
-            transition: opacity 0.3s ease-in-out;
-        }
-    </style>
-    <!-- Tambahkan library untuk baca/tulis Excel -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-</head>
-<body class="bg-gray-100 min-h-screen">
-    <div class="container mx-auto p-4">
-        <!-- Header -->
-        <div class="bg-blue-600 text-white p-4 rounded-t-lg">
-            <h1 class="text-2xl font-bold">Aplikasi Nota Percetakan dengan LocalStorage</h1>
-            <p class="text-blue-100">MUSADAD.COM - Ringan dan Cepat</p>
-        </div>
-
-        <div class="flex flex-col lg:flex-row gap-4 bg-white rounded-b-lg shadow-lg">
-            <!-- Left Panel - Invoice Creation -->
-            <div class="flex-1 p-6">
-                <div class="print-area">
-                    <!-- Invoice Header Section -->
-                    <div class="flex justify-between items-start mb-6">
-                        <div class="w-1/2">
-                            <h2 class="text-2xl font-extrabold text-red-600">MUSADAD.COM</h2>
-                            <p class="text-sm font-semibold text-gray-700">PERCETAKAN</p>
-                            <p class="text-xs text-gray-600 mt-2">Jl. Rp.Garendong - cisema Petir, Kab.Serang BANTEN<br>Tlp. 083812352663<br>Email. musadad08@gmail.com</p>
-                        </div>
-                        <div class="w-1/2 text-right">
-                            <div class="flex justify-end gap-2 text-xs mb-2 items-center">
-                                <label class="font-medium text-gray-700 text-base">Tanggal</label>
-                                <input type="text" id="invoiceDateDisplay" class="border border-black px-1" readonly>
-                            </div>
-                            <div class="flex justify-end gap-2 text-xs items-center">
-                                <label class="font-medium text-gray-700 text-base">Tuan</label>
-                                <input type="text" id="customerNameInput" class="border border-black px-1" placeholder="Nama Pelanggan">
-                            </div>
-                            <div class="flex justify-end gap-2 text-xs mt-2 items-center">
-                                <label class="font-medium text-gray-700 text-base">Tlp.</label>
-                                <input type="text" id="customerPhoneInput" class="border border-black px-1" placeholder="No. Telepon">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center mb-4">
-                        <label class="text-xs font-medium text-gray-700 mr-2">NO NOTA:</label>
-                        <input type="text" id="invoiceNumber" class="border border-black w-36 px-1" readonly>
-                    </div>
-
-                    <!-- Items Table -->
-                    <div class="mb-6">
-                        <table class="w-full border-collapse invoice-table">
-                            <thead class="bg-yellow-200">
-                                <tr class="border border-black">
-                                    <th class="border border-black p-2 text-center w-20">BANYAK</th>
-                                    <th class="border border-black p-2 text-left">NAMA BARANG</th>
-                                    <th class="border border-black p-2 text-right w-24">HARGA</th>
-                                    <th class="border border-black p-2 text-right w-24">JUMLAH</th>
-                                    <th class="border border-black p-2 text-center w-12"></th>
-                                </tr>
-                            </thead>
-                            <tbody id="itemsTable">
-                                <!-- Default row for new invoices -->
-                                <tr>
-                                    <td class="border border-black p-1 text-center">
-                                        <input type="number" class="w-full p-1 border-0 text-center quantity-input" value="0" min="0">
-                                    </td>
-                                    <td class="border border-black p-1">
-                                        <input type="text" class="w-full p-1 border-0 item-name" placeholder="Nama barang/jasa">
-                                    </td>
-                                    <td class="border border-black p-1">
-                                        <input type="number" class="w-full p-1 border-0 text-right item-price" placeholder="0" min="0">
-                                    </td>
-                                    <td class="border border-black p-1 text-right item-total font-medium">Rp 0</td>
-                                    <td class="border border-black p-1 text-center">
-                                        <button onclick="removeItem(this)" class="text-red-500 hover:text-red-700">🗑️</button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <button onclick="addItem()" class="mt-2 bg-green-500 text-white px-4 py-1 rounded hover:bg-green-600 text-sm">+ Tambah Item</button>
-                    </div>
-
-                    <!-- Ringkasan & Peringatan -->
-                    <div class="flex justify-between items-end mb-6">
-                        <div class="flex-1 mr-4">
-                            <p class="text-sm font-medium mb-1">Diterima,</p>
-                            <div class="h-16 border-b border-black"></div>
-                            <div class="mt-2 text-sm text-center font-bold">( ................ )</div>
-                        </div>
-                        <div class="flex-1">
-                            <div class="grid grid-cols-2 gap-1 mb-1">
-                                <span class="text-sm font-medium">Jumlah Rp.</span>
-                                <input type="text" id="totalAmount" readonly class="border border-black px-1 text-right font-bold bg-gray-100">
-                            </div>
-                            <div class="grid grid-cols-2 gap-1 mb-1">
-                                <span class="text-sm font-medium">Uang Muka Rp.</span>
-                                <input type="number" id="downPayment" class="border border-black px-1 text-right" min="0">
-                            </div>
-                            <div class="grid grid-cols-2 gap-1">
-                                <span class="text-sm font-medium">Kurang Rp.</span>
-                                <input type="text" id="remainingAmount" readonly class="border border-black px-1 text-right font-bold text-red-600 bg-gray-100">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Payment Info & Warning -->
-                    <div class="mt-6 border-t border-black pt-4 flex justify-between items-start">
-                        <div class="w-1/2 mr-4">
-                            <p class="text-sm font-bold">PEMBAYARAN BISA MELALUI</p>
-                            <div class="text-xs mt-2">
-                                <p>Transfer ke:</p>
-                                <p>NOREK BANK BCA</p>
-                                <p class="font-bold">5410927839 ROHMATULLOH AL MUSADAD</p>
-                            </div>
-                        </div>
-                        <div class="w-1/2 border border-red-500 bg-red-100 rounded p-2 text-center text-xs">
-                            <p class="text-red-800 font-bold">PERHATIAN !!!</p>
-                            <p class="text-red-600 mt-1">Barang-barang yang sudah dibeli tidak bisa ditukar / dikembalikan</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right Panel - Database Controls -->
-            <div class="w-full lg:w-96 p-6 bg-gray-50 border-l">
-                <!-- Database Status -->
-                <div class="mb-6 bg-green-100 border border-green-300 rounded p-3">
-                    <h3 class="text-lg font-semibold text-green-800 mb-2">📊 Status Database</h3>
-                    <p class="text-sm text-green-700">Total Records: <span id="dbRecordCount" class="font-bold">0</span></p>
-                    <p class="text-sm text-green-700">Database: <span class="font-bold" id="dbStatus">Loading...</span></p>
-                </div>
-
-                <!-- Navigation Controls -->
-                <div class="mb-6">
-                    <h3 class="text-lg font-semibold mb-3">Navigasi Data</h3>
-                    <div class="flex justify-center gap-2 mb-4">
-                        <button onclick="firstRecord()" class="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" title="First">⏮️</button>
-                        <button onclick="prevRecord()" class="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" title="Previous">⏪</button>
-                        <button onclick="nextRecord()" class="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" title="Next">⏩</button>
-                        <button onclick="lastRecord()" class="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" title="Last">⏭️</button>
-                    </div>
-                    <div class="text-center text-sm text-gray-600">
-                        Record: <span id="currentRecord">0</span> of <span id="totalRecords">0</span>
-                    </div>
-                </div>
-                
-                <!-- Tombol untuk Modal Database -->
-                <div class="mb-6">
-                     <button onclick="showDatabaseDetails()" class="w-full bg-orange-500 text-white px-3 py-2 rounded hover:bg-orange-600 text-sm">Lihat Database</button>
-                </div>
-
-                <!-- CRUD Operations -->
-                <div class="mb-6">
-                    <h3 class="text-lg font-semibold mb-3">Database Operations</h3>
-                    <div class="grid grid-cols-3 gap-2">
-                        <button onclick="newInvoice()" class="bg-green-500 text-white px-3 py-2 rounded hover:bg-green-600 text-sm">📄 Baru</button>
-                        <button onclick="saveInvoice()" id="saveButton" class="bg-blue-500 text-white px-3 py-2 rounded hover:bg-blue-600 text-sm">💾 Simpan</button>
-                        <button onclick="updateInvoice()" class="bg-yellow-500 text-white px-3 py-2 rounded hover:bg-yellow-600 text-sm">✏️ Update</button>
-                        <button onclick="deleteInvoice()" class="bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600 text-sm">🗑️ Hapus</button>
-                        <button onclick="printInvoice()" class="bg-purple-500 text-white px-3 py-2 rounded hover:bg-purple-600 text-sm">🖨️ Cetak</button>
-                        <button onclick="openBahan()" class="bg-purple-500 text-white px-3 py-2 rounded hover:bg-purple-600 text-sm">🖨 Hitung Bahan 1.1 </button>
-                        <button onclick="openBahan2()" class="bg-purple-500 text-white px-3 py-2 rounded hover:bg-purple-600 text-sm">🖨 Hitung Bahan 1.6 </button>
-                    </div>
-                </div>
-
-                <!-- Search -->
-                <div class="mb-6">
-                    <h3 class="text-lg font-semibold mb-3">Pencarian</h3>
-                    <input type="text" id="searchInput" placeholder="Cari no. nota, nama pelanggan, atau nama barang..." class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 mb-2">
-                    <button onclick="searchInvoices()" class="w-full bg-orange-500 text-white px-3 py-2 rounded hover:bg-orange-600 text-sm">🔍 Cari</button>
-                </div>
-
-                <!-- Database Records List -->
-                <div class="mb-6">
-                    <h3 class="text-lg font-semibold mb-3">Database Records</h3>
-                    <div class="bg-white rounded border max-h-80 overflow-auto">
-                        <table class="w-full text-xs">
-                            <thead class="bg-gray-100 sticky top-0">
-                                <tr>
-                                    <th class="p-2 text-left border-b">No. Nota</th>
-                                    <th class="p-2 text-left border-b">Tanggal</th>
-                                    <th class="p-2 text-left border-b">Pelanggan</th>
-                                    <th class="p-2 text-left border-b">Total</th>
-                                    <th class="p-2 text-left border-b">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="databaseTable">
-                                <!-- Records will be populated by JavaScript -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Database Management -->
-                <div class="mb-6">
-                    <h3 class="text-lg font-semibold mb-3">Database Management</h3>
-                    <div class="space-y-2">
-                        <button onclick="clearDatabase()" class="w-full bg-red-600 text-white px-3 py-2 rounded hover:bg-red-700 text-sm">🗑️ Hapus Semua Data</button>
-                        <button class="app-button" onclick="handleButtonClick('nota')">NOTA</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <title>MUSADAD SYSTEM V9 PRO - ONLINE</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
-    <!-- Modal untuk Tampilan Detail Database -->
-    <div id="databaseModal" class="modal fixed inset-0 bg-gray-900 bg-opacity-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-            <div class="flex justify-between items-center p-4 border-b border-gray-200">
-                <h2 class="text-xl font-bold">Detail Database Nota</h2>
-                <button onclick="closeDatabaseModal()" class="text-gray-500 hover:text-gray-800">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-            </div>
-            
-            <!-- Tombol Backup & Restore di dalam Modal -->
-            <div class="p-4 bg-gray-50 border-b border-gray-200">
-                <div class="flex flex-col sm:flex-row gap-2">
-                    <button onclick="exportDatabase()" class="flex-1 bg-cyan-500 text-white px-3 py-2 rounded hover:bg-cyan-600 text-sm flex justify-center items-center">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                        Backup JSON
-                    </button>
-                    <button onclick="importDatabase()" class="flex-1 bg-teal-500 text-white px-3 py-2 rounded hover:bg-teal-600 text-sm flex justify-center items-center">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0l-4 4m4-4v12"></path></svg>
-                        Restore JSON
-                    </button>
-                    <button onclick="exportDatabaseToExcel()" class="flex-1 bg-lime-500 text-white px-3 py-2 rounded hover:bg-lime-600 text-sm flex justify-center items-center">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9-3a9 9 0 1118 0 9 9 0 01-18 0z"></path></svg>
-                        Export Excel
-                    </button>
-                    <button onclick="importDatabaseFromExcel()" class="flex-1 bg-amber-500 text-white px-3 py-2 rounded hover:bg-amber-600 text-sm flex justify-center items-center">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9-3a9 9 0 1118 0 9 9 0 01-18 0z"></path></svg>
-                        Import Excel
-                    </button>
-                </div>
-                <!-- Input file untuk restore, disembunyikan -->
-                <input type="file" id="importFile" class="hidden" accept=".json" onchange="handleImportFile(event)">
-                <input type="file" id="importExcelFile" class="hidden" accept=".xlsx, .xls, .csv" onchange="handleImportExcelFile(event)">
-            </div>
+    <!-- FIREBASE SDK -->
+    <script type="module">
+        // IMPORT FIREBASE DARI CDN
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-            <div class="p-4 overflow-y-auto flex-grow">
-                <table class="min-w-full divide-y divide-gray-200 text-sm">
-                    <thead class="bg-gray-50 sticky top-0">
-                        <tr>
-                            <th class="p-2 text-left text-gray-500 uppercase tracking-wider border-b">No. Nota</th>
-                            <th class="p-2 text-left text-gray-500 uppercase tracking-wider border-b">Tanggal</th>
-                            <th class="p-2 text-left text-gray-500 uppercase tracking-wider border-b">Tuan</th>
-                            <th class="p-2 text-left text-gray-500 uppercase tracking-wider border-b">Tlp</th>
-                            <th class="p-2 text-left text-gray-500 uppercase tracking-wider border-b">Banyak</th>
-                            <th class="p-2 text-left text-gray-500 uppercase tracking-wider border-b">Nama Barang</th>
-                            <th class="p-2 text-left text-gray-500 uppercase tracking-wider border-b">Harga</th>
-                            <th class="p-2 text-left text-gray-500 uppercase tracking-wider border-b">Jumlah</th>
-                        </tr>
-                    </thead>
-                    <tbody id="fullDatabaseTable" class="bg-white divide-y divide-gray-200">
-                        <!-- Data akan diisi oleh JavaScript -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-    
-    <script>
-        // Database Management System menggunakan localStorage
-        class InvoiceDatabase {
-            constructor() {
-                this.dbKey = 'musadad_invoices_ls';
-                this.records = [];
-                this.currentIndex = 0;
-            }
+        // --- KONFIGURASI DATABASE ANDA ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyAXOHHI9ytfcjK1sc4ZoErSheJ3zPyM3u4",
+            authDomain: "x-casing-482715-v7.firebaseapp.com",
+            projectId: "x-casing-482715-v7",
+            storageBucket: "x-casing-482715-v7.firebasestorage.app",
+            messagingSenderId: "752575391484",
+            appId: "1:752575391484:web:5d455dc03149f5f8d4d979",
+            measurementId: "G-8R1HZBEXL0"
+        };
 
-            async init() {
-                this.loadAllRecords();
-                document.getElementById('dbStatus').textContent = 'LocalStorage Aktif';
-                return Promise.resolve();
-            }
-            
-            _saveToLocalStorage() {
-                localStorage.setItem(this.dbKey, JSON.stringify(this.records));
-            }
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = 'toko-musadad-v9'; 
 
-            async create(invoiceData) {
-                const newInvoice = {
-                    id: crypto.randomUUID(),
-                    invoiceNumber: await this.generateInvoiceNumber(),
-                    ...invoiceData,
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString()
-                };
-                
-                this.records.push(newInvoice);
-                this._saveToLocalStorage();
-                this.updateUI();
-                return newInvoice.id;
-            }
-           
-            async update(id, invoiceData) {
-                const index = this.records.findIndex(r => r.id === id);
-                if (index === -1) return false;
-                
-                const updatedInvoice = {
-                    ...this.records[index],
-                    ...invoiceData,
-                    updatedAt: new Date().toISOString()
-                };
-                
-                this.records[index] = updatedInvoice;
-                this._saveToLocalStorage();
-                this.updateUI();
-                return true;
-            }
-
-            async read(id) {
-                return this.records.find(r => r.id === id);
-            }
-
-            async delete(id) {
-                const index = this.records.findIndex(r => r.id === id);
-                if (index === -1) return false;
-                
-                this.records.splice(index, 1);
-                this._saveToLocalStorage();
-                this.updateUI();
-                return true;
-            }
-
-            async loadAllRecords() {
-                const storedData = localStorage.getItem(this.dbKey);
-                this.records = storedData ? JSON.parse(storedData) : [];
-                this.records.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-                this.updateUI();
-            }
-
-            async search(query) {
-                const searchTerm = query.toLowerCase();
-                return this.records.filter(record => 
-                    (record.invoiceNumber && record.invoiceNumber.toLowerCase().includes(searchTerm)) ||
-                    (record.customerName && record.customerName.toLowerCase().includes(searchTerm)) ||
-                    (record.customerPhone && String(record.customerPhone).toLowerCase().includes(searchTerm)) ||
-                    (record.items && record.items.some(item => item.name && String(item.name).toLowerCase().includes(searchTerm)))
-                );
-            }
-
-            async clear() {
-                localStorage.removeItem(this.dbKey);
-                this.records = [];
-                this.updateUI();
-                return true;
-            }
-            
-            async importData(data) {
-                if (!Array.isArray(data)) {
-                    throw new Error('Format data tidak valid. Diperperlukan array.');
-                }
-                this.records = data;
-                this._saveToLocalStorage();
-                this.updateUI();
-            }
-            
-            async generateInvoiceNumber() {
-                const today = new Date();
-                const d = String(today.getDate()).padStart(2, '0');
-                const m = String(today.getMonth() + 1).padStart(2, '0');
-                const y = today.getFullYear();
-                const datePrefix = `${d}${m}${y}`;
-
-                const todayRecords = this.records.filter(r => r.invoiceNumber && r.invoiceNumber.startsWith(datePrefix));
-
-                let lastSeq = 0;
-                if (todayRecords.length > 0) {
-                    lastSeq = Math.max(...todayRecords.map(r => parseInt(r.invoiceNumber.slice(8)) || 0));
-                }
-                
-                const newSeq = String(lastSeq + 1).padStart(3, '0');
-                
-                return `${datePrefix}${newSeq}`;
-            }
-
-            updateUI() {
-                const totalCount = this.records.length;
-                document.getElementById('dbRecordCount').textContent = totalCount;
-                document.getElementById('totalRecords').textContent = totalCount;
-                document.getElementById('currentRecord').textContent = totalCount > 0 ? this.currentIndex + 1 : 0;
-                this.populateTable(this.records);
-            }
-
-            populateTable(records) {
-                const tbody = document.getElementById('databaseTable');
-                tbody.innerHTML = '';
-                
-                records.forEach((record) => {
-                    const originalIndex = this.records.findIndex(r => r.id === record.id);
-                    const row = tbody.insertRow();
-                    const remaining = record.totalAmount - (record.downPayment || 0);
-                    const status = remaining <= 0 ? 'Lunas' : 'Belum Lunas';
-                    const statusColor = remaining <= 0 ? 'text-green-600' : 'text-red-600';
-
-                    row.innerHTML = `
-                        <td class="p-2 border-b cursor-pointer hover:bg-blue-50" onclick="db.loadRecordByIndex(${originalIndex})">${record.invoiceNumber}</td>
-                        <td class="p-2 border-b">${new Date(record.invoiceDate).toLocaleDateString('id-ID')}</td>
-                        <td class="p-2 border-b">${record.customerName}</td>
-                        <td class="p-2 border-b">Rp ${record.totalAmount ? record.totalAmount.toLocaleString('id-ID') : '0'}</td>
-                        <td class="p-2 border-b ${statusColor} font-semibold">${status}</td>
-                    `;
-                });
-            }
-
-            async loadRecordByIndex(index) {
-                if (index >= 0 && index < this.records.length) {
-                    this.currentIndex = index;
-                    const record = this.records[index];
-
-                    document.getElementById('invoiceNumber').value = record.invoiceNumber;
-                    document.getElementById('invoiceDateDisplay').value = new Date(record.invoiceDate).toLocaleDateString('id-ID', {day: '2-digit', month: '2-digit', year: 'numeric'});
-                    document.getElementById('customerNameInput').value = record.customerName;
-                    document.getElementById('customerPhoneInput').value = record.customerPhone;
-                    document.getElementById('downPayment').value = record.downPayment || '';
-                    
-                    const tbody = document.getElementById('itemsTable');
-                    tbody.innerHTML = '';
-                    
-                    if(record.items && record.items.length > 0){
-                        record.items.forEach(item => {
-                            const row = tbody.insertRow();
-                            const totalItemPrice = (item.quantity * item.price);
-                            row.innerHTML = `
-                                <tr>
-                                    <td class="border border-black p-1 text-center"><input type="number" class="w-full p-1 border-0 text-center quantity-input" value="${item.quantity}" min="0"></td>
-                                    <td class="border border-black p-1"><input type="text" class="w-full p-1 border-0 item-name" value="${item.name}"></td>
-                                    <td class="border border-black p-1"><input type="number" class="w-full p-1 border-0 text-right item-price" value="${item.price}" min="0"></td>
-                                    <td class="border border-black p-1 text-right item-total font-medium">Rp ${totalItemPrice.toLocaleString('id-ID')}</td>
-                                    <td class="border border-black p-1 text-center"><button onclick="removeItem(this)" class="text-red-500 hover:text-red-700">🗑️</button></td>
-                                </tr>
-                            `;
-                        });
-                    } else {
-                        addItem(); // Add a default row if no items exist
-                    }
-
-                    updateCalculations();
-                    this.updateUI();
-                }
-            }
-
-            async first() { if (this.records.length > 0) await this.loadRecordByIndex(0); }
-            async previous() { if (this.currentIndex > 0) await this.loadRecordByIndex(this.currentIndex - 1); }
-            async next() { if (this.currentIndex < this.records.length - 1) await this.loadRecordByIndex(this.currentIndex + 1); }
-            async last() { if (this.records.length > 0) await this.loadRecordByIndex(this.records.length - 1); }
-        }
-
-        const db = new InvoiceDatabase();
+        // Variabel Global
+        window.localCache = { produk: [], nota: [], pengeluaran: [], pemasukanLain: [] };
+        window.activeNotaId = null; 
+        window.editProdukId = null;
+        window.keranjang = [];
+        window.currentFilter = 'bulan';
         
-        document.addEventListener('DOMContentLoaded', async function() {
-            await db.init();
-            await newInvoice(); 
-            
-            document.addEventListener('input', e => {
-                if (e.target.classList.contains('quantity-input') || 
-                    e.target.classList.contains('item-price') || 
-                    e.target.id === 'downPayment') {
-                    updateCalculations();
-                }
-            });
+        // Config Sort & Edit
+        window.sortGudangState = { col: 'stok', order: 'asc' }; // Default: Stok Kecil ke Besar
+        window.editingExpId = null;
+        window.editingInId = null;
+
+        // --- AUTHENTICATION ---
+        signInAnonymously(auth).catch((error) => {
+            console.error("Gagal Login:", error);
+            alert("Gagal koneksi ke server. Pastikan 'Anonymous Auth' aktif di Firebase Console.");
         });
 
-        function addItem() {
-            const tbody = document.getElementById('itemsTable');
-            const newRow = tbody.insertRow();
-            newRow.innerHTML = `
-                <tr>
-                    <td class="border border-black p-1 text-center"><input type="number" class="w-full p-1 border-0 text-center quantity-input" value="1" min="0"></td>
-                    <td class="border border-black p-1"><input type="text" class="w-full p-1 border-0 item-name" placeholder="Nama barang/jasa"></td>
-                    <td class="border border-black p-1"><input type="number" class="w-full p-1 border-0 text-right item-price" placeholder="0" min="0"></td>
-                    <td class="border border-black p-1 text-right item-total font-medium">Rp 0</td>
-                    <td class="border border-black p-1 text-center"><button onclick="removeItem(this)" class="text-red-500 hover:text-red-700">🗑️</button></td>
-                </tr>
-            `;
-            updateCalculations();
-        }
-
-        function removeItem(button) {
-            const tbody = button.closest('tbody');
-            button.closest('tr').remove();
-            if (tbody.rows.length === 0) {
-                 addItem(); // Ensure there's always at least one row
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                console.log("Terhubung ke Database. User ID:", user.uid);
+                document.getElementById('statusKoneksi').innerHTML = '<span class="badge bg-success"><i class="fas fa-wifi"></i> Online</span>';
+                mulaiDengarData();
+            } else {
+                document.getElementById('statusKoneksi').innerHTML = '<span class="badge bg-danger"><i class="fas fa-times"></i> Offline</span>';
             }
-            updateCalculations();
-        }
+        });
 
-        function updateCalculations() {
-            let total = 0;
-            document.querySelectorAll('#itemsTable tr').forEach(row => {
-                const quantity = parseFloat(row.querySelector('.quantity-input').value) || 0;
-                const price = parseFloat(row.querySelector('.item-price').value) || 0;
-                const itemTotal = quantity * price;
-                row.querySelector('.item-total').textContent = `Rp ${itemTotal.toLocaleString('id-ID')}`;
-                total += itemTotal;
-            });
+        // --- FUNGSI REALTIME DATABASE ---
+        function mulaiDengarData() {
+            const basePath = `data_toko/${appId}`;
 
-            document.getElementById('totalAmount').value = `Rp ${total.toLocaleString('id-ID')}`;
-            const downPayment = parseFloat(document.getElementById('downPayment').value) || 0;
-            const remaining = total - downPayment;
-            document.getElementById('remainingAmount').value = `Rp ${remaining.toLocaleString('id-ID')}`;
-        }
-
-        function getFormData() {
-            const items = [];
-            document.querySelectorAll('#itemsTable tr').forEach(row => {
-                const quantity = parseFloat(row.querySelector('.quantity-input').value) || 0;
-                const name = row.querySelector('.item-name').value.trim();
-                const price = parseFloat(row.querySelector('.item-price').value) || 0;
-                if (name && quantity > 0) items.push({ quantity, name, price });
-            });
-
-            const invoiceNumber = document.getElementById('invoiceNumber').value;
-            const record = db.records.find(r => r.invoiceNumber === invoiceNumber);
-            
-            return {
-                id: record ? record.id : null,
-                invoiceNumber: invoiceNumber,
-                invoiceDate: new Date().toISOString(),
-                customerName: document.getElementById('customerNameInput').value,
-                customerPhone: document.getElementById('customerPhoneInput').value,
-                items: items,
-                totalAmount: parseFloat(document.getElementById('totalAmount').value.replace(/[^\d,]/g, '').replace(',', '.')) || 0,
-                downPayment: parseFloat(document.getElementById('downPayment').value) || 0
-            };
-        }
-
-        async function newInvoice() {
-            document.getElementById('invoiceNumber').value = await db.generateInvoiceNumber();
-            document.getElementById('invoiceDateDisplay').value = new Date().toLocaleDateString('id-ID', {day: '2-digit', month: '2-digit', year: 'numeric'});
-            document.getElementById('customerNameInput').value = '';
-            document.getElementById('customerPhoneInput').value = '';
-            document.getElementById('downPayment').value = '';
-            
-            const tbody = document.getElementById('itemsTable');
-            tbody.innerHTML = '';
-            addItem();
-            updateCalculations();
-        }
-
-        async function saveInvoice() {
-            const formData = getFormData();
-            if (!formData.customerName) return showCustomMessage('Mohon isi nama pelanggan!');
-            if (formData.items.length === 0) return showCustomMessage('Mohon tambahkan minimal satu item!');
-
-            try {
-                const id = await db.create(formData);
-                showCustomMessage(`Nota berhasil disimpan!`);
-                const newIndex = db.records.findIndex(r => r.id === id);
-                await db.loadRecordByIndex(newIndex);
-            } catch (error) {
-                showCustomMessage('Gagal menyimpan nota!');
-                console.error('Save error:', error);
-            }
-        }
-
-        async function updateInvoice() {
-            const formData = getFormData();
-            if (!formData.id) return showCustomMessage('Tidak ada nota yang dipilih untuk diupdate!');
-            if (!formData.customerName) return showCustomMessage('Mohon isi nama pelanggan!');
-            
-            try {
-                const success = await db.update(formData.id, formData);
-                showCustomMessage(success ? 'Nota berhasil diupdate!' : 'Gagal mengupdate nota!');
-            } catch (error) {
-                showCustomMessage('Gagal mengupdate nota!');
-                console.error('Update error:', error);
-            }
-        }
-
-        async function deleteInvoice() {
-            // 1. Check if there is a record currently selected.
-            // The currentIndex points to the record loaded in the form.
-            if (db.records.length === 0 || db.currentIndex < 0 || db.currentIndex >= db.records.length) {
-                return showCustomMessage('Tidak ada nota yang dipilih untuk dihapus!');
-            }
-
-            // 2. Get the record to be deleted from our database array.
-            const recordToDelete = db.records[db.currentIndex];
-            
-            // 3. Confirm with the user, showing the invoice number.
-            showCustomMessageWithConfirmation(`Yakin ingin menghapus nota No. ${recordToDelete.invoiceNumber}?`, async (isConfirmed) => {
-                if (isConfirmed) {
-                    try {
-                        // 4. Perform the deletion using the record's unique ID.
-                        const success = await db.delete(recordToDelete.id);
-                        if (success) {
-                            // 5. After successful deletion, reset the form to a new invoice state.
-                            await newInvoice();
-                            showCustomMessage('Nota berhasil dihapus!');
-                        } else {
-                            // This case is unlikely if we got the record from the array itself, but good to have.
-                            showCustomMessage('Gagal menghapus nota (nota tidak ditemukan).');
-                        }
-                    } catch (error) {
-                        showCustomMessage('Terjadi galat saat menghapus nota.');
-                        console.error('Delete error:', error);
-                    }
-                }
-            });
-        }
-
-        // FUNGSI PRINT DENGAN UMPAN BALIK
-        function printInvoice() {
-            try {
-                window.print();
-                // Beri pesan jika jendela cetak mungkin tidak langsung terlihat
-                showCustomMessage('Jendela cetak telah dibuka. Periksa jendela pop-up peramban Anda.');
-            } catch (e) {
-                // Tangani kesalahan jika jendela cetak tidak bisa dibuka
-                showCustomMessage('Gagal membuka jendela cetak. Periksa pengaturan peramban atau pop-up blocker Anda.');
-                console.error('Print error:', e);
-            }
-        }
-        
-        async function exportDatabase() {
-            try {
-                const data = db.records;
-                if (data.length === 0) {
-                    showCustomMessage("Database kosong, tidak ada yang bisa di-backup.");
-                    return;
-                }
-                const jsonString = JSON.stringify(data, null, 2);
-                const blob = new Blob([jsonString], { type: 'application/json' });
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(blob);
-                a.download = `musadad_invoices_backup_${new Date().toISOString().split('T')[0]}.json`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(a.href);
-            } catch (error) {
-                showCustomMessage('Gagal backup database!');
-                console.error('Export error:', error);
-            }
-        }
-
-        function importDatabase() { document.getElementById('importFile').click(); }
-
-        function handleImportFile(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                showCustomMessageWithConfirmation('Ini akan menimpa data saat ini dengan data dari file. Lanjutkan?', async (isConfirmed) => {
-                    if (isConfirmed) {
-                        try {
-                            await db.importData(JSON.parse(e.target.result));
-                            showCustomMessage('Data berhasil di-restore!');
-                            await db.first(); // Load the first record from new data
-                            closeDatabaseModal(); // Tutup modal setelah restore
-                        } catch (error) {
-                            showCustomMessage('Gagal me-restore data. Pastikan file JSON valid.');
-                            console.error('Import error:', error);
-                        }
-                    }
+            // 1. Dengar Data PRODUK
+            onSnapshot(collection(db, basePath, 'produk'), (snapshot) => {
+                window.localCache.produk = [];
+                snapshot.forEach((doc) => {
+                    window.localCache.produk.push({ docId: doc.id, ...doc.data() });
                 });
+                renderGudang();
+                renderStokOption();
+            });
+
+            // 2. Dengar Data NOTA
+            onSnapshot(collection(db, basePath, 'nota'), (snapshot) => {
+                window.localCache.nota = [];
+                snapshot.forEach((doc) => {
+                    window.localCache.nota.push({ docId: doc.id, ...doc.data() });
+                });
+                window.localCache.nota.sort((a, b) => new Date(b.tgl) - new Date(a.tgl));
+                renderRiwayatNota();
+                renderLaporan();
+                if (!window.activeNotaId) updateAutoNoNota();
+            });
+
+            // 3. Dengar PENGELUARAN
+            onSnapshot(collection(db, basePath, 'pengeluaran'), (snapshot) => {
+                window.localCache.pengeluaran = [];
+                snapshot.forEach((doc) => window.localCache.pengeluaran.push({ docId: doc.id, ...doc.data() }));
+                renderLaporan();
+            });
+
+            // 4. Dengar PEMASUKAN LAIN
+            onSnapshot(collection(db, basePath, 'pemasukanLain'), (snapshot) => {
+                window.localCache.pemasukanLain = [];
+                snapshot.forEach((doc) => window.localCache.pemasukanLain.push({ docId: doc.id, ...doc.data() }));
+                renderLaporan();
+            });
+        }
+
+        // --- EXPORT DATABASE FUNCTIONS ---
+        // RESTORE DATA OFFLINE (JSON)
+        window.restoreData = async (input) => {
+            const file = input.files[0];
+            if (!file) return;
+
+            if(!confirm("Apakah Anda yakin ingin menggabungkan data dari file JSON ini ke Database Online?")) return;
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    let count = 0;
+                    
+                    const importCollection = async (collName, items) => {
+                        if (!items || items.length === 0) return;
+                        const colRef = collection(db, `data_toko/${appId}/${collName}`);
+                        for (const item of items) {
+                            const { docId, id, ...cleanItem } = item; 
+                            await addDoc(colRef, cleanItem);
+                            count++;
+                        }
+                    };
+
+                    document.getElementById('statusKoneksi').innerHTML = '<span class="badge bg-warning text-dark">Mengupload Data...</span>';
+                    
+                    await importCollection('produk', data.produk);
+                    await importCollection('nota', data.nota);
+                    await importCollection('pengeluaran', data.pengeluaran);
+                    await importCollection('pemasukanLain', data.pemasukanLain);
+
+                    alert(`Berhasil merestore ${count} data!`);
+                    input.value = ''; 
+                    document.getElementById('statusKoneksi').innerHTML = '<span class="badge bg-success"><i class="fas fa-wifi"></i> Online</span>';
+                } catch (err) {
+                    alert("Gagal membaca file JSON: " + err.message);
+                }
             };
             reader.readAsText(file);
-        }
-        
-        // FUNGSI BARU UNTUK EKSPOR DAN IMPOR EXCEL
-        async function exportDatabaseToExcel() {
+        };
+
+        // GUDANG
+        window.simpanProduk = async () => {
+            const nama = document.getElementById('prodNama').value;
+            const harga = Number(document.getElementById('prodHarga').value);
+            const stok = Number(document.getElementById('prodStok').value);
+            const min = Number(document.getElementById('prodMin').value);
+            
+            if(!nama) return alert("Nama wajib diisi!");
+            const btn = document.getElementById('btnSimpanProduk');
+            btn.disabled = true; btn.innerText = "Menyimpan...";
+
             try {
-                const data = db.records;
-                if (data.length === 0) {
-                    showCustomMessage("Database kosong, tidak ada data untuk diekspor ke Excel.");
-                    return;
+                if (window.editProdukId) {
+                    await updateDoc(doc(db, `data_toko/${appId}/produk`, window.editProdukId), { nama, harga, stok, min });
+                } else {
+                    await addDoc(collection(db, `data_toko/${appId}/produk`), { nama, harga, stok, min, createdAt: Date.now() });
                 }
+                resetFormGudang();
+            } catch (e) { alert("Gagal simpan: " + e.message); } finally { btn.disabled = false; }
+        };
 
-                // Siapkan data untuk Excel
-                const excelData = [];
-                // Header baru yang mencakup semua data
-                excelData.push(["No. Nota", "Tanggal", "Tuan", "Tlp", "Banyak", "Nama Barang", "Harga", "Jumlah", "Jumlah Harga", "Uang Muka", "Kurang"]); // Header
+        window.hapusProduk = async (docId) => {
+            if(!confirm("Hapus barang ini permanen?")) return;
+            try { await deleteDoc(doc(db, `data_toko/${appId}/produk`, docId)); } catch(e) { alert("Gagal hapus: " + e.message); }
+        };
 
-                data.forEach(invoice => {
-                    const invoiceDate = new Date(invoice.invoiceDate).toLocaleDateString('id-ID');
-                    const remaining = (invoice.totalAmount || 0) - (invoice.downPayment || 0);
+        // TRANSAKSI
+        window.simpanDanCetak = async () => {
+            if(window.keranjang.length === 0) return alert("Keranjang kosong!");
+            const btn = document.getElementById('btnSimpan');
+            btn.innerText = "Memproses..."; btn.disabled = true;
 
-                    // Looping melalui item
-                    if (invoice.items && invoice.items.length > 0) {
-                        invoice.items.forEach((item, index) => {
-                            const itemTotal = item.quantity * item.price;
-                            // Tambahkan baris untuk setiap item
-                            excelData.push([
-                                invoice.invoiceNumber,
-                                invoiceDate,
-                                invoice.customerName,
-                                invoice.customerPhone || '',
-                                item.quantity,
-                                item.name,
-                                item.price,
-                                itemTotal,
-                                // Tambahkan data total hanya pada baris pertama untuk setiap nota
-                                index === 0 ? invoice.totalAmount : '',
-                                index === 0 ? invoice.downPayment : '',
-                                index === 0 ? remaining : ''
-                            ]);
-                        });
-                    } else {
-                        // Jika tidak ada item, tetap tambahkan baris untuk nota
-                        excelData.push([
-                            invoice.invoiceNumber,
-                            invoiceDate,
-                            invoice.customerName,
-                            invoice.customerPhone || '',
-                            '', '', '', '', // Kolom item kosong
-                            invoice.totalAmount || 0,
-                            invoice.downPayment || 0,
-                            remaining
-                        ]);
-                    }
-                });
-
-                // Buat worksheet dan workbook
-                const ws = XLSX.utils.aoa_to_sheet(excelData);
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, "Nota Data");
-
-                // Simpan file
-                XLSX.writeFile(wb, `nota_data_excel_${new Date().toISOString().split('T')[0]}.xlsx`);
-                showCustomMessage("Data berhasil diekspor ke Excel!");
-            } catch (error) {
-                showCustomMessage('Gagal mengekspor data ke Excel!');
-                console.error('Export Excel error:', error);
-            }
-        }
-
-        function importDatabaseFromExcel() {
-            document.getElementById('importExcelFile').click();
-        }
-
-        function handleImportExcelFile(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-
-            reader.onload = (e) => {
-                const data = e.target.result;
-                const workbook = XLSX.read(data, { type: 'binary' });
-                const sheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[sheetName];
-                const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+            try {
+                const colProdukPath = `data_toko/${appId}/produk`;
                 
-                if (json.length === 0) {
-                    showCustomMessage('File Excel kosong atau format tidak valid.');
-                    return;
-                }
-
-                showCustomMessageWithConfirmation('Ini akan menimpa data saat ini dengan data dari file Excel. Lanjutkan?', async (isConfirmed) => {
-                    if (isConfirmed) {
-                        try {
-                            const newData = processExcelData(json);
-                            if (newData.length === 0) {
-                                showCustomMessage('Tidak ada data nota yang valid ditemukan dalam file.');
-                                return;
-                            }
-                            await db.importData(newData);
-                            showCustomMessage('Data berhasil di-restore dari file Excel!');
-                            await db.first();
-                            closeDatabaseModal();
-                        } catch (error) {
-                            showCustomMessage('Gagal me-restore data dari Excel. Pastikan file memiliki format yang benar.');
-                            console.error('Import Excel error:', error);
-                        }
-                    }
-                });
-            };
-            reader.readAsBinaryString(file);
-        }
-
-        function processExcelData(data) {
-            const header = data[0];
-            const records = data.slice(1);
-            const processedData = {};
-
-            records.forEach(row => {
-                // Lewati baris kosong
-                if (!row || row.length === 0) return;
-
-                const invoiceNumber = String(row[0]);
-                if (!invoiceNumber || invoiceNumber === "No. Nota") return;
-
-                // Cek jika baris tidak memiliki data lengkap
-                if (row.length < 8) return; 
-
-                const invoiceDate = row[1];
-                const customerName = row[2];
-                const customerPhone = row[3];
-                const quantity = parseFloat(row[4]) || 0;
-                const itemName = row[5];
-                const itemPrice = parseFloat(row[6]) || 0;
-                const totalAmount = parseFloat(row[8]) || 0;
-                const downPayment = parseFloat(row[9]) || 0;
-
-                // Jika nota belum ada, buat entri baru
-                if (!processedData[invoiceNumber]) {
-                    let dateObject = new Date();
-                    // Coba parse tanggal. Jika tidak valid, gunakan tanggal hari ini.
-                    if (invoiceDate) {
-                        const parsedDate = new Date(invoiceDate);
-                        if (!isNaN(parsedDate.getTime())) {
-                            dateObject = parsedDate;
-                        }
-                    }
-
-                    processedData[invoiceNumber] = {
-                        id: crypto.randomUUID(),
-                        invoiceNumber: invoiceNumber,
-                        invoiceDate: dateObject.toISOString(),
-                        customerName: customerName,
-                        customerPhone: customerPhone,
-                        downPayment: downPayment,
-                        totalAmount: totalAmount,
-                        items: []
-                    };
-                }
-
-                // Tambahkan item ke nota yang sudah ada
-                if (itemName) {
-                    processedData[invoiceNumber].items.push({
-                        quantity: quantity,
-                        name: itemName,
-                        price: itemPrice
-                    });
-                }
-            });
-
-            return Object.values(processedData);
-        }
-
-        async function searchInvoices() {
-            const query = document.getElementById('searchInput').value;
-            if (!query) {
-                db.populateTable(db.records);
-                return;
-            }
-            try {
-                const results = await db.search(query);
-                db.populateTable(results);
-                showCustomMessage(`Ditemukan ${results.length} hasil pencarian.`);
-            } catch (error) {
-                showCustomMessage('Gagal melakukan pencarian.');
-                console.error('Search error:', error);
-            }
-        }
-
-        async function clearDatabase() {
-             showCustomMessageWithConfirmation('PERINGATAN: Ini akan menghapus SEMUA data. Yakin?', (isConfirmed) => {
-                if(isConfirmed){
-                    showCustomMessageWithConfirmation('Konfirmasi sekali lagi: Semua data akan hilang permanen!', async (isFinalConfirmed) => {
-                        if (isFinalConfirmed) {
-                             try {
-                                await db.clear();
-                                await newInvoice();
-                                showCustomMessage('Database berhasil dikosongkan!');
-                            } catch (error) {
-                                showCustomMessage('Gagal mengosongkan database!');
-                                console.error('Clear DB error:', error);
+                if (window.activeNotaId) {
+                    const oldNota = window.localCache.nota.find(n => n.docId === window.activeNotaId);
+                    if (oldNota) {
+                        for (const item of oldNota.items) {
+                            const prodRef = window.localCache.produk.find(p => p.docId == item.id); 
+                            if (prodRef) {
+                                await updateDoc(doc(db, colProdukPath, prodRef.docId), { stok: prodRef.stok + item.qty });
                             }
                         }
-                    }, 'HAPUS SEMUA', 'Batalkan');
+                    }
                 }
-            }, 'Ya, Hapus', 'Batal');
-        }
-        
-        function showCustomMessage(message) {
-            const overlay = document.createElement('div');
-            overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;justify-content:center;align-items:center;z-index:1000;';
-            const box = document.createElement('div');
-            box.style.cssText = 'background:white;padding:20px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.1);text-align:center;max-width:300px;';
-            const p = document.createElement('p');
-            p.textContent = message;
-            p.style.marginBottom = '15px';
-            const btn = document.createElement('button');
-            btn.textContent = 'OK';
-            btn.style.cssText = 'background:#007bff;color:white;padding:8px 16px;border:none;border-radius:5px;cursor:pointer;';
-            btn.onclick = () => overlay.remove();
-            box.append(p, btn);
-            overlay.appendChild(box);
-            document.body.appendChild(overlay);
-        }
 
-        function showCustomMessageWithConfirmation(message, callback, confirmText = 'OK', cancelText = 'Batal') {
-            const overlay = document.createElement('div');
-            overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;justify-content:center;align-items:center;z-index:1000;';
-            const box = document.createElement('div');
-            box.style.cssText = 'background:white;padding:20px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.1);text-align:center;max-width:320px;';
-            const p = document.createElement('p');
-            p.textContent = message;
-            p.style.marginBottom = '20px';
+                for (const item of window.keranjang) {
+                    if (!String(item.id).startsWith('manual_') && !String(item.id).startsWith('pulsa_')) {
+                        const prodRef = window.localCache.produk.find(p => p.docId === item.id);
+                        if (prodRef) {
+                            await updateDoc(doc(db, colProdukPath, prodRef.docId), { stok: prodRef.stok - item.qty });
+                        }
+                    }
+                }
+
+                const notaData = {
+                    no: document.getElementById('notaNo').innerText,
+                    tgl: new Date().toISOString(),
+                    nama: document.getElementById('custNama').value,
+                    items: window.keranjang,
+                    total: Number(document.getElementById('notaTotal').dataset.val),
+                    dp: Number(document.getElementById('inputDP').value),
+                    sisaInfo: document.getElementById('notaSisa').innerText
+                };
+
+                if (window.activeNotaId) {
+                    await updateDoc(doc(db, `data_toko/${appId}/nota`, window.activeNotaId), notaData);
+                    alert("Nota berhasil diupdate!");
+                } else {
+                    await addDoc(collection(db, `data_toko/${appId}/nota`), notaData);
+                }
+
+                document.body.classList.add('print-nota');
+                window.print();
+                document.body.classList.remove('print-nota');
+                resetNota();
+
+            } catch (e) { console.error(e); alert("Terjadi kesalahan: " + e.message); } finally { btn.disabled = false; }
+        };
+
+        // KEUANGAN
+        window.simpanPengeluaran = async () => {
+            const tgl = document.getElementById('expTgl').value; 
+            const ket = document.getElementById('expKet').value; 
+            const jml = Number(document.getElementById('expJml').value);
             
-            const btnContainer = document.createElement('div');
-            btnContainer.style.cssText = 'display:flex;justify-content:center;gap:10px;';
-
-            const confirmBtn = document.createElement('button');
-            confirmBtn.textContent = confirmText;
-            confirmBtn.style.cssText = 'background:#28a745;color:white;padding:8px 16px;border:none;border-radius:5px;cursor:pointer;';
-            confirmBtn.onclick = () => { overlay.remove(); callback(true); };
-
-            const cancelBtn = document.createElement('button');
-            cancelBtn.textContent = cancelText;
-            cancelBtn.style.cssText = 'background:#6c757d;color:white;padding:8px 16px;border:none;border-radius:5px;cursor:pointer;';
-            cancelBtn.onclick = () => { overlay.remove(); callback(false); };
-
-            btnContainer.append(cancelBtn, confirmBtn);
-            box.append(p, btnContainer);
-            overlay.appendChild(box);
-            document.body.appendChild(overlay);
-        }
-
-        function firstRecord() { db.first(); }
-        function prevRecord() { db.previous(); }
-        function nextRecord() { db.next(); }
-        function lastRecord() { db.last(); }
-        
-        document.getElementById('searchInput').addEventListener('keypress', e => { if (e.key === 'Enter') searchInvoices(); });
-        
-        // FUNGSI UNTUK MODAL DATABASE
-        function showDatabaseDetails() {
-            const records = db.records;
-            const tbody = document.getElementById('fullDatabaseTable');
-            tbody.innerHTML = '';
-            
-            if (records.length === 0) {
-                const row = tbody.insertRow();
-                row.innerHTML = `<td colspan="8" class="p-4 text-center text-gray-500">Database kosong.</td>`;
-            } else {
-                records.forEach(invoice => {
-                    const invoiceDate = new Date(invoice.invoiceDate).toLocaleDateString('id-ID');
-                    invoice.items.forEach(item => {
-                        const row = tbody.insertRow();
-                        const itemTotal = item.quantity * item.price;
-                        row.innerHTML = `
-                            <td class="p-2 border-b">${invoice.invoiceNumber}</td>
-                            <td class="p-2 border-b">${invoiceDate}</td>
-                            <td class="p-2 border-b">${invoice.customerName}</td>
-                            <td class="p-2 border-b">${invoice.customerPhone || '-'}</td>
-                            <td class="p-2 border-b">${item.quantity}</td>
-                            <td class="p-2 border-b">${item.name}</td>
-                            <td class="p-2 border-b">Rp ${item.price.toLocaleString('id-ID')}</td>
-                            <td class="p-2 border-b font-medium">Rp ${itemTotal.toLocaleString('id-ID')}</td>
-                        `;
-                    });
-                });
+            if(tgl && ket && jml) {
+                const btn = document.getElementById('btnSimpanExp');
+                btn.innerText = "Menyimpan..."; btn.disabled = true;
+                
+                try {
+                    if (window.editingExpId) {
+                        await updateDoc(doc(db, `data_toko/${appId}/pengeluaran`, window.editingExpId), { tglStr: tgl, ket, jml });
+                        alert("Pengeluaran diupdate!");
+                        window.editingExpId = null;
+                        document.getElementById('btnSimpanExp').innerText = "Simpan Pengeluaran";
+                        document.getElementById('btnSimpanExp').classList.replace('btn-warning', 'btn-danger');
+                    } else {
+                        await addDoc(collection(db, `data_toko/${appId}/pengeluaran`), { tglStr: tgl, ket, jml });
+                    }
+                    document.getElementById('expKet').value=''; document.getElementById('expJml').value='';
+                } catch(e) { alert(e.message); } finally { btn.innerText = "Simpan Pengeluaran"; btn.disabled = false; }
             }
-            
-            document.getElementById('databaseModal').classList.remove('hidden');
-        }
-        
-        function closeDatabaseModal() {
-            document.getElementById('databaseModal').classList.add('hidden');
-        }
+        };
 
-        // FUNGSI BARU UNTUK MEMBUKA LINK WEB PADA TOMBOL "Hitung Bahan"
-        function openBahan() {
-            window.open('https://musadad87.github.io/kalkulator-undangan/BAHAN_HABIS.html', '_blank');
+        window.simpanPemasukanLain = async () => {
+            const tgl = document.getElementById('inTgl').value; 
+            const ket = document.getElementById('inKet').value; 
+            const jml = Number(document.getElementById('inJml').value);
+            
+            if(tgl && ket && jml) {
+                const btn = document.getElementById('btnSimpanIn');
+                btn.innerText = "Menyimpan..."; btn.disabled = true;
+
+                try {
+                    if (window.editingInId) {
+                        await updateDoc(doc(db, `data_toko/${appId}/pemasukanLain`, window.editingInId), { tglStr: tgl, ket, jml });
+                        alert("Pemasukan diupdate!");
+                        window.editingInId = null;
+                        document.getElementById('btnSimpanIn').innerText = "Simpan Pemasukan";
+                        document.getElementById('btnSimpanIn').classList.replace('btn-warning', 'btn-success');
+                    } else {
+                        await addDoc(collection(db, `data_toko/${appId}/pemasukanLain`), { tglStr: tgl, ket, jml });
+                    }
+                    document.getElementById('inKet').value=''; document.getElementById('inJml').value='';
+                } catch(e) { alert(e.message); } finally { btn.innerText = "Simpan Pemasukan"; btn.disabled = false; }
+            }
+        };
+        
+        window.onload = function() {
+            let todayStr = new Date().toISOString().split('T')[0];
+            document.getElementById('expTgl').value = todayStr;
+            document.getElementById('inTgl').value = todayStr;
+            setFilter('bulan');
         }
 
     </script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Roboto+Condensed:wght@400;700&display=swap');
+        body { background-color: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
+        .header-app { background: linear-gradient(90deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 15px 0; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .nav-link.active { background-color: #1e3c72 !important; color: white !important; }
+        .nav-link { color: #1e3c72; font-weight: bold; }
+        #areaNota { background: white; padding: 30px; box-shadow: 0 0 15px rgba(0,0,0,0.1); font-family: 'Roboto Condensed', sans-serif; color: #000; position: relative; }
+        .brand-title { font-family: 'Oswald', sans-serif; color: #1a2a6c; font-size: 2.5rem; letter-spacing: 2px; margin-bottom: 0; line-height: 1.1; text-transform: uppercase; }
+        .sub-brand { font-weight: 900; color: #b91d1d; font-size: 0.9rem; letter-spacing: 1px; text-transform: uppercase; }
+        .address-text { font-size: 0.8rem; color: #333; border-top: 2px solid #1a2a6c; border-bottom: 1px solid #1a2a6c; padding: 5px 0; margin-top: 5px; margin-bottom: 15px; }
+        .info-group { display: flex; align-items: center; margin-bottom: 5px; }
+        .info-label { width: 70px; font-weight: bold; text-align: right; margin-right: 10px; font-size: 14px; }
+        .info-value { border-bottom: 1px dotted #000; width: 100%; font-size: 14px; min-height: 24px; }
+        .custom-table { width: 100%; border-collapse: collapse; margin-top: 15px; border: 1px solid #000; }
+        .custom-table th { background-color: #1a2a6c !important; color: white !important; padding: 8px; text-align: center; font-weight: normal; letter-spacing: 1px; -webkit-print-color-adjust: exact; }
+        .custom-table td { border-bottom: 1px solid #ddd; padding: 5px 8px; }
+        #notaIsi input { background: transparent; font-family: 'Roboto Condensed', sans-serif; font-size: 14px; color: #000; border-radius: 0; padding: 2px; width: 100%; }
+        #notaIsi input:focus { background: #fff9c4; outline: none; }
+        .footer-grid { display: flex; justify-content: space-between; margin-top: 20px; }
+        .sign-area { width: 40%; text-align: center; margin-top: 10px; }
+        .sign-line { border-bottom: 1px solid #000; margin-top: 70px; width: 80%; margin-left: auto; margin-right: auto; }
+        .total-area { width: 50%; }
+        .total-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .total-label { font-weight: bold; font-size: 14px; }
+        .total-box { border: 1px solid #000; padding: 5px; width: 150px; text-align: right; font-weight: bold; background: #f9f9f9; }
+        .bottom-section { border-top: 2px solid #000; margin-top: 20px; padding-top: 10px; display: flex; justify-content: space-between; }
+        .payment-info { font-size: 11px; font-weight: bold; width: 50%; }
+        .warning-box { border: 2px solid red; background-color: #fff5f5; color: red; width: 45%; text-align: center; padding: 8px; font-size: 11px; font-weight: bold; -webkit-print-color-adjust: exact; }
+        .editing-mode { border: 3px solid #ffc107; position: relative; }
+        .editing-badge { background: #ffc107; color: black; position: absolute; top: 0; right: 0; padding: 5px 10px; font-weight: bold; z-index: 100; }
+        .btn-filter-group .btn.active { background-color: #1e3c72; color: white; border-color: #1e3c72; }
+        
+        /* Tambahan Style untuk Header Tabel yang bisa diurutkan */
+        .sortable-header { cursor: pointer; user-select: none; }
+        .sortable-header:hover { background-color: #333 !important; }
+        .sort-icon { font-size: 0.8em; margin-left: 5px; opacity: 0.7; }
+
+        @media print {
+            body * { visibility: hidden; }
+            .header-app, .no-print, .nav, .tab-content > .tab-pane:not(.active) { display: none !important; }
+            .print-nota #areaNota, .print-nota #areaNota * { visibility: visible; }
+            .print-nota #areaNota { position: absolute; left: 0; top: 0; width: 100%; border: none; box-shadow: none; padding: 0; margin: 0; }
+            .print-nota #notaIsi input { border: none; background: transparent; }
+            .print-belanja #areaBelanja, .print-belanja #areaBelanja * { visibility: visible; }
+            .print-belanja #areaBelanja { position: absolute; left: 0; top: 0; width: 100%; }
+            .editing-badge { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<input type="file" id="jsonFile" accept=".json" style="display:none" onchange="restoreData(this)">
+
+<div class="header-app mb-3 no-print">
+    <div class="container d-flex justify-content-between align-items-center">
+        <div>
+            <h4 class="mb-0 fw-bold"><i class="fas fa-cloud"></i> MUSADAD ONLINE V9</h4>
+            <div id="statusKoneksi" class="small">Menghubungkan...</div>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-warning btn-sm text-dark fw-bold shadow" onclick="document.getElementById('jsonFile').click()">📂 Restore Data Offline</button>
+            <button onclick="alert('Data sudah otomatis tersimpan di Cloud!')" class="btn btn-success btn-sm fw-bold shadow"><i class="fas fa-check-circle"></i> Auto-Save On</button>
+        </div>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <ul class="nav nav-pills nav-fill mb-3 bg-white p-2 rounded shadow-sm no-print">
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabKasir">🛒 Kasir</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabGudang">📦 Gudang</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabLaporan">📊 Laporan</button></li>
+    </ul>
+
+    <div class="tab-content">
+        <!-- TAB KASIR -->
+        <div class="tab-pane fade show active" id="tabKasir">
+            <div class="row">
+                <div class="col-md-4 no-print">
+                    <div class="card p-3 shadow-sm mb-3 border-0 bg-info bg-opacity-10">
+                        <h6 class="fw-bold text-primary"><i class="fas fa-mobile-alt"></i> Menu Pulsa / Token</h6>
+                        <input type="text" id="pulsaKet" class="form-control form-control-sm mb-2" placeholder="Ket (Cth: Tsel 10k / Token 20k)">
+                        <input type="number" id="pulsaNo" class="form-control form-control-sm mb-2" placeholder="No HP / ID Pelanggan">
+                        <input type="number" id="pulsaHarga" class="form-control form-control-sm mb-2" placeholder="Harga Jual">
+                        <button onclick="tambahPulsa()" class="btn btn-primary btn-sm w-100 fw-bold"><i class="fas fa-plus-circle"></i> MASUKKAN KE NOTA</button>
+                    </div>
+
+                    <div class="card p-3 shadow-sm mb-3 border-0">
+                        <h6 class="fw-bold text-dark">Input Barang / Jasa</h6>
+                        <input type="text" id="custNama" class="form-control form-control-sm mb-2" placeholder="Nama Pelanggan">
+                        <input type="text" id="custTelp" class="form-control form-control-sm mb-2" placeholder="No HP/WA">
+                        <hr class="my-2">
+                        <label class="small text-muted">Cari Barang:</label>
+                        <input list="listBarang" id="inputBarang" class="form-control mb-2" placeholder="Ketik nama..." onchange="updateHarga()" autocomplete="off">
+                        <datalist id="listBarang"></datalist>
+                        <div class="row g-2">
+                            <div class="col-8"><input type="number" id="hargaBarang" class="form-control form-control-sm" placeholder="Harga" readonly></div>
+                            <div class="col-4"><input type="number" id="qtyBarang" class="form-control form-control-sm" value="1"></div>
+                        </div>
+                        <button onclick="tambahItem()" class="btn btn-dark btn-sm w-100 mt-3 fw-bold">➕ MASUKKAN BARANG</button>
+                    </div>
+
+                    <div class="card p-3 shadow-sm border-0">
+                        <h6 class="fw-bold text-dark">Riwayat Nota (Terbaru)</h6>
+                        <input type="text" id="cariNota" class="form-control form-control-sm mb-2" placeholder="Cari..." onkeyup="renderRiwayatNota()">
+                        <div style="max-height: 200px; overflow-y: auto;">
+                            <table class="table table-sm table-hover small font-monospace">
+                                <thead class="table-light"><tr><th>No</th><th>Nama</th><th class="text-end">Aksi</th></tr></thead>
+                                <tbody id="tabelRiwayatNota"><tr><td colspan="3" class="text-center">Memuat data...</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-8">
+                    <div id="areaNota">
+                        <div id="badgeEditMode" class="editing-badge d-none">MODE EDIT AKTIF</div>
+                        <div class="row">
+                            <div class="col-7">
+                                <div class="brand-title">MUSADAD.COM</div>
+                                <div class="sub-brand">PERCETAKAN & SERVICE</div>
+                                <div class="address-text">Jl. Rp.Garendong - cisema Petir, Kab.Serang BANTEN<br>Tlp/WA. 0838-1235-2663 | musadad08@gmail.com</div>
+                            </div>
+                            <div class="col-5">
+                                <div class="info-group"><span class="info-label">Tanggal</span><div class="info-value" id="notaTgl"></div></div>
+                                <div class="info-group"><span class="info-label">Tuan</span><div class="info-value text-uppercase fw-bold" id="notaYth"></div></div>
+                                <div class="info-group"><span class="info-label">Tlp</span><div class="info-value" id="notaHp"></div></div>
+                                <div class="mt-2 text-end"><small class="fw-bold">NO: <span id="notaNo">LOADING...</span></small></div>
+                            </div>
+                        </div>
+                        <table class="custom-table">
+                            <thead><tr><th width="5%">No</th><th>NAMA BARANG</th><th width="10%">QTY</th><th width="20%">HARGA</th><th width="20%">JUMLAH</th><th width="5%" class="no-print">#</th></tr></thead>
+                            <tbody id="notaIsi"></tbody>
+                        </table>
+                        <div class="footer-grid">
+                            <div class="sign-area"><div class="text-start mb-5 fw-bold">Diterima,</div><div class="sign-line"></div><div>( ........................... )</div></div>
+                            <div class="total-area">
+                                <div class="total-row"><span class="total-label">Jumlah Rp.</span><div class="total-box" id="notaTotal">0</div></div>
+                                <div class="total-row"><span class="total-label">Uang Muka Rp.</span><input type="number" id="inputDP" class="total-box text-end no-border-input" style="background: white;" value="0" onkeyup="hitungSisa()"></div>
+                                <div class="total-row"><span class="total-label text-danger">Kurang Rp.</span><div class="total-box text-danger" id="notaSisa">0</div></div>
+                            </div>
+                        </div>
+                        <div class="bottom-section">
+                            <div class="payment-info">PEMBAYARAN BISA MELALUI:<br><span class="fw-bold">BCA: 5410927839</span> (ROHMATULLOH)<br><span class="fw-bold">DANA,OVO,GOJEK: 083812352663</span></div>
+                            <div class="warning-box"><span class="d-block fw-bold mb-1">PERHATIAN !!!</span>Barang-barang yang sudah dibeli tidak bisa ditukar / dikembalikan</div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 mt-3 no-print">
+                        <button onclick="simpanDanCetak()" id="btnSimpan" class="btn btn-primary btn-lg fw-bold"><i class="fas fa-print"></i> SIMPAN & CETAK</button>
+                        <button onclick="resetNota()" class="btn btn-secondary">Reset / Batal</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB GUDANG -->
+        <div class="tab-pane fade" id="tabGudang">
+            <div class="row">
+                <div class="col-md-4 no-print mb-3">
+                    <div class="card p-3 shadow-sm bg-light">
+                        <div class="d-flex justify-content-between">
+                            <h6 class="fw-bold" id="formTitle">Tambah Produk Baru</h6>
+                            <button onclick="resetFormGudang()" class="btn btn-sm btn-outline-secondary py-0" style="display:none;" id="btnBatalEdit">Batal Edit</button>
+                        </div>
+                        <input type="text" id="prodNama" class="form-control mb-2" placeholder="Nama Barang">
+                        <input type="number" id="prodHarga" class="form-control mb-2" placeholder="Harga Jual">
+                        <div class="row g-2 mb-2">
+                            <div class="col-6"><input type="number" id="prodStok" class="form-control" placeholder="Stok"></div>
+                            <div class="col-6"><input type="number" id="prodMin" class="form-control" placeholder="Min"></div>
+                        </div>
+                        <button onclick="simpanProduk()" id="btnSimpanProduk" class="btn btn-primary w-100">Simpan Ke Cloud</button>
+                    </div>
+                    <button onclick="cetakBelanja()" class="btn btn-warning w-100 mt-3 fw-bold">Print Daftar Belanja</button>
+                </div>
+
+                <div class="col-md-8">
+                    <div class="card p-3 shadow-sm">
+                        <input type="text" id="cariGudang" class="form-control mb-3" placeholder="Cari stok..." onkeyup="renderGudang()">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle small table-striped" id="tabelGudang">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th class="sortable-header" onclick="aturSort('nama')">Barang <i class="fas fa-sort sort-icon"></i></th>
+                                        <th class="sortable-header" onclick="aturSort('harga')">Harga <i class="fas fa-sort sort-icon"></i></th>
+                                        <th class="sortable-header" onclick="aturSort('stok')">Stok <i class="fas fa-sort sort-icon"></i></th>
+                                        <th>Min</th>
+                                        <th>Hapus</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="isiTabelGudang"><tr><td colspan="5" class="text-center">Menghubungkan ke database...</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="areaBelanja" class="d-none">
+                    <h3 class="text-center">DAFTAR BELANJA MUSADAD.COM</h3>
+                    <table class="table table-bordered mt-3"><thead><tr><th>No</th><th>Nama</th><th>Sisa</th><th>Cek</th></tr></thead><tbody id="isiBelanja"></tbody></table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB LAPORAN -->
+        <div class="tab-pane fade" id="tabLaporan">
+            <div class="card p-3 shadow-sm mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0"><i class="fas fa-chart-line"></i> Dashboard Keuangan (Realtime)</h5>
+                </div>
+
+                <div class="btn-group w-100 mb-3 btn-filter-group shadow-sm" role="group">
+                    <button type="button" id="btn-hari" class="btn btn-outline-secondary fw-bold" onclick="setFilter('hari')">Hari Ini</button>
+                    <button type="button" id="btn-minggu" class="btn btn-outline-secondary fw-bold" onclick="setFilter('minggu')">Minggu Ini</button>
+                    <button type="button" id="btn-bulan" class="btn btn-outline-secondary fw-bold active" onclick="setFilter('bulan')">Bulan Ini</button>
+                    <button type="button" id="btn-tahun" class="btn btn-outline-secondary fw-bold" onclick="setFilter('tahun')">Tahun Ini</button>
+                    <button type="button" id="btn-semua" class="btn btn-outline-secondary fw-bold" onclick="setFilter('semua')">Semua</button>
+                </div>
+                <div class="text-center mb-2"><small class="text-muted fw-bold" id="filterInfoText">Menampilkan Data: Bulan Ini</small></div>
+
+                <div class="row text-center g-2">
+                    <div class="col-md-4"><div class="p-3 bg-success text-white rounded shadow-sm"><small>Pemasukan</small><h4 class="fw-bold mb-0" id="totMasuk">0</h4></div></div>
+                    <div class="col-md-4"><div class="p-3 bg-danger text-white rounded shadow-sm"><small>Pengeluaran</small><h4 class="fw-bold mb-0" id="totKeluar">0</h4></div></div>
+                    <div class="col-md-4"><div class="p-3 bg-primary text-white rounded shadow-sm"><small>Saldo</small><h4 class="fw-bold mb-0" id="totProfit">0</h4></div></div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <div class="card p-3 border-success mb-2 bg-success bg-opacity-10">
+                        <h6 class="fw-bold text-success">Input Pemasukan (Modal/Lainnya)</h6>
+                        <input type="date" id="inTgl" class="form-control mb-1 bg-white">
+                        <input type="text" id="inKet" class="form-control mb-1 bg-white" placeholder="Ket (Cth: Modal Awal)">
+                        <input type="number" id="inJml" class="form-control mb-2 bg-white" placeholder="Rp">
+                        <button onclick="simpanPemasukanLain()" id="btnSimpanIn" class="btn btn-success w-100 btn-sm fw-bold">Simpan Pemasukan</button>
+                    </div>
+                    <div class="card p-3 border-danger bg-danger bg-opacity-10">
+                        <h6 class="fw-bold text-danger">Input Pengeluaran (Biaya)</h6>
+                        <input type="date" id="expTgl" class="form-control mb-1 bg-white">
+                        <input type="text" id="expKet" class="form-control mb-1 bg-white" placeholder="Ket (Cth: Listrik, Kertas)">
+                        <input type="number" id="expJml" class="form-control mb-2 bg-white" placeholder="Rp">
+                        <button onclick="simpanPengeluaran()" id="btnSimpanExp" class="btn btn-danger w-100 btn-sm fw-bold">Simpan Pengeluaran</button>
+                    </div>
+                </div>
+
+                <div class="col-md-8">
+                    <div class="card p-0 shadow-sm overflow-hidden">
+                        <div class="card-header bg-light fw-bold">Rincian Transaksi</div>
+                        <div style="height: 400px; overflow-y: auto;">
+                            <table class="table table-bordered table-striped table-sm small mb-0">
+                                <thead class="table-dark sticky-top"><tr><th>Tanggal</th><th>Keterangan</th><th class="text-end">Masuk</th><th class="text-end">Keluar</th><th class="text-center">Edit</th></tr></thead>
+                                <tbody id="tabelLaporan"><tr><td colspan="5" class="text-center">Memuat data...</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    function updateAutoNoNota() {
+        if(window.activeNotaId) return; 
+        let today = new Date();
+        let count = window.localCache.nota.length + 1;
+        document.getElementById('notaNo').innerText = `INV/${today.getDate()}${today.getMonth()+1}/${count}`;
+        document.getElementById('notaTgl').innerText = today.toLocaleDateString('id-ID');
+    }
+
+    function renderStokOption() {
+        let dl = document.getElementById('listBarang'); dl.innerHTML = '';
+        window.localCache.produk.forEach(p => dl.innerHTML += `<option value="${p.nama}">Stok: ${p.stok} | Rp ${p.harga}</option>`);
+    }
+
+    window.updateHarga = () => {
+        let val = document.getElementById('inputBarang').value;
+        let p = window.localCache.produk.find(x => x.nama === val);
+        if(p) { document.getElementById('hargaBarang').value = p.harga; document.getElementById('qtyBarang').focus(); }
+    }
+
+    window.tambahPulsa = () => {
+        let ket = document.getElementById('pulsaKet').value;
+        let no = document.getElementById('pulsaNo').value;
+        let harga = Number(document.getElementById('pulsaHarga').value);
+        if(!ket || !harga) return alert("Keterangan dan Harga wajib diisi!");
+        let namaItem = `PULSA/TOKEN: ${ket} (${no ? no : '-'})`;
+        let idItem = 'pulsa_' + Date.now();
+        window.keranjang.push({ id: idItem, nama: namaItem, harga: harga, qty: 1, total: harga });
+        renderNotaIsi();
+        document.getElementById('pulsaKet').value = ""; document.getElementById('pulsaNo').value = ""; document.getElementById('pulsaHarga').value = "";
+    }
+
+    window.tambahItem = () => {
+        let val = document.getElementById('inputBarang').value;
+        let qty = Number(document.getElementById('qtyBarang').value);
+        let p = window.localCache.produk.find(x => x.nama === val);
+        let harga = 0, idItem = '';
+
+        if(!p) {
+             harga = Number(document.getElementById('hargaBarang').value) || 0;
+             if(!val || !harga) return alert("Barang tidak ditemukan atau harga kosong!");
+             idItem = 'manual_'+Date.now();
+        } else {
+            if(p.stok < qty) alert(`Perhatian: Stok sistem tinggal ${p.stok}`);
+            harga = p.harga; 
+            idItem = p.docId; 
+        }
+
+        window.keranjang.push({ id: idItem, nama: val, harga: harga, qty: qty, total: harga * qty });
+        renderNotaIsi();
+        document.getElementById('inputBarang').value = ""; document.getElementById('hargaBarang').value = ""; document.getElementById('qtyBarang').value = "1"; document.getElementById('inputBarang').focus();
+    }
+
+    function renderNotaIsi() {
+        let tbody = document.getElementById('notaIsi'); tbody.innerHTML = ''; let total = 0;
+        window.keranjang.forEach((item, idx) => {
+            total += item.total;
+            tbody.innerHTML += `
+                <tr>
+                    <td class="text-center align-middle">${idx + 1}</td>
+                    <td class="p-0"><input type="text" class="form-control form-control-sm border-0 shadow-none fw-bold" value="${item.nama}" onchange="updateItemKeranjang(${idx}, 'nama', this.value)"></td>
+                    <td class="p-0" width="10%"><input type="number" class="form-control form-control-sm border-0 shadow-none text-center" value="${item.qty}" onchange="updateItemKeranjang(${idx}, 'qty', this.value)"></td>
+                    <td class="p-0" width="20%"><input type="number" class="form-control form-control-sm border-0 shadow-none text-end" value="${item.harga}" onchange="updateItemKeranjang(${idx}, 'harga', this.value)"></td>
+                    <td class="text-end align-middle fw-bold px-2">${item.total.toLocaleString()}</td>
+                    <td class="no-print align-middle text-center"><a href="#" onclick="hapusItemKeranjang(${idx})" class="text-danger"><i class="fas fa-times"></i></a></td>
+                </tr>`;
+        });
+        document.getElementById('notaTotal').innerText = total.toLocaleString();
+        document.getElementById('notaTotal').dataset.val = total;
+        document.getElementById('notaYth').innerText = document.getElementById('custNama').value || "..................";
+        document.getElementById('notaHp').innerText = document.getElementById('custTelp').value || "";
+        window.hitungSisa();
+    }
+
+    window.hapusItemKeranjang = (idx) => {
+        window.keranjang.splice(idx,1); 
+        renderNotaIsi();
+    }
+
+    window.updateItemKeranjang = (index, field, value) => {
+        if (field === 'qty') { window.keranjang[index].qty = Number(value); window.keranjang[index].total = window.keranjang[index].qty * window.keranjang[index].harga; }
+        else if (field === 'harga') { window.keranjang[index].harga = Number(value); window.keranjang[index].total = window.keranjang[index].qty * window.keranjang[index].harga; }
+        else if (field === 'nama') { window.keranjang[index].nama = value; }
+        renderNotaIsi();
+    }
+
+    window.hitungSisa = () => {
+        let total = Number(document.getElementById('notaTotal').dataset.val || 0);
+        let dp = Number(document.getElementById('inputDP').value || 0);
+        let sisa = dp - total;
+        document.getElementById('notaSisa').innerText = sisa >= 0 ? "LUNAS (" + sisa.toLocaleString() + ")" : "KURANG: " + Math.abs(sisa).toLocaleString();
+    }
+
+    window.resetNota = () => {
+        window.keranjang = [];
+        document.getElementById('custNama').value = "";
+        document.getElementById('custTelp').value = "";
+        document.getElementById('inputDP').value = "0";
+        document.getElementById('areaNota').classList.remove('editing-mode');
+        document.getElementById('badgeEditMode').classList.add('d-none');
+        document.getElementById('btnSimpan').innerHTML = '<i class="fas fa-print"></i> SIMPAN & CETAK';
+        document.getElementById('btnSimpan').classList.replace('btn-warning', 'btn-primary');
+        window.activeNotaId = null;
+        renderNotaIsi();
+        updateAutoNoNota();
+    }
+
+    // FUNGSI SORT GUDANG
+    window.aturSort = (column) => {
+        if(window.sortGudangState.col === column) {
+            // Jika kolom sama diklik, balik urutannya (asc <-> desc)
+            window.sortGudangState.order = window.sortGudangState.order === 'asc' ? 'desc' : 'asc';
+        } else {
+            // Jika kolom baru, default ke 'asc'
+            window.sortGudangState.col = column;
+            window.sortGudangState.order = 'asc';
+        }
+        renderGudang();
+    }
+
+    window.renderGudang = () => {
+        let key = document.getElementById('cariGudang').value.toLowerCase(); 
+        let tbody = document.getElementById('isiTabelGudang'); 
+        tbody.innerHTML = '';
+        
+        // 1. Filter dulu
+        let filteredData = window.localCache.produk.filter(p => p.nama.toLowerCase().includes(key));
+
+        // 2. Sorting
+        let col = window.sortGudangState.col;
+        let order = window.sortGudangState.order;
+
+        filteredData.sort((a, b) => {
+            let valA = a[col];
+            let valB = b[col];
+            
+            // Handle text sorting (case insensitive)
+            if (typeof valA === 'string') valA = valA.toLowerCase();
+            if (typeof valB === 'string') valB = valB.toLowerCase();
+
+            if (valA < valB) return order === 'asc' ? -1 : 1;
+            if (valA > valB) return order === 'asc' ? 1 : -1;
+            return 0;
+        });
+
+        // 3. Render HTML
+        filteredData.forEach((p) => {
+            tbody.innerHTML += `
+            <tr onclick="editProduk('${p.docId}')">
+                <td class="fw-bold text-primary">${p.nama}</td>
+                <td>${p.harga.toLocaleString()}</td>
+                <td class="${p.stok<=p.min?'text-danger fw-bold':''}">${p.stok}</td>
+                <td>${p.min}</td>
+                <td onclick="event.stopPropagation()">
+                    <button onclick="hapusProduk('${p.docId}')" class="btn btn-danger btn-sm py-0">Hapus</button>
+                </td>
+            </tr>`;
+        });
+        if(filteredData.length === 0) tbody.innerHTML = '<tr><td colspan="5" class="text-center">Data kosong / tidak ditemukan</td></tr>';
+    }
+
+    window.editProduk = (docId) => {
+        window.editProdukId = docId; 
+        let p = window.localCache.produk.find(x => x.docId === docId);
+        if(!p) return;
+        document.getElementById('prodNama').value = p.nama; 
+        document.getElementById('prodHarga').value = p.harga; 
+        document.getElementById('prodStok').value = p.stok; 
+        document.getElementById('prodMin').value = p.min;
+        
+        document.getElementById('btnSimpanProduk').innerText = "Update Barang"; 
+        document.getElementById('btnSimpanProduk').classList.replace('btn-primary', 'btn-success');
+        document.getElementById('formTitle').innerText = "Edit Barang: " + p.nama; 
+        document.getElementById('btnBatalEdit').style.display = 'block';
+    }
+
+    window.resetFormGudang = () => {
+        window.editProdukId = null; 
+        document.getElementById('prodNama').value = ""; 
+        document.getElementById('prodHarga').value = ""; 
+        document.getElementById('prodStok').value = ""; 
+        document.getElementById('prodMin').value = "";
+        
+        document.getElementById('btnSimpanProduk').innerText = "Simpan Ke Cloud"; 
+        document.getElementById('btnSimpanProduk').classList.replace('btn-success', 'btn-primary');
+        document.getElementById('formTitle').innerText = "Tambah Produk Baru"; 
+        document.getElementById('btnBatalEdit').style.display = 'none';
+    }
+
+    window.cetakBelanja = () => {
+        let tbody = document.getElementById('isiBelanja'); tbody.innerHTML = ''; let no=1;
+        window.localCache.produk.forEach(p => { 
+            if(p.stok <= p.min) tbody.innerHTML += `<tr><td>${no++}</td><td>${p.nama}</td><td>${p.stok}</td><td>[ ]</td></tr>`; 
+        });
+        if(no>1) { 
+            document.body.classList.add('print-belanja'); 
+            window.print(); 
+            document.body.classList.remove('print-belanja'); 
+        } else alert("Stok Aman");
+    }
+
+    window.renderRiwayatNota = () => {
+        let key = document.getElementById('cariNota').value.toLowerCase();
+        let tbody = document.getElementById('tabelRiwayatNota'); tbody.innerHTML = '';
+        
+        window.localCache.nota.forEach(n => {
+            if((n.nama && n.nama.toLowerCase().includes(key)) || (n.no && n.no.toLowerCase().includes(key))) {
+                tbody.innerHTML += `
+                <tr>
+                    <td>${n.no}</td>
+                    <td>${n.nama}</td>
+                    <td class="text-end">
+                        <button onclick="editNota('${n.docId}')" class="btn btn-sm btn-warning py-0 me-1" title="Edit"><i class="fas fa-pencil-alt"></i></button>
+                        <button onclick="cetakUlang('${n.docId}')" class="btn btn-sm btn-outline-primary py-0" title="Print"><i class="fas fa-print"></i></button>
+                    </td>
+                </tr>`;
+            }
+        });
+    }
+
+    window.editNota = (docId) => {
+        let n = window.localCache.nota.find(x => x.docId === docId);
+        if(!n) return;
+
+        window.activeNotaId = docId;
+        document.getElementById('notaNo').innerText = n.no;
+        document.getElementById('custNama').value = n.nama;
+        document.getElementById('inputDP').value = n.dp;
+        
+        window.keranjang = JSON.parse(JSON.stringify(n.items));
+        renderNotaIsi();
+        
+        document.getElementById('btnSimpan').innerHTML = '<i class="fas fa-save"></i> UPDATE DATABASE';
+        document.getElementById('btnSimpan').classList.replace('btn-primary', 'btn-warning');
+        document.getElementById('areaNota').classList.add('editing-mode');
+        document.getElementById('badgeEditMode').classList.remove('d-none');
+        
+        window.scrollTo(0,0);
+        document.querySelector('button[data-bs-target="#tabKasir"]').click();
+    }
+
+    window.cetakUlang = (docId) => {
+        let n = window.localCache.nota.find(x => x.docId === docId); if(!n) return;
+        document.getElementById('notaNo').innerText = n.no; 
+        document.getElementById('notaYth').innerText = n.nama;
+        let tbody = document.getElementById('notaIsi'); tbody.innerHTML = '';
+        n.items.forEach((item, idx) => {
+            tbody.innerHTML += `<tr><td class="text-center">${idx + 1}</td><td>${item.nama}</td><td class="text-center">${item.qty}</td><td class="text-end">${item.harga.toLocaleString()}</td><td class="text-end fw-bold">${item.total.toLocaleString()}</td><td></td></tr>`;
+        });
+        document.getElementById('notaTotal').innerText = n.total.toLocaleString(); 
+        document.getElementById('inputDP').value = n.dp; 
+        document.getElementById('notaSisa').innerText = n.sisaInfo;
+        
+        document.body.classList.add('print-nota'); 
+        window.print(); 
+        document.body.classList.remove('print-nota');
+        resetNota();
+    }
+
+    window.setFilter = (mode) => {
+        window.currentFilter = mode;
+        document.querySelectorAll('.btn-filter-group button').forEach(btn => btn.classList.remove('active'));
+        let activeBtn = document.getElementById('btn-' + mode);
+        if(activeBtn) activeBtn.classList.add('active');
+        
+        let label = "Semua Waktu";
+        if(mode === 'hari') label = "Hari Ini";
+        if(mode === 'minggu') label = "Minggu Ini";
+        if(mode === 'bulan') label = "Bulan Ini";
+        if(mode === 'tahun') label = "Tahun Ini";
+        document.getElementById('filterInfoText').innerText = "Menampilkan Data: " + label;
+        
+        renderLaporan();
+    }
+
+    window.editTransaksi = (type, docId) => {
+        if(type === 'nota') {
+            editNota(docId); 
+        } 
+        else if (type === 'exp') {
+            let item = window.localCache.pengeluaran.find(x => x.docId === docId);
+            if(item) {
+                window.editingExpId = docId;
+                document.getElementById('expTgl').value = item.tglStr;
+                document.getElementById('expKet').value = item.ket;
+                document.getElementById('expJml').value = item.jml;
+                
+                document.getElementById('btnSimpanExp').innerText = "Update Pengeluaran";
+                document.getElementById('btnSimpanExp').classList.replace('btn-danger', 'btn-warning');
+                document.getElementById('expKet').focus();
+            }
+        }
+        else if (type === 'in') {
+            let item = window.localCache.pemasukanLain.find(x => x.docId === docId);
+            if(item) {
+                window.editingInId = docId;
+                document.getElementById('inTgl').value = item.tglStr;
+                document.getElementById('inKet').value = item.ket;
+                document.getElementById('inJml').value = item.jml;
+                
+                document.getElementById('btnSimpanIn').innerText = "Update Pemasukan";
+                document.getElementById('btnSimpanIn').classList.replace('btn-success', 'btn-warning');
+                document.getElementById('inKet').focus();
+            }
+        }
+    }
+
+    window.renderLaporan = () => {
+        let tbody = document.getElementById('tabelLaporan'); tbody.innerHTML = ''; 
+        let allData = [];
+        let today = new Date();
+        today.setHours(0,0,0,0);
+
+        function isSameDay(d1, d2) { return d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate(); }
+        function isSameMonth(d1, d2) { return d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth(); }
+        function isSameYear(d1, d2) { return d1.getFullYear() === d2.getFullYear(); }
+
+        window.localCache.nota.forEach(n => { 
+            allData.push({
+                type: 'nota', docId: n.docId,
+                dateObj: new Date(n.tgl), displayTgl: new Date(n.tgl).toLocaleString('id-ID'), 
+                ket: `Penjualan: ${n.no} (${n.nama})`, in: n.total, out: 0, color: 'text-primary'
+            }); 
+        });
+        window.localCache.pengeluaran.forEach(e => { 
+            allData.push({
+                type: 'exp', docId: e.docId,
+                dateObj: new Date(e.tglStr), displayTgl: new Date(e.tglStr).toLocaleDateString('id-ID'), 
+                ket: `Biaya: ${e.ket}`, in: 0, out: e.jml, color: 'text-danger'
+            }); 
+        });
+        window.localCache.pemasukanLain.forEach(i => { 
+            allData.push({
+                type: 'in', docId: i.docId,
+                dateObj: new Date(i.tglStr), displayTgl: new Date(i.tglStr).toLocaleDateString('id-ID'), 
+                ket: `Modal/Lain: ${i.ket}`, in: i.jml, out: 0, color: 'text-success'
+            }); 
+        });
+
+        let filteredData = allData.filter(item => {
+            let d = item.dateObj;
+            if (window.currentFilter === 'semua') return true;
+            if (window.currentFilter === 'hari') return isSameDay(d, today);
+            if (window.currentFilter === 'minggu') { let diff = Math.ceil(Math.abs(today - d) / (1000 * 60 * 60 * 24)); return diff <= 7; }
+            if (window.currentFilter === 'bulan') return isSameMonth(d, today);
+            if (window.currentFilter === 'tahun') return isSameYear(d, today);
+            return true;
+        });
+
+        filteredData.sort((a, b) => b.dateObj - a.dateObj);
+        
+        let totMasuk = 0, totKeluar = 0;
+        filteredData.forEach(item => {
+            totMasuk += item.in; totKeluar += item.out;
+            tbody.innerHTML += `
+            <tr>
+                <td class="small">${item.displayTgl}</td>
+                <td class="${item.color}">${item.ket}</td>
+                <td class="text-end">${item.in > 0 ? item.in.toLocaleString() : '-'}</td>
+                <td class="text-end text-danger">${item.out > 0 ? item.out.toLocaleString() : '-'}</td>
+                <td class="text-center">
+                    <button onclick="editTransaksi('${item.type}', '${item.docId}')" class="btn btn-sm btn-outline-warning py-0"><i class="fas fa-edit"></i></button>
+                </td>
+            </tr>`;
+        });
+        document.getElementById('totMasuk').innerText = totMasuk.toLocaleString(); 
+        document.getElementById('totKeluar').innerText = totKeluar.toLocaleString(); 
+        document.getElementById('totProfit').innerText = (totMasuk - totKeluar).toLocaleString();
+    }
+</script>
 </body>
 </html>
-
