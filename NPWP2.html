@@ -6,6 +6,8 @@
     <title>Sistem Data NPWP (Firebase)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SheetJS untuk Excel Support -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
@@ -187,13 +189,28 @@
                     <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
                     <input type="text" id="searchName" placeholder="Cari berdasarkan nama..." class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
-                <div class="flex gap-2 w-full md:w-auto">
-                    <label for="importExcel" class="flex-1 md:flex-none bg-emerald-50 hover:bg-emerald-100 text-emerald-600 px-4 py-2 rounded-lg transition-colors cursor-pointer text-sm font-medium border border-emerald-200 flex items-center justify-center gap-2">
-                        <i class="fas fa-file-import"></i> Impor CSV
+                <!-- Tools Area (CSV & JSON & Excel) -->
+                <div class="flex flex-wrap gap-2 w-full md:w-auto">
+                    <!-- CSV Tools -->
+                    <!-- <button id="exportExcel" class="hidden">Legacy CSV</button> -->
+                    
+                    <!-- EXCEL TOOLS (NEW) -->
+                    <label for="importXlsx" class="flex-1 md:flex-none bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg transition-colors cursor-pointer text-sm font-medium shadow-md flex items-center justify-center gap-1 transform hover:-translate-y-0.5" title="Impor File Excel">
+                        <i class="fas fa-file-excel"></i> Import Excel
                     </label>
-                    <input type="file" id="importExcel" accept=".csv" class="hidden">
-                    <button id="exportExcel" class="flex-1 md:flex-none bg-emerald-50 hover:bg-emerald-100 text-emerald-600 px-4 py-2 rounded-lg transition-colors text-sm font-medium border border-emerald-200 flex items-center justify-center gap-2">
-                        <i class="fas fa-file-export"></i> Ekspor CSV
+                    <input type="file" id="importXlsx" accept=".xlsx, .xls" class="hidden">
+                    
+                    <button id="exportXlsx" class="flex-1 md:flex-none bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg transition-colors text-sm font-medium shadow-md flex items-center justify-center gap-1 transform hover:-translate-y-0.5" title="Download Excel">
+                        <i class="fas fa-file-export"></i> Export Excel
+                    </button>
+                    
+                    <!-- JSON Tools -->
+                    <label for="importJson" class="flex-1 md:flex-none bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-3 py-2 rounded-lg transition-colors cursor-pointer text-sm font-medium border border-indigo-200 flex items-center justify-center gap-1" title="Impor Backup JSON">
+                        <i class="fas fa-file-code"></i> Impor JSON
+                    </label>
+                    <input type="file" id="importJson" accept=".json" class="hidden">
+                    <button id="exportJson" class="flex-1 md:flex-none bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-3 py-2 rounded-lg transition-colors text-sm font-medium border border-indigo-200 flex items-center justify-center gap-1" title="Backup Database (JSON)">
+                        <i class="fas fa-cloud-download-alt"></i> Backup JSON
                     </button>
                 </div>
             </div>
@@ -310,6 +327,17 @@
                         <button type="submit" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium">Simpan & Reload</button>
                     </div>
                 </form>
+
+                <!-- DANGER ZONE: RESET DATABASE -->
+                <div class="mt-8 pt-6 border-t border-gray-200">
+                    <h3 class="text-red-600 font-bold text-sm uppercase mb-2 flex items-center gap-2">
+                        <i class="fas fa-exclamation-triangle"></i> Danger Zone
+                    </h3>
+                    <p class="text-xs text-gray-500 mb-3">Tindakan ini akan menghapus <strong>SELURUH DATA</strong> di database secara permanen.</p>
+                    <button type="button" id="btnWipeDatabase" class="w-full px-4 py-3 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors">
+                        <i class="fas fa-bomb"></i> RESET DATABASE (HAPUS SEMUA)
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -340,7 +368,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // APP ID from Environment (Critical for Permissions)
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
@@ -672,6 +700,20 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
+        // Navigation Buttons (FIXED)
+        document.getElementById('firstRecord').addEventListener('click', () => {
+            if(filteredData.length > 0) loadRecord(0);
+        });
+        document.getElementById('prevRecord').addEventListener('click', () => {
+            if(filteredData.length > 0 && currentIndex > 0) loadRecord(currentIndex - 1);
+        });
+        document.getElementById('nextRecord').addEventListener('click', () => {
+            if(filteredData.length > 0 && currentIndex < filteredData.length - 1) loadRecord(currentIndex + 1);
+        });
+        document.getElementById('lastRecord').addEventListener('click', () => {
+            if(filteredData.length > 0) loadRecord(filteredData.length - 1);
+        });
+
         document.getElementById('addNewRecord').addEventListener('click', () => { clearForm(); inputs.nama.focus(); });
         document.getElementById('undoRecord').addEventListener('click', () => { if(filteredData.length>0) loadRecord(currentIndex); else clearForm(); });
 
@@ -780,100 +822,238 @@
             location.reload();
         });
 
-        // --- 8. CSV Import / Export Logic ---
+        // --- NEW: WIPE DATABASE LOGIC ---
+        document.getElementById('btnWipeDatabase').addEventListener('click', () => {
+            // Tutup modal settings agar modal konfirmasi terlihat jelas
+            settingsModal.style.display = 'none';
 
-        // Helper to convert CSV string to array
-        function parseCSV(text) {
-            const rows = text.split('\n').map(r => r.trim()).filter(r => r);
-            if(rows.length < 2) return [];
-            // Assuming simple CSV (comma separated, no quotes handling for simplicity)
-            // Skip header (row 0)
-            return rows.slice(1).map(row => {
-                const cols = row.split(',').map(c => c.trim());
-                // Expected Order: No, Nama, Email, PassEmail, NIK, KK, PassNPWP, PassNPWP Terbaru
-                return {
-                    nama: cols[1] || '',
-                    email: cols[2] || '',
-                    pasEmail: cols[3] || '',
-                    nik: cols[4] || '',
-                    kk: cols[5] || '',
-                    pasNPWP: cols[6] || '',
-                    pasNPWPTerbaru: cols[7] || '',
-                    hasEmail: (cols[2] || '').length > 0
-                };
-            });
-        }
+            showConfirmation("PERINGATAN KERAS: Anda akan menghapus SELURUH DATA di database. Tindakan ini TIDAK BISA DIBATALKAN. Apakah Anda yakin 100%?", async () => {
+                loadingOverlay.style.display = 'flex';
+                loadingText.innerText = "Menghapus SELURUH data... Mohon tunggu.";
+                
+                try {
+                    // 1. Ambil semua dokumen
+                    const ref = getCollectionRef();
+                    const snapshot = await getDocs(ref);
 
-        // Handle Export
-        document.getElementById('exportExcel').addEventListener('click', () => {
-            if(npwpData.length === 0) return showMessageBox('Tidak ada data untuk diekspor.');
-            
-            // Header
-            let csvContent = "data:text/csv;charset=utf-8,";
-            csvContent += "No,Nama,Email,Password Email,NIK,KK,Password NPWP,Password NPWP Terbaru,Status\n";
-            
-            // Rows
-            npwpData.forEach((row, index) => {
-                const rowString = [
-                    index + 1,
-                    `"${(row.nama || '').replace(/"/g, '""')}"`, // Handle commas in names
-                    row.email || '',
-                    row.pasEmail || '',
-                    `'${row.nik || ''}`, // Force string for excel
-                    `'${row.kk || ''}`, // Force string for excel
-                    row.pasNPWP || '',
-                    row.pasNPWPTerbaru || '',
-                    row.hasEmail ? 'Lengkap' : 'Incomplete'
-                ].join(",");
-                csvContent += rowString + "\n";
+                    if (snapshot.empty) {
+                        loadingOverlay.style.display = 'none';
+                        showMessageBox("Database sudah kosong.");
+                        return;
+                    }
+
+                    // 2. Hapus satu per satu (Parallel Promise)
+                    // Menggunakan map() untuk membuat array promise deleteDoc
+                    const deletePromises = snapshot.docs.map(docSnapshot => deleteDoc(docSnapshot.ref));
+                    
+                    // Tunggu semua proses hapus selesai
+                    await Promise.all(deletePromises);
+
+                    loadingOverlay.style.display = 'none';
+                    showMessageBox("Database berhasil di-reset! Semua data telah dihapus.");
+                    
+                    // Reset form lokal
+                    clearForm();
+
+                } catch (error) {
+                    console.error("Wipe Error:", error);
+                    loadingOverlay.style.display = 'none';
+                    showMessageBox("Gagal mereset database: " + error.message);
+                }
+            }, () => {
+                // Jika batal, buka kembali settings modal
+                settingsModal.style.display = 'block';
             });
-            
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "data_npwp_export.csv");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
         });
 
-        // Handle Import
-        document.getElementById('importExcel').addEventListener('change', async (e) => {
+        // --- 8. EXCEL Import / Export Logic (SheetJS) ---
+
+        // EXPORT EXCEL
+        document.getElementById('exportXlsx').addEventListener('click', () => {
+            if(npwpData.length === 0) return showMessageBox('Tidak ada data untuk diekspor.');
+            
+            // 1. Format data agar rapi di Excel
+            const dataToExport = npwpData.map((row, index) => ({
+                "No": index + 1,
+                "Nama Lengkap": row.nama || '',
+                "Email": row.email || '',
+                "Password Email": row.pasEmail || '',
+                "NIK": row.nik ? `'${row.nik}` : '', // Tanda petik agar tidak jadi Scientific Notation
+                "KK": row.kk ? `'${row.kk}` : '',
+                "Password NPWP": row.pasNPWP || '',
+                "Password NPWP Terbaru": row.pasNPWPTerbaru || '',
+                "Status Data": row.hasEmail ? 'Lengkap' : 'Belum Lengkap'
+            }));
+
+            // 2. Buat Worksheet & Workbook
+            const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Data NPWP");
+
+            // 3. Download File
+            const fileName = `data_npwp_${new Date().toISOString().slice(0,10)}.xlsx`;
+            XLSX.writeFile(workbook, fileName);
+        });
+
+        // IMPORT EXCEL
+        document.getElementById('importXlsx').addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if(!file) return;
-            
+
             loadingOverlay.style.display = 'flex';
-            loadingText.innerText = "Membaca file CSV...";
-            
+            loadingText.innerText = "Membaca file Excel...";
+
             const reader = new FileReader();
+            
             reader.onload = async (evt) => {
-                const text = evt.target.result;
-                const records = parseCSV(text);
-                
-                if(records.length === 0) {
-                    loadingOverlay.style.display = 'none';
-                    return showMessageBox('File kosong atau format salah.');
-                }
-                
-                let successCount = 0;
-                for(let i = 0; i < records.length; i++) {
-                    const rec = records[i];
-                    loadingText.innerText = `Mengimpor ${i+1}/${records.length}...`;
+                try {
+                    const data = new Uint8Array(evt.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
                     
-                    if(!rec.nama || !rec.nik) continue; // Skip invalid records
+                    // Ambil sheet pertama
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
                     
-                    try {
-                        rec.createdAt = new Date().toISOString();
+                    // Konversi ke JSON
+                    const jsonRecords = XLSX.utils.sheet_to_json(worksheet, { defval: "" }); // defval "" untuk mengisi sel kosong
+
+                    if(jsonRecords.length === 0) {
+                        loadingOverlay.style.display = 'none';
+                        return showMessageBox('File Excel kosong.');
+                    }
+
+                    let successCount = 0;
+                    loadingText.innerText = "Sedang mengimpor data...";
+
+                    // Mapping Kolom Fleksibel (Mencari nama kolom yang mirip)
+                    for(let i = 0; i < jsonRecords.length; i++) {
+                        const row = jsonRecords[i];
+                        
+                        // Cari key yang cocok (case insensitive & partial match)
+                        const getVal = (keys) => {
+                            for (let k of Object.keys(row)) {
+                                if (keys.some(key => k.toLowerCase().includes(key.toLowerCase()))) {
+                                    return row[k];
+                                }
+                            }
+                            return "";
+                        };
+
+                        const nama = getVal(["Nama", "Name"]);
+                        const email = getVal(["Email", "Mail"]);
+                        const pasEmail = getVal(["Password Email", "Pass Email", "Sandi Email"]);
+                        const nik = getVal(["NIK", "Nomor Induk"]);
+                        let rawNik = nik ? String(nik).replace(/'/g, "").trim() : "";
+                        const kk = getVal(["KK", "Kartu Keluarga"]);
+                        let rawKk = kk ? String(kk).replace(/'/g, "").trim() : "";
+                        const pasNPWP = getVal(["Password NPWP", "Sandi NPWP"]);
+                        const pasNPWPTerbaru = getVal(["Terbaru", "New"]);
+
+                        // Validasi Minimal: Harus ada Nama atau NIK
+                        if(!nama && !rawNik) continue;
+
+                        const rec = {
+                            nama: String(nama).trim(),
+                            email: String(email).trim(),
+                            pasEmail: String(pasEmail).trim(),
+                            nik: rawNik,
+                            kk: rawKk,
+                            pasNPWP: String(pasNPWP).trim(),
+                            pasNPWPTerbaru: String(pasNPWPTerbaru).trim(),
+                            hasEmail: String(email).trim().length > 0,
+                            createdAt: new Date().toISOString()
+                        };
+
                         await addDoc(getCollectionRef(), rec);
                         successCount++;
-                    } catch(err) {
-                        console.error("Import fail:", err);
+                        
+                        // Update loading text setiap 10 data
+                        if(i % 10 === 0) loadingText.innerText = `Mengimpor ${i+1}/${jsonRecords.length}...`;
                     }
+
+                    showMessageBox(`Berhasil mengimpor ${successCount} data dari Excel!`);
+                } catch (err) {
+                    console.error("Excel Import Error:", err);
+                    showMessageBox("Gagal membaca Excel: " + err.message);
+                } finally {
+                    loadingOverlay.style.display = 'none';
+                    e.target.value = ''; // Reset input file
                 }
-                
-                loadingOverlay.style.display = 'none';
-                showMessageBox(`Berhasil mengimpor ${successCount} data!`);
-                e.target.value = ''; // Reset input
+            };
+            
+            reader.readAsArrayBuffer(file);
+        });
+
+        // --- NEW: JSON Import / Export Logic ---
+
+        // 1. Export JSON (Full Backup)
+        document.getElementById('exportJson').addEventListener('click', () => {
+            if(npwpData.length === 0) return showMessageBox('Tidak ada data untuk diekspor.');
+            
+            // Convert to pretty JSON string
+            const dataStr = JSON.stringify(npwpData, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportFileDefaultName = `backup_npwp_${new Date().toISOString().slice(0,10)}.json`;
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            document.body.appendChild(linkElement);
+            linkElement.click();
+            document.body.removeChild(linkElement);
+        });
+
+        // 2. Import JSON
+        document.getElementById('importJson').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if(!file) return;
+
+            loadingOverlay.style.display = 'flex';
+            loadingText.innerText = "Membaca file JSON...";
+
+            const reader = new FileReader();
+            reader.onload = async (evt) => {
+                try {
+                    const importedData = JSON.parse(evt.target.result);
+                    
+                    if (!Array.isArray(importedData)) {
+                        throw new Error("Format JSON harus berupa Array.");
+                    }
+
+                    if(importedData.length === 0) {
+                        loadingOverlay.style.display = 'none';
+                        return showMessageBox('File JSON kosong.');
+                    }
+
+                    let successCount = 0;
+                    for(let i = 0; i < importedData.length; i++) {
+                        const rec = importedData[i];
+                        loadingText.innerText = `Mengimpor JSON ${i+1}/${importedData.length}...`;
+                        
+                        // Basic validation
+                        if(!rec.nama && !rec.nik) continue; 
+
+                        // IMPORTANT: Remove 'id' field if it exists (let Firestore generate new ID)
+                        // This prevents overwriting or errors if IDs conflict
+                        const { id, ...dataToSave } = rec;
+                        
+                        // Ensure timestamp exists
+                        if(!dataToSave.createdAt) dataToSave.createdAt = new Date().toISOString();
+
+                        await addDoc(getCollectionRef(), dataToSave);
+                        successCount++;
+                    }
+                    
+                    showMessageBox(`Berhasil mengimpor ${successCount} data dari JSON!`);
+
+                } catch (err) {
+                    console.error("Import JSON Fail:", err);
+                    showMessageBox("Gagal impor JSON: " + err.message);
+                } finally {
+                    loadingOverlay.style.display = 'none';
+                    e.target.value = ''; // Reset input
+                }
             };
             reader.readAsText(file);
         });
