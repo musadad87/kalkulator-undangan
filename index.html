@@ -3,279 +3,284 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KTP Repeater - X476dw Tools</title>
+    <title>MUSADAD SYSTEM PORTAL</title>
+    
+    <!-- TAILWIND CSS & ICONS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- FONTS -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+
     <style>
-        /* CSS Khusus untuk mensimulasikan kertas A4 dan Printing */
-        @page {
-            size: A4;
-            margin: 0;
+        body { font-family: 'Poppins', sans-serif; background: #f0f2f5; }
+        .digital-font { font-family: 'Orbitron', sans-serif; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
         }
-        @media print {
-            body {
-                background-color: white;
-            }
-            .no-print {
-                display: none !important;
-            }
-            .page-container {
-                display: block !important;
-                margin: 0 !important;
-            }
-            .page {
-                box-shadow: none !important;
-                margin: 0 !important;
-                border: none !important;
-                width: 210mm !important;
-                height: 296mm !important; 
-                page-break-after: always; 
-                page-break-inside: avoid;
-            }
-            .page:last-child {
-                page-break-after: auto;
-            }
+        .btn-menu {
+            transition: all 0.3s ease;
         }
-
-        .page-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 2rem;
-            margin-bottom: 2rem;
+        .btn-menu:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
-
-        .page {
-            width: 210mm;
-            min-height: 297mm;
-            background: white;
-            position: relative;
-            box-shadow: 0 0 15px rgba(0,0,0,0.15);
-            padding: 10mm;
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            grid-template-rows: repeat(5, 1fr);
-            gap: 2mm;
-            box-sizing: border-box;
-            align-content: start;
-        }
-
-        /* Ukuran KTP Standar ISO/IEC 7810 ID-1 */
-        .ktp-card {
-            width: 85.6mm;
-            height: 53.98mm;
-            border: 1px dashed #ccc;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            position: relative;
-            background-color: #f3f4f6;
-            margin: 0 auto;
-        }
-
-        .ktp-card img {
-            width: 100%;
-            height: 100%;
-            object-fit: fill;
-        }
-        
-        .grayscale-mode img {
-            filter: grayscale(100%) contrast(120%);
-        }
-        
-        /* Label Penanda Halaman (Hanya tampil di layar) */
-        .page-label {
-            position: absolute;
-            top: -30px;
-            left: 0;
-            width: 100%;
-            text-align: center;
-            font-weight: bold;
-            color: #4b5563;
-            text-transform: uppercase;
-            font-size: 0.9rem;
-            background-color: #e5e7eb;
-            padding: 4px 0;
-            border-radius: 4px;
-        }
-
-        /* Style untuk tombol pilihan paket */
-        .packet-btn.active {
-            background-color: #fbbf24; /* Amber-400 */
-            color: #1e3a8a; /* Blue-900 */
-            border-color: #f59e0b;
-            font-weight: 800;
-            transform: scale(1.05);
-        }
+        /* Scrollbar custom untuk notes */
+        textarea::-webkit-scrollbar { width: 8px; }
+        textarea::-webkit-scrollbar-track { background: #f1f1f1; }
+        textarea::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        textarea::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
-<body class="bg-gray-200 min-h-screen font-sans">
+<body class="min-h-screen flex flex-col bg-gradient-to-br from-slate-200 to-slate-300">
 
-    <!-- Control Panel -->
-    <div class="no-print fixed top-0 left-0 w-full bg-blue-900 text-white shadow-lg z-50 p-2 md:p-4">
-        <div class="max-w-6xl mx-auto flex flex-col gap-3">
+    <!-- HEADER / TOP BAR -->
+    <div class="bg-gradient-to-r from-blue-900 to-blue-800 text-white shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3 flex flex-col md:flex-row justify-between items-center">
             
-            <!-- Header & Print Button -->
-            <div class="flex justify-between items-center border-b border-blue-700 pb-2">
+            <!-- BRANDING -->
+            <div class="flex items-center gap-3 mb-2 md:mb-0">
+                <div class="bg-white text-blue-900 rounded-full w-10 h-10 flex items-center justify-center text-xl font-bold shadow-md">
+                    <i class="fas fa-print"></i>
+                </div>
                 <div>
-                    <h1 class="text-lg md:text-xl font-bold">🛠️ KTP Repeater Pro v4</h1>
-                    <p class="text-xs text-blue-200">Mode: Pilihan Paket Harga</p>
+                    <h1 class="font-bold text-xl tracking-wide leading-none">MUSADAD SYSTEM</h1>
+                    <p class="text-xs text-blue-200 opacity-80">Percetakan & Digital Service Portal</p>
                 </div>
-                <button onclick="window.print()" class="bg-green-600 hover:bg-green-500 px-4 md:px-6 py-2 rounded shadow font-bold text-lg transition flex items-center gap-2">
-                    🖨️ PRINT
-                </button>
             </div>
 
-            <!-- Area Kontrol Utama -->
-            <div class="flex flex-col md:flex-row gap-4 items-start md:items-center">
-                
-                <!-- 1. Pilihan Paket Harga -->
-                <div class="flex bg-blue-800 p-2 rounded-lg gap-2">
-                    <button onclick="setPacket(5)" id="btnPacket5" class="packet-btn flex-1 px-3 py-2 rounded border border-blue-500 hover:bg-blue-700 transition text-sm md:text-base text-center">
-                        <div class="font-bold">Rp 1.000</div>
-                        <div class="text-xs opacity-90">(5 Lembar)</div>
-                    </button>
-                    <button onclick="setPacket(10)" id="btnPacket10" class="packet-btn active flex-1 px-3 py-2 rounded border border-blue-500 hover:bg-blue-700 transition text-sm md:text-base text-center">
-                        <div class="font-bold">Rp 2.000</div>
-                        <div class="text-xs opacity-90">(10 Lembar)</div>
-                    </button>
-                </div>
-
-                <!-- 2. Tombol Upload -->
-                <div class="flex-1 flex gap-2 w-full">
-                    <label class="cursor-pointer bg-blue-600 hover:bg-blue-500 px-3 py-2 rounded shadow transition flex-1 text-center border border-blue-400 flex flex-col justify-center">
-                        <span class="font-bold text-sm">📂 Upload Depan</span>
-                        <input type="file" id="imageInputFront" accept="image/*" class="hidden" onchange="loadImage(event, 'front')">
-                    </label>
-
-                    <label class="cursor-pointer bg-blue-600 hover:bg-blue-500 px-3 py-2 rounded shadow transition flex-1 text-center border border-blue-400 flex flex-col justify-center">
-                        <span class="font-bold text-sm">📂 Upload Belakang</span>
-                        <input type="file" id="imageInputBack" accept="image/*" class="hidden" onchange="loadImage(event, 'back')">
-                    </label>
-                </div>
-
-                <!-- 3. Toggle Hitam Putih -->
-                <button onclick="toggleGrayscale()" id="btnGrayscale" class="bg-gray-600 hover:bg-gray-500 px-3 py-2 rounded shadow transition flex items-center gap-2 h-full">
-                    <span class="text-sm font-bold">BW:</span> 
-                    <span id="statusGrayscale" class="font-bold bg-gray-800 px-2 rounded text-xs py-1">OFF</span>
-                </button>
+            <!-- WIDGET JAM & TANGGAL -->
+            <div class="text-center md:text-right bg-blue-950/30 px-4 py-2 rounded-lg border border-blue-700/50">
+                <div id="clockDisplay" class="digital-font text-2xl md:text-3xl font-bold text-cyan-300 leading-none tracking-widest">00:00:00</div>
+                <div id="dateDisplay" class="text-xs md:text-sm font-medium text-blue-100 uppercase tracking-wide mt-1">...</div>
             </div>
+
         </div>
     </div>
 
-    <div class="h-48 md:h-56 no-print"></div>
+    <!-- MAIN CONTENT -->
+    <div class="container mx-auto px-4 py-6 flex-grow">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
 
-    <!-- Container Utama -->
-    <div id="pagesContainer" class="page-container">
-        <div class="page flex items-center justify-center text-gray-400">
-            <div class="text-center">
-                <p class="text-xl mb-2">Belum ada foto</p>
-                <p class="text-sm">Pilih Paket Harga & Upload Foto di menu atas</p>
+            <!-- KOLOM KIRI: MENU GRID (2/3 layar) -->
+            <div class="lg:col-span-2 space-y-6">
+                
+                <!-- GROUP 1: INPUT & DATA -->
+                <div class="glass-panel rounded-xl shadow-sm p-5">
+                    <h3 class="text-blue-900 font-bold border-b-2 border-blue-100 pb-2 mb-4 flex items-center gap-2">
+                        <i class="fas fa-database text-blue-500"></i> INPUT DATA UTAMA
+                    </h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <button onclick="bukaLink('harga_kertas')" class="btn-menu bg-white p-3 rounded-lg border border-gray-200 shadow-sm hover:border-blue-300 flex flex-col items-center gap-2 group">
+                            <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                <i class="fas fa-scroll"></i>
+                            </div>
+                            <span class="text-xs font-semibold text-gray-700 text-center">Harga Kertas</span>
+                        </button>
+                        <!-- Updated: Harga Produk maps to Jual/NOTA_OK.html as per context -->
+                        <button onclick="bukaLink('harga_produk')" class="btn-menu bg-white p-3 rounded-lg border border-gray-200 shadow-sm hover:border-blue-300 flex flex-col items-center gap-2 group">
+                            <div class="w-10 h-10 rounded-full bg-green-50 text-green-600 flex items-center justify-center group-hover:bg-green-600 group-hover:text-white transition-colors">
+                                <i class="fas fa-tags"></i>
+                            </div>
+                            <span class="text-xs font-semibold text-gray-700 text-center">Harga Produk</span>
+                        </button>
+                        <button onclick="bukaLink('beli')" class="btn-menu bg-white p-3 rounded-lg border border-gray-200 shadow-sm hover:border-blue-300 flex flex-col items-center gap-2 group">
+                            <div class="w-10 h-10 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center group-hover:bg-orange-600 group-hover:text-white transition-colors">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <span class="text-xs font-semibold text-gray-700 text-center">Input Beli</span>
+                        </button>
+                        <button onclick="bukaLink('transaksi')" class="btn-menu bg-white p-3 rounded-lg border border-gray-200 shadow-sm hover:border-blue-300 flex flex-col items-center gap-2 group">
+                            <div class="w-10 h-10 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                                <i class="fas fa-cash-register"></i>
+                            </div>
+                            <span class="text-xs font-semibold text-gray-700 text-center">Transaksi</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- GROUP 2: TOOLS OPERASIONAL -->
+                <div class="glass-panel rounded-xl shadow-sm p-5">
+                    <h3 class="text-blue-900 font-bold border-b-2 border-blue-100 pb-2 mb-4 flex items-center gap-2">
+                        <i class="fas fa-tools text-blue-500"></i> TOOLS PERCETAKAN
+                    </h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <button onclick="bukaLink('hitung_undangan')" class="btn-menu bg-white p-3 rounded-lg border border-gray-200 shadow-sm hover:border-blue-300 flex flex-col items-center gap-2 group">
+                            <div class="w-10 h-10 rounded-full bg-pink-50 text-pink-600 flex items-center justify-center group-hover:bg-pink-600 group-hover:text-white transition-colors">
+                                <i class="fas fa-envelope-open-text"></i>
+                            </div>
+                            <span class="text-xs font-semibold text-gray-700 text-center">Hitung Undangan</span>
+                        </button>
+                        <button onclick="bukaLink('fotocopy')" class="btn-menu bg-white p-3 rounded-lg border border-gray-200 shadow-sm hover:border-blue-300 flex flex-col items-center gap-2 group">
+                            <div class="w-10 h-10 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center group-hover:bg-gray-600 group-hover:text-white transition-colors">
+                                <i class="fas fa-copy"></i>
+                            </div>
+                            <span class="text-xs font-semibold text-gray-700 text-center">Fotocopy</span>
+                        </button>
+                        <button onclick="bukaLink('cetak_foto')" class="btn-menu bg-white p-3 rounded-lg border border-gray-200 shadow-sm hover:border-blue-300 flex flex-col items-center gap-2 group">
+                            <div class="w-10 h-10 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                                <i class="fas fa-image"></i>
+                            </div>
+                            <span class="text-xs font-semibold text-gray-700 text-center">Cetak Foto</span>
+                        </button>
+                        <button onclick="bukaLink('remove_bg')" class="btn-menu bg-white p-3 rounded-lg border border-gray-200 shadow-sm hover:border-blue-300 flex flex-col items-center gap-2 group">
+                            <div class="w-10 h-10 rounded-full bg-red-50 text-red-600 flex items-center justify-center group-hover:bg-red-600 group-hover:text-white transition-colors">
+                                <i class="fas fa-eraser"></i>
+                            </div>
+                            <span class="text-xs font-semibold text-gray-700 text-center">Hapus Background</span>
+                        </button>
+                        <button onclick="bukaLink('pertajam_foto')" class="btn-menu bg-white p-3 rounded-lg border border-gray-200 shadow-sm hover:border-blue-300 flex flex-col items-center gap-2 group">
+                            <div class="w-10 h-10 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center group-hover:bg-teal-600 group-hover:text-white transition-colors">
+                                <i class="fas fa-magic"></i>
+                            </div>
+                            <span class="text-xs font-semibold text-gray-700 text-center">Pertajam Foto</span>
+                        </button>
+                        <button onclick="bukaLink('npwp')" class="btn-menu bg-white p-3 rounded-lg border border-gray-200 shadow-sm hover:border-blue-300 flex flex-col items-center gap-2 group">
+                            <div class="w-10 h-10 rounded-full bg-yellow-50 text-yellow-600 flex items-center justify-center group-hover:bg-yellow-600 group-hover:text-white transition-colors">
+                                <i class="fas fa-id-card"></i>
+                            </div>
+                            <span class="text-xs font-semibold text-gray-700 text-center">Cek NPWP</span>
+                        </button>
+                        <!-- ADDED: NPWP 2 -->
+                        <button onclick="bukaLink('npwp1')" class="btn-menu bg-white p-3 rounded-lg border border-gray-200 shadow-sm hover:border-blue-300 flex flex-col items-center gap-2 group">
+                            <div class="w-10 h-10 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center group-hover:bg-amber-600 group-hover:text-white transition-colors">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                            </div>
+                            <span class="text-xs font-semibold text-gray-700 text-center">NPWP 2</span>
+                        </button>
+                        <button onclick="bukaLink('blangko')" class="btn-menu bg-white p-3 rounded-lg border border-gray-200 shadow-sm hover:border-blue-300 flex flex-col items-center gap-2 group">
+                            <div class="w-10 h-10 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center group-hover:bg-rose-600 group-hover:text-white transition-colors">
+                                <i class="fas fa-file-invoice"></i>
+                            </div>
+                            <span class="text-xs font-semibold text-gray-700 text-center">Undangan Blangko</span>
+                        </button>
+                         <button onclick="bukaLink('ktp')" class="btn-menu bg-white p-3 rounded-lg border border-gray-200 shadow-sm hover:border-blue-300 flex flex-col items-center gap-2 group">
+                            <div class="w-10 h-10 rounded-full bg-sky-50 text-sky-600 flex items-center justify-center group-hover:bg-sky-600 group-hover:text-white transition-colors">
+                                <i class="fas fa-address-card"></i>
+                            </div>
+                            <span class="text-xs font-semibold text-gray-700 text-center">Buat KTP</span>
+                        </button>
+                    </div>
+                </div>
+
+                 <!-- GROUP 3: MOBILE & LAINNYA -->
+                <div class="glass-panel rounded-xl shadow-sm p-5">
+                    <h3 class="text-blue-900 font-bold border-b-2 border-blue-100 pb-2 mb-4 flex items-center gap-2">
+                        <i class="fas fa-mobile-alt text-blue-500"></i> AKSES MOBILE
+                    </h3>
+                    <div class="flex flex-wrap gap-3">
+                        <button onclick="bukaLink('pesanan')" class="btn-menu px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg shadow text-sm font-medium"><i class="fas fa-clipboard-list mr-1"></i> Pesanan</button>
+                        <button onclick="bukaLink('utang')" class="btn-menu px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg shadow text-sm font-medium"><i class="fas fa-book-dead mr-1"></i> Catatan Utang</button>
+                        <!-- Updated: Nota maps to akuntansi.html per instruction -->
+                        <button onclick="bukaLink('nota')" class="btn-menu px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg shadow text-sm font-medium"><i class="fas fa-receipt mr-1"></i> Buat Nota</button>
+                        <button onclick="bukaLink('pulsa')" class="btn-menu px-4 py-2 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-lg shadow text-sm font-medium"><i class="fas fa-wifi mr-1"></i> Transaksi Pulsa</button>
+                    </div>
+                </div>
+
             </div>
+
+            <!-- KOLOM KANAN: NOTE PEKERJAAN (1/3 layar) -->
+            <div class="lg:col-span-1 h-full flex flex-col">
+                <div class="glass-panel rounded-xl shadow-md flex-grow flex flex-col h-full border-t-4 border-yellow-400">
+                    <!-- Note Header -->
+                    <div class="p-4 bg-yellow-50 border-b border-yellow-100 flex justify-between items-center rounded-t-lg">
+                        <h3 class="font-bold text-yellow-800 flex items-center gap-2">
+                            <i class="fas fa-sticky-note"></i> NOTE PEKERJAAN
+                        </h3>
+                        <span id="saveStatus" class="text-xs text-green-600 font-medium opacity-0 transition-opacity"><i class="fas fa-check"></i> Tersimpan</span>
+                    </div>
+                    
+                    <!-- Note Area -->
+                    <div class="p-0 flex-grow relative bg-yellow-50/30">
+                        <textarea id="workNotes" class="w-full h-full p-4 bg-transparent border-0 focus:ring-0 text-gray-700 text-sm leading-relaxed resize-none font-medium" 
+                        placeholder="Tulis daftar pekerjaan, pendingan, atau catatan penting di sini... (Otomatis tersimpan)"></textarea>
+                    </div>
+                    
+                    <!-- Note Footer -->
+                    <div class="p-3 bg-gray-50 border-t border-gray-200 text-xs text-gray-500 text-center">
+                        Jangan lupa cek catatan sebelum pulang!
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 
     <script>
-        let frontSrc = null;
-        let backSrc = null;
-        let isGrayscale = false;
-        let copiesPerPage = 10; // Default 10 (Rp 2000)
+        // 1. LOGIKA JAM & TANGGAL
+        function updateTime() {
+            const now = new Date();
+            
+            // Jam Digital
+            const timeString = now.toLocaleTimeString('id-ID', { hour12: false });
+            document.getElementById('clockDisplay').textContent = timeString;
 
-        function setPacket(count) {
-            copiesPerPage = count;
-            
-            // Update UI Tombol
-            document.getElementById('btnPacket5').classList.remove('active');
-            document.getElementById('btnPacket10').classList.remove('active');
-            
-            if (count === 5) {
-                document.getElementById('btnPacket5').classList.add('active');
+            // Tanggal
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const dateString = now.toLocaleDateString('id-ID', options);
+            document.getElementById('dateDisplay').textContent = dateString;
+        }
+        setInterval(updateTime, 1000);
+        updateTime(); // Run immediately
+
+        // 2. LOGIKA NAVIGASI
+        // Link diperbarui sesuai permintaan (Referensi User Code)
+        const menuLinks = {
+            // INPUT DATA
+            'harga_kertas': 'https://musadad87.github.io/kalkulator-undangan/INPUT_HARGA_KERETAS.html', // dari action 'harga-kertas'
+            'harga_produk': 'https://musadad87.github.io/kalkulator-undangan/NOTA_OK.html', // dari action 'Jual'
+            'beli': 'https://musadad87.github.io/kalkulator-undangan/BELI.html', // dari action 'beli'
+            'transaksi': 'https://chat.z.ai/space/t0xt57qx46u0-art', // dari action 'Teransaksi'
+
+            // TOOLS PERCETAKAN
+            'hitung_undangan': 'https://musadad87.github.io/kalkulator-undangan/haraga_riza.html', // dari action 'hitung-riza'
+            'fotocopy': 'https://musadad87.github.io/kalkulator-undangan/fotocpy.html', // dari action 'focopy'
+            'cetak_foto': 'https://musadad87.github.io/kalkulator-undangan/print%20foto.HTML', // dari action 'cetak-foto'
+            'remove_bg': 'https://www.photoroom.com/tools/background-remover', // dari action 'Hapus_BC'
+            'pertajam_foto': 'https://picwish.com/photo-enhancer', // dari action 'Menajam_Fo'
+            'npwp': 'https://musadad87.github.io/kalkulator-undangan/NPWP%20google%20sheet.html', // dari action 'npwp'
+            'npwp1': 'https://musadad87.github.io/kalkulator-undangan/NPWP2.html', // dari action 'npwp1'
+            'blangko': 'https://musadad87.github.io/kalkulator-undangan/HARGA_Belangko.Html.html', // dari action 'undangan-belangko'
+            'ktp': 'https://musadad87.github.io/kalkulator-undangan/ktp.html', // dari action 'KTP'
+
+            // MOBILE
+            'pesanan': 'https://musadad87.github.io/kalkulator-undangan/pesanan.html', // dari action 'pesanan'
+            'utang': 'https://musadad87.github.io/kalkulator-undangan/utang.html', // dari action 'utang'
+            'nota': 'https://musadad87.github.io/kalkulator-undangan/akuntansi.html', // dari action 'nota'
+            'pulsa': 'https://isipulsa.web.id/' // dari action 'pulsa'
+        };
+
+        function bukaLink(key) {
+            const url = menuLinks[key];
+            if (url) {
+                window.open(url, '_blank');
             } else {
-                document.getElementById('btnPacket10').classList.add('active');
-            }
-
-            // Render ulang jika gambar sudah ada
-            renderGrid();
-        }
-
-        function loadImage(event, type) {
-            const input = event.target;
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    if (type === 'front') frontSrc = e.target.result;
-                    else backSrc = e.target.result;
-                    renderGrid();
-                }
-                reader.readAsDataURL(input.files[0]);
+                alert('Link belum tersedia untuk menu ini.');
             }
         }
 
-        function createPage(imageSrc, labelText) {
-            const pageDiv = document.createElement('div');
-            pageDiv.className = 'page';
+        // 3. LOGIKA NOTE PEKERJAAN (LOCAL STORAGE)
+        const noteArea = document.getElementById('workNotes');
+        const saveStatus = document.getElementById('saveStatus');
+
+        // Load saved notes on startup
+        const savedNotes = localStorage.getItem('musadad_work_notes');
+        if (savedNotes) {
+            noteArea.value = savedNotes;
+        }
+
+        // Save on typing
+        noteArea.addEventListener('input', function() {
+            localStorage.setItem('musadad_work_notes', this.value);
             
-            const labelDiv = document.createElement('div');
-            labelDiv.className = 'page-label no-print';
-            labelDiv.innerText = `HALAMAN ${labelText} (ISI ${copiesPerPage} KARTU)`;
-            pageDiv.appendChild(labelDiv);
-
-            // Loop sesuai jumlah paket yang dipilih (5 atau 10)
-            for (let i = 0; i < copiesPerPage; i++) {
-                const cardDiv = document.createElement('div');
-                cardDiv.className = 'ktp-card';
-                if (isGrayscale) cardDiv.classList.add('grayscale-mode');
-
-                const img = document.createElement('img');
-                img.src = imageSrc;
-                cardDiv.style.border = "1px solid #e5e7eb"; 
-
-                cardDiv.appendChild(img);
-                pageDiv.appendChild(cardDiv);
-            }
-            return pageDiv;
-        }
-
-        function renderGrid() {
-            const container = document.getElementById('pagesContainer');
-            container.innerHTML = '';
-
-            if (!frontSrc && !backSrc) {
-                container.innerHTML = `
-                    <div class="page flex items-center justify-center text-gray-400">
-                         <div class="text-center">
-                            <p class="text-xl mb-2">Belum ada foto</p>
-                            <p class="text-sm">Pilih Paket Harga & Upload Foto di menu atas</p>
-                        </div>
-                    </div>`;
-                return;
-            }
-
-            if (frontSrc) {
-                container.appendChild(createPage(frontSrc, "1: DEPAN"));
-            }
-
-            if (backSrc) {
-                container.appendChild(createPage(backSrc, "2: BELAKANG"));
-            }
-        }
-
-        function toggleGrayscale() {
-            isGrayscale = !isGrayscale;
-            const btn = document.getElementById('btnGrayscale');
-            const status = document.getElementById('statusGrayscale');
-
-            if (isGrayscale) {
-                btn.classList.remove('bg-gray-600');
-                btn.classList.add('bg-gray-800', 'ring-2', 'ring-white');
-                status.innerText = "ON";
-            } else {
-                btn.classList.add('bg-gray-600');
-                btn.classList.remove('bg-gray-800', 'ring-2', 'ring-white');
-                status.innerText = "OFF";
-            }
-            renderGrid();
-        }
+            // Show "Tersimpan" indicator
+            saveStatus.classList.remove('opacity-0');
+            setTimeout(() => {
+                saveStatus.classList.add('opacity-0');
+            }, 2000);
+        });
     </script>
 </body>
 </html>
