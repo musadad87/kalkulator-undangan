@@ -18,153 +18,245 @@
             .no-print {
                 display: none !important;
             }
+            .page-container {
+                display: block !important;
+                margin: 0 !important;
+            }
             .page {
                 box-shadow: none !important;
                 margin: 0 !important;
                 border: none !important;
                 width: 210mm !important;
-                height: 296mm !important;
-                page-break-after: always;
+                height: 296mm !important; 
+                page-break-after: always; 
+                page-break-inside: avoid;
             }
+            .page:last-child {
+                page-break-after: auto;
+            }
+        }
+
+        .page-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
         }
 
         .page {
             width: 210mm;
             min-height: 297mm;
             background: white;
-            margin: 0 auto;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            padding: 15mm; /* Margin aman untuk printer HP */
+            position: relative;
+            box-shadow: 0 0 15px rgba(0,0,0,0.15);
+            padding: 10mm;
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             grid-template-rows: repeat(5, 1fr);
-            gap: 10mm; /* Jarak antar kartu */
+            gap: 2mm;
             box-sizing: border-box;
+            align-content: start;
         }
 
         /* Ukuran KTP Standar ISO/IEC 7810 ID-1 */
         .ktp-card {
             width: 85.6mm;
             height: 53.98mm;
-            border: 1px dashed #ccc; /* Garis bantu potong */
+            border: 1px dashed #ccc;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
             position: relative;
             background-color: #f3f4f6;
+            margin: 0 auto;
         }
 
         .ktp-card img {
             width: 100%;
             height: 100%;
-            object-fit: fill; /* Memaksa gambar memenuhi kotak */
+            object-fit: fill;
         }
         
-        /* Filter untuk Grayscale */
         .grayscale-mode img {
             filter: grayscale(100%) contrast(120%);
         }
+        
+        /* Label Penanda Halaman (Hanya tampil di layar) */
+        .page-label {
+            position: absolute;
+            top: -30px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-weight: bold;
+            color: #4b5563;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            background-color: #e5e7eb;
+            padding: 4px 0;
+            border-radius: 4px;
+        }
+
+        /* Style untuk tombol pilihan paket */
+        .packet-btn.active {
+            background-color: #fbbf24; /* Amber-400 */
+            color: #1e3a8a; /* Blue-900 */
+            border-color: #f59e0b;
+            font-weight: 800;
+            transform: scale(1.05);
+        }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen font-sans">
+<body class="bg-gray-200 min-h-screen font-sans">
 
-    <!-- Control Panel (Tidak akan ikut ter-print) -->
-    <div class="no-print fixed top-0 left-0 w-full bg-blue-900 text-white shadow-lg z-50 p-4">
-        <div class="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-            <div>
-                <h1 class="text-xl font-bold">🛠️ KTP Repeater Pro</h1>
-                <p class="text-xs text-blue-200">Solusi Cepat HP OfficeJet Pro X476dw</p>
-            </div>
-
-            <div class="flex flex-wrap gap-3 items-center">
-                <!-- Input File -->
-                <label class="cursor-pointer bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded shadow transition">
-                    <span>📂 Upload Foto KTP</span>
-                    <input type="file" id="imageInput" accept="image/*" class="hidden" onchange="loadImage(event)">
-                </label>
-
-                <!-- Toggle Grayscale -->
-                <button onclick="toggleGrayscale()" id="btnGrayscale" class="bg-gray-600 hover:bg-gray-500 px-4 py-2 rounded shadow transition flex items-center gap-2">
-                    ⚪ Mode Hitam Putih: <span id="statusGrayscale" class="font-bold">OFF</span>
-                </button>
-
-                <!-- Tombol Print -->
-                <button onclick="window.print()" class="bg-green-600 hover:bg-green-500 px-6 py-2 rounded shadow font-bold text-lg transition flex items-center gap-2">
-                    🖨️ PRINT SEKARANG
+    <!-- Control Panel -->
+    <div class="no-print fixed top-0 left-0 w-full bg-blue-900 text-white shadow-lg z-50 p-2 md:p-4">
+        <div class="max-w-6xl mx-auto flex flex-col gap-3">
+            
+            <!-- Header & Print Button -->
+            <div class="flex justify-between items-center border-b border-blue-700 pb-2">
+                <div>
+                    <h1 class="text-lg md:text-xl font-bold">🛠️ KTP Repeater Pro v4</h1>
+                    <p class="text-xs text-blue-200">Mode: Pilihan Paket Harga</p>
+                </div>
+                <button onclick="window.print()" class="bg-green-600 hover:bg-green-500 px-4 md:px-6 py-2 rounded shadow font-bold text-lg transition flex items-center gap-2">
+                    🖨️ PRINT
                 </button>
             </div>
-        </div>
-        
-        <!-- Pesan Peringatan untuk Teknisi -->
-        <div class="max-w-4xl mx-auto mt-2 text-center">
-            <p class="text-xs bg-yellow-600 text-white py-1 px-2 rounded inline-block">
-                💡 <b>Tips Teknisi:</b> Gunakan "Mode Hitam Putih" jika nozzle Cyan (Biru) masih bergaris agar hasil cetak mulus.
-            </p>
+
+            <!-- Area Kontrol Utama -->
+            <div class="flex flex-col md:flex-row gap-4 items-start md:items-center">
+                
+                <!-- 1. Pilihan Paket Harga -->
+                <div class="flex bg-blue-800 p-2 rounded-lg gap-2">
+                    <button onclick="setPacket(5)" id="btnPacket5" class="packet-btn flex-1 px-3 py-2 rounded border border-blue-500 hover:bg-blue-700 transition text-sm md:text-base text-center">
+                        <div class="font-bold">Rp 1.000</div>
+                        <div class="text-xs opacity-90">(5 Lembar)</div>
+                    </button>
+                    <button onclick="setPacket(10)" id="btnPacket10" class="packet-btn active flex-1 px-3 py-2 rounded border border-blue-500 hover:bg-blue-700 transition text-sm md:text-base text-center">
+                        <div class="font-bold">Rp 2.000</div>
+                        <div class="text-xs opacity-90">(10 Lembar)</div>
+                    </button>
+                </div>
+
+                <!-- 2. Tombol Upload -->
+                <div class="flex-1 flex gap-2 w-full">
+                    <label class="cursor-pointer bg-blue-600 hover:bg-blue-500 px-3 py-2 rounded shadow transition flex-1 text-center border border-blue-400 flex flex-col justify-center">
+                        <span class="font-bold text-sm">📂 Upload Depan</span>
+                        <input type="file" id="imageInputFront" accept="image/*" class="hidden" onchange="loadImage(event, 'front')">
+                    </label>
+
+                    <label class="cursor-pointer bg-blue-600 hover:bg-blue-500 px-3 py-2 rounded shadow transition flex-1 text-center border border-blue-400 flex flex-col justify-center">
+                        <span class="font-bold text-sm">📂 Upload Belakang</span>
+                        <input type="file" id="imageInputBack" accept="image/*" class="hidden" onchange="loadImage(event, 'back')">
+                    </label>
+                </div>
+
+                <!-- 3. Toggle Hitam Putih -->
+                <button onclick="toggleGrayscale()" id="btnGrayscale" class="bg-gray-600 hover:bg-gray-500 px-3 py-2 rounded shadow transition flex items-center gap-2 h-full">
+                    <span class="text-sm font-bold">BW:</span> 
+                    <span id="statusGrayscale" class="font-bold bg-gray-800 px-2 rounded text-xs py-1">OFF</span>
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- Spacer supaya halaman tidak tertutup menu -->
-    <div class="h-32 no-print"></div>
+    <div class="h-48 md:h-56 no-print"></div>
 
-    <!-- Area Kertas A4 (Preview) -->
-    <div class="flex justify-center mb-10">
-        <div id="printArea" class="page">
-            <!-- 10 Slot Kartu akan digenerate di sini -->
-            <!-- Placeholder Slots -->
-            <div class="ktp-card"><span class="text-gray-400 text-xs">Slot 1</span></div>
-            <div class="ktp-card"><span class="text-gray-400 text-xs">Slot 2</span></div>
-            <div class="ktp-card"><span class="text-gray-400 text-xs">Slot 3</span></div>
-            <div class="ktp-card"><span class="text-gray-400 text-xs">Slot 4</span></div>
-            <div class="ktp-card"><span class="text-gray-400 text-xs">Slot 5</span></div>
-            <div class="ktp-card"><span class="text-gray-400 text-xs">Slot 6</span></div>
-            <div class="ktp-card"><span class="text-gray-400 text-xs">Slot 7</span></div>
-            <div class="ktp-card"><span class="text-gray-400 text-xs">Slot 8</span></div>
-            <div class="ktp-card"><span class="text-gray-400 text-xs">Slot 9</span></div>
-            <div class="ktp-card"><span class="text-gray-400 text-xs">Slot 10</span></div>
+    <!-- Container Utama -->
+    <div id="pagesContainer" class="page-container">
+        <div class="page flex items-center justify-center text-gray-400">
+            <div class="text-center">
+                <p class="text-xl mb-2">Belum ada foto</p>
+                <p class="text-sm">Pilih Paket Harga & Upload Foto di menu atas</p>
+            </div>
         </div>
     </div>
 
     <script>
-        let currentImageSrc = null;
+        let frontSrc = null;
+        let backSrc = null;
         let isGrayscale = false;
+        let copiesPerPage = 10; // Default 10 (Rp 2000)
 
-        function loadImage(event) {
+        function setPacket(count) {
+            copiesPerPage = count;
+            
+            // Update UI Tombol
+            document.getElementById('btnPacket5').classList.remove('active');
+            document.getElementById('btnPacket10').classList.remove('active');
+            
+            if (count === 5) {
+                document.getElementById('btnPacket5').classList.add('active');
+            } else {
+                document.getElementById('btnPacket10').classList.add('active');
+            }
+
+            // Render ulang jika gambar sudah ada
+            renderGrid();
+        }
+
+        function loadImage(event, type) {
             const input = event.target;
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
-                
                 reader.onload = function(e) {
-                    currentImageSrc = e.target.result;
+                    if (type === 'front') frontSrc = e.target.result;
+                    else backSrc = e.target.result;
                     renderGrid();
                 }
-                
                 reader.readAsDataURL(input.files[0]);
             }
         }
 
-        function renderGrid() {
-            const container = document.getElementById('printArea');
-            container.innerHTML = ''; // Kosongkan container
+        function createPage(imageSrc, labelText) {
+            const pageDiv = document.createElement('div');
+            pageDiv.className = 'page';
+            
+            const labelDiv = document.createElement('div');
+            labelDiv.className = 'page-label no-print';
+            labelDiv.innerText = `HALAMAN ${labelText} (ISI ${copiesPerPage} KARTU)`;
+            pageDiv.appendChild(labelDiv);
 
-            if (!currentImageSrc) return;
-
-            // Buat 10 kartu
-            for (let i = 0; i < 10; i++) {
+            // Loop sesuai jumlah paket yang dipilih (5 atau 10)
+            for (let i = 0; i < copiesPerPage; i++) {
                 const cardDiv = document.createElement('div');
                 cardDiv.className = 'ktp-card';
-                if (isGrayscale) {
-                    cardDiv.classList.add('grayscale-mode');
-                }
+                if (isGrayscale) cardDiv.classList.add('grayscale-mode');
 
                 const img = document.createElement('img');
-                img.src = currentImageSrc;
-                
-                // Hapus border dashed saat ada gambar agar terlihat rapi saat dipotong
+                img.src = imageSrc;
                 cardDiv.style.border = "1px solid #e5e7eb"; 
 
                 cardDiv.appendChild(img);
-                container.appendChild(cardDiv);
+                pageDiv.appendChild(cardDiv);
+            }
+            return pageDiv;
+        }
+
+        function renderGrid() {
+            const container = document.getElementById('pagesContainer');
+            container.innerHTML = '';
+
+            if (!frontSrc && !backSrc) {
+                container.innerHTML = `
+                    <div class="page flex items-center justify-center text-gray-400">
+                         <div class="text-center">
+                            <p class="text-xl mb-2">Belum ada foto</p>
+                            <p class="text-sm">Pilih Paket Harga & Upload Foto di menu atas</p>
+                        </div>
+                    </div>`;
+                return;
+            }
+
+            if (frontSrc) {
+                container.appendChild(createPage(frontSrc, "1: DEPAN"));
+            }
+
+            if (backSrc) {
+                container.appendChild(createPage(backSrc, "2: BELAKANG"));
             }
         }
 
@@ -182,11 +274,7 @@
                 btn.classList.remove('bg-gray-800', 'ring-2', 'ring-white');
                 status.innerText = "OFF";
             }
-            
-            // Re-render grid untuk menerapkan filter
-            if (currentImageSrc) {
-                renderGrid();
-            }
+            renderGrid();
         }
     </script>
 </body>
