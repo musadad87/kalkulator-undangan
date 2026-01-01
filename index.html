@@ -3,218 +3,279 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aplikasi Percetakan</title>
+    <title>KTP Repeater - X476dw Tools</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #e2e8f0;
-            color: #1a202c;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 2rem;
+        /* CSS Khusus untuk mensimulasikan kertas A4 dan Printing */
+        @page {
+            size: A4;
+            margin: 0;
         }
-        .app-container {
-            max-width: 900px;
-            width: 100%;
-            padding: 2.5rem;
-            background-color: #ffffff;
-            border-radius: 1.5rem;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            display: flex;
-            flex-direction: column;
-            gap: 2.5rem;
-        }
-        .main-section {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 2rem;
-        }
-        @media (min-width: 768px) {
-            .main-section {
-                grid-template-columns: repeat(2, 1fr);
+        @media print {
+            body {
+                background-color: white;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .page-container {
+                display: block !important;
+                margin: 0 !important;
+            }
+            .page {
+                box-shadow: none !important;
+                margin: 0 !important;
+                border: none !important;
+                width: 210mm !important;
+                height: 296mm !important; 
+                page-break-after: always; 
+                page-break-inside: avoid;
+            }
+            .page:last-child {
+                page-break-after: auto;
             }
         }
-        .panel {
-            background-color: #f8fafc;
-            border-radius: 1.25rem;
-            padding: 2rem;
-            box-shadow: inset 0 1px 3px 0 rgba(0, 0, 0, 0.05);
-        }
-        .panel-title {
-            font-size: 1.6rem;
-            font-weight: 700;
-            color: #4a5568;
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-        .button-group {
+
+        .page-container {
             display: flex;
             flex-direction: column;
-            gap: 1.25rem;
+            align-items: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
         }
-        .app-button {
+
+        .page {
+            width: 210mm;
+            min-height: 297mm;
+            background: white;
+            position: relative;
+            box-shadow: 0 0 15px rgba(0,0,0,0.15);
+            padding: 10mm;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            gap: 2mm;
+            box-sizing: border-box;
+            align-content: start;
+        }
+
+        /* Ukuran KTP Standar ISO/IEC 7810 ID-1 */
+        .ktp-card {
+            width: 85.6mm;
+            height: 53.98mm;
+            border: 1px dashed #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+            background-color: #f3f4f6;
+            margin: 0 auto;
+        }
+
+        .ktp-card img {
             width: 100%;
-            padding: 1.1rem;
-            background-color: #d1d5db;
-            color: #4b5563;
-            font-weight: 600;
-            text-align: center;
-            border-radius: 0.75rem;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-            cursor: pointer;
+            height: 100%;
+            object-fit: fill;
         }
-        .app-button:hover {
-            background-color: #9ca3af;
-            color: #1f2937;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        
+        .grayscale-mode img {
+            filter: grayscale(100%) contrast(120%);
+        }
+        
+        /* Label Penanda Halaman (Hanya tampil di layar) */
+        .page-label {
+            position: absolute;
+            top: -30px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-weight: bold;
+            color: #4b5563;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            background-color: #e5e7eb;
+            padding: 4px 0;
+            border-radius: 4px;
+        }
+
+        /* Style untuk tombol pilihan paket */
+        .packet-btn.active {
+            background-color: #fbbf24; /* Amber-400 */
+            color: #1e3a8a; /* Blue-900 */
+            border-color: #f59e0b;
+            font-weight: 800;
+            transform: scale(1.05);
         }
     </style>
 </head>
-<body>
-    <div class="app-container">
-        <div class="main-section">
-            <!-- Panel INPUT -->
-            <div class="panel">
-                <h2 class="panel-title">INPUT</h2>
-                <div class="button-group">
-                    <button class="app-button" onclick="handleButtonClick('harga-kertas')">HARGA KERTAS</button>
-                    <button class="app-button" onclick="handleButtonClick('harga-produk')">HARGA PRODUK</button>
-                    <button class="app-button" onclick="handleButtonClick('hitung-uang')">HITUNG UANG</button>
-                    <button class="app-button" onclick="handleButtonClick('beli')">BELI</button>
-                    <button class="app-button" onclick="handleButtonClick('Teransaksi')">Teransaksi</button>
+<body class="bg-gray-200 min-h-screen font-sans">
+
+    <!-- Control Panel -->
+    <div class="no-print fixed top-0 left-0 w-full bg-blue-900 text-white shadow-lg z-50 p-2 md:p-4">
+        <div class="max-w-6xl mx-auto flex flex-col gap-3">
+            
+            <!-- Header & Print Button -->
+            <div class="flex justify-between items-center border-b border-blue-700 pb-2">
+                <div>
+                    <h1 class="text-lg md:text-xl font-bold">🛠️ KTP Repeater Pro v4</h1>
+                    <p class="text-xs text-blue-200">Mode: Pilihan Paket Harga</p>
                 </div>
+                <button onclick="window.print()" class="bg-green-600 hover:bg-green-500 px-4 md:px-6 py-2 rounded shadow font-bold text-lg transition flex items-center gap-2">
+                    🖨️ PRINT
+                </button>
             </div>
 
-            <!-- Panel TRANSAKSI -->
-            <div class="panel">
-                <h2 class="panel-title">TRANSAKSI</h2>
-                <div class="button-group">
-                    <button class="app-button" onclick="handleButtonClick('undangan-belangko')">HITUNG UNDANGAN BELANGKO</button>
-                    <button class="app-button" onclick="handleButtonClick('hitung-kertas')">HITUNG KERTAS</button>
-                    <button class="app-button" onclick="handleButtonClick('hitung-riza')">HITUNG RIZA</button>
-                    <button class="app-button" onclick="handleButtonClick('focopy')">FOCOPY</button>
-                    <button class="app-button" onclick="handleButtonClick('npwp')">NPWP</button>
-                    <button class="app-button" onclick="handleButtonClick('npwp1')">NPWP2</button>
-                    <button class="app-button" onclick="handleButtonClick('cetak-foto')">CETAK FOTO</button>
-                     <button class="app-button" onclick="handleButtonClick('Hapus_BC')">Hapus Becron</button>
-                     <button class="app-button" onclick="handleButtonClick('Menajam_Fo')">menajamkan Foto</button>
-                    <button class="app-button" onclick="handleButtonClick('Tinta')">TINTA CAMPUR</button>
-                    <button class="app-button" onclick="handleButtonClick('KTP')">KTP</button>
+            <!-- Area Kontrol Utama -->
+            <div class="flex flex-col md:flex-row gap-4 items-start md:items-center">
+                
+                <!-- 1. Pilihan Paket Harga -->
+                <div class="flex bg-blue-800 p-2 rounded-lg gap-2">
+                    <button onclick="setPacket(5)" id="btnPacket5" class="packet-btn flex-1 px-3 py-2 rounded border border-blue-500 hover:bg-blue-700 transition text-sm md:text-base text-center">
+                        <div class="font-bold">Rp 1.000</div>
+                        <div class="text-xs opacity-90">(5 Lembar)</div>
+                    </button>
+                    <button onclick="setPacket(10)" id="btnPacket10" class="packet-btn active flex-1 px-3 py-2 rounded border border-blue-500 hover:bg-blue-700 transition text-sm md:text-base text-center">
+                        <div class="font-bold">Rp 2.000</div>
+                        <div class="text-xs opacity-90">(10 Lembar)</div>
+                    </button>
                 </div>
+
+                <!-- 2. Tombol Upload -->
+                <div class="flex-1 flex gap-2 w-full">
+                    <label class="cursor-pointer bg-blue-600 hover:bg-blue-500 px-3 py-2 rounded shadow transition flex-1 text-center border border-blue-400 flex flex-col justify-center">
+                        <span class="font-bold text-sm">📂 Upload Depan</span>
+                        <input type="file" id="imageInputFront" accept="image/*" class="hidden" onchange="loadImage(event, 'front')">
+                    </label>
+
+                    <label class="cursor-pointer bg-blue-600 hover:bg-blue-500 px-3 py-2 rounded shadow transition flex-1 text-center border border-blue-400 flex flex-col justify-center">
+                        <span class="font-bold text-sm">📂 Upload Belakang</span>
+                        <input type="file" id="imageInputBack" accept="image/*" class="hidden" onchange="loadImage(event, 'back')">
+                    </label>
+                </div>
+
+                <!-- 3. Toggle Hitam Putih -->
+                <button onclick="toggleGrayscale()" id="btnGrayscale" class="bg-gray-600 hover:bg-gray-500 px-3 py-2 rounded shadow transition flex items-center gap-2 h-full">
+                    <span class="text-sm font-bold">BW:</span> 
+                    <span id="statusGrayscale" class="font-bold bg-gray-800 px-2 rounded text-xs py-1">OFF</span>
+                </button>
             </div>
         </div>
+    </div>
 
-        <!-- Panel MOBILE -->
-        <div class="panel">
-            <h2 class="panel-title">MOBILE</h2>
-            <div class="button-group md:flex-row md:justify-center">
-                <button class="app-button" onclick="handleButtonClick('pesanan')">PESANAN</button>
-                <button class="app-button" onclick="handleButtonClick('utang')">UTANG</button>
-                <button class="app-button" onclick="handleButtonClick('nota')">NOTA</button>
-                <button class="app-button" onclick="handleButtonClick('pulsa')">pulsa</button>
-                 <button class="app-button" onclick="handleButtonClick('Jual')">Aplikasi Jual</button>
+    <div class="h-48 md:h-56 no-print"></div>
+
+    <!-- Container Utama -->
+    <div id="pagesContainer" class="page-container">
+        <div class="page flex items-center justify-center text-gray-400">
+            <div class="text-center">
+                <p class="text-xl mb-2">Belum ada foto</p>
+                <p class="text-sm">Pilih Paket Harga & Upload Foto di menu atas</p>
             </div>
         </div>
     </div>
 
     <script>
-        // PENTING: Perlu diingat bahwa data yang disimpan di localStorage dapat dihapus oleh pengguna.
-        // Untuk data yang benar-benar tidak bisa dihapus dan memerlukan backup, disarankan menggunakan database.
-        
-        /**
-         * Fungsi untuk menangani klik tombol.
-         * @param {string} action Nama tindakan dari tombol yang diklik.
-         */
-        function handleButtonClick(action) {
-            console.log(`Tombol "${action}" diklik.`);
+        let frontSrc = null;
+        let backSrc = null;
+        let isGrayscale = false;
+        let copiesPerPage = 10; // Default 10 (Rp 2000)
+
+        function setPacket(count) {
+            copiesPerPage = count;
             
-            if (action === 'nota') {
-                // Membuka tautan nota di tab baru
-                window.open('https://musadad87.github.io/kalkulator-undangan/akuntansi.html', '_blank');
-            } else if (action === 'utang') {
-                // Membuka tautan utang di tab baru
-                window.open('https://musadad87.github.io/kalkulator-undangan/utang.html', '_blank');
-            } else if (action === 'pesanan') {
-                // Membuka tautan pesanan di tab baru
-                window.open('https://musadad87.github.io/kalkulator-undangan/pesanan.html', '_blank');
-            } else if (action === 'cetak-foto') {
-                // Membuka tautan cetak foto di tab baru
-                window.open('https://musadad87.github.io/kalkulator-undangan/print%20foto.HTML', '_blank');
-            } else if (action === 'npwp') {
-                // Membuka tautan NPWP di tab baru
-                window.open('https://musadad87.github.io/kalkulator-undangan/NPWP%20google%20sheet.html', '_blank');
-            } else if (action === 'hitung-riza') {
-                // Membuka tautan hitung riza di tab baru
-                window.open('https://musadad87.github.io/kalkulator-undangan/haraga_riza.html', '_blank');
-            } else if (action === 'hitung-kertas') {
-                // Membuka tautan hitung kertas di tab baru
-                window.open('https://musadad87.github.io/kalkulator-undangan/HITUNG%20KERTAS.html', '_blank');
-                } else if (action === 'pulsa') {
-                // Membuka tautan hitung kertas di tab baru
-                window.open('https://isipulsa.web.id/', '_blank');
-            } else if (action === 'undangan-belangko') {
-                // Membuka tautan undangan belangko di tab baru
-                window.open('https://musadad87.github.io/kalkulator-undangan/HARGA_Belangko.Html.html', '_blank');
-            } else if (action === 'harga-kertas') {
-                // Membuka tautan input harga kertas di tab baru
-                window.open('https://musadad87.github.io/kalkulator-undangan/INPUT_HARGA_KERETAS.html', '_blank');
-            } else if (action === 'hitung-uang') {
-                // Membuka tautan hitung uang di tab baru
-                window.open('https://musadad87.github.io/kalkulator-undangan/HITUNG_UANG.html', '_blank');
-                } else if (action === 'KTP') {
-                // Membuka tautan hitung uang di tab baru
-                window.open('https://musadad87.github.io/kalkulator-undangan/ktp.html', '_blank');
-            } else if (action === 'beli') {
-                // Membuka tautan beli di tab baru
-                window.open('https://musadad87.github.io/kalkulator-undangan/BELI.html', '_blank');
-                } else if (action === 'npwp1') {
-                // Membuka tautan beli di tab baru
-                window.open('https://musadad87.github.io/kalkulator-undangan/NPWP2.html', '_blank');
-                } else if (action === 'beli') {
-                // Membuka tautan beli di tab baru
-                window.open('https://musadad87.github.io/kalkulator-undangan/BELI.html', '_blank');
-                } else if (action === 'focopy') {
-                // Membuka tautan beli di tab baru
-                window.open('https://musadad87.github.io/kalkulator-undangan/fotocpy.html', '_blank');
-                 } else if (action === 'Hapus_BC') {
-                // Membuka tautan beli di tab baru
-                window.open('https://www.photoroom.com/tools/background-remover', '_blank');
-                } else if (action === 'Menajam_Fo') {
-                // Membuka tautan beli di tab baru
-                window.open('https://picwish.com/photo-enhancer', '_blank');
-                 } else if (action === 'Tinta') {
-                // Membuka tautan beli di tab baru
-                window.open('https://ddd-vffd.my.canva.site/simulator-aksesibilitas-warna-interaktif', '_blank');
-                } else if (action === 'Teransaksi') {
-                // Membuka tautan beli di tab baru
-                window.open('https://chat.z.ai/space/t0xt57qx46u0-art', '_blank');
-                } else if (action === 'Jual') {
-                // Membuka tautan beli di tab baru
-                window.open('https://musadad87.github.io/kalkulator-undangan/NOTA_OK.html', '_blank');
+            // Update UI Tombol
+            document.getElementById('btnPacket5').classList.remove('active');
+            document.getElementById('btnPacket10').classList.remove('active');
+            
+            if (count === 5) {
+                document.getElementById('btnPacket5').classList.add('active');
             } else {
-                // Logika lain untuk tombol lainnya bisa ditambahkan di sini.
-                // localStorage.setItem('lastAction', action);
+                document.getElementById('btnPacket10').classList.add('active');
             }
+
+            // Render ulang jika gambar sudah ada
+            renderGrid();
+        }
+
+        function loadImage(event, type) {
+            const input = event.target;
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    if (type === 'front') frontSrc = e.target.result;
+                    else backSrc = e.target.result;
+                    renderGrid();
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function createPage(imageSrc, labelText) {
+            const pageDiv = document.createElement('div');
+            pageDiv.className = 'page';
+            
+            const labelDiv = document.createElement('div');
+            labelDiv.className = 'page-label no-print';
+            labelDiv.innerText = `HALAMAN ${labelText} (ISI ${copiesPerPage} KARTU)`;
+            pageDiv.appendChild(labelDiv);
+
+            // Loop sesuai jumlah paket yang dipilih (5 atau 10)
+            for (let i = 0; i < copiesPerPage; i++) {
+                const cardDiv = document.createElement('div');
+                cardDiv.className = 'ktp-card';
+                if (isGrayscale) cardDiv.classList.add('grayscale-mode');
+
+                const img = document.createElement('img');
+                img.src = imageSrc;
+                cardDiv.style.border = "1px solid #e5e7eb"; 
+
+                cardDiv.appendChild(img);
+                pageDiv.appendChild(cardDiv);
+            }
+            return pageDiv;
+        }
+
+        function renderGrid() {
+            const container = document.getElementById('pagesContainer');
+            container.innerHTML = '';
+
+            if (!frontSrc && !backSrc) {
+                container.innerHTML = `
+                    <div class="page flex items-center justify-center text-gray-400">
+                         <div class="text-center">
+                            <p class="text-xl mb-2">Belum ada foto</p>
+                            <p class="text-sm">Pilih Paket Harga & Upload Foto di menu atas</p>
+                        </div>
+                    </div>`;
+                return;
+            }
+
+            if (frontSrc) {
+                container.appendChild(createPage(frontSrc, "1: DEPAN"));
+            }
+
+            if (backSrc) {
+                container.appendChild(createPage(backSrc, "2: BELAKANG"));
+            }
+        }
+
+        function toggleGrayscale() {
+            isGrayscale = !isGrayscale;
+            const btn = document.getElementById('btnGrayscale');
+            const status = document.getElementById('statusGrayscale');
+
+            if (isGrayscale) {
+                btn.classList.remove('bg-gray-600');
+                btn.classList.add('bg-gray-800', 'ring-2', 'ring-white');
+                status.innerText = "ON";
+            } else {
+                btn.classList.add('bg-gray-600');
+                btn.classList.remove('bg-gray-800', 'ring-2', 'ring-white');
+                status.innerText = "OFF";
+            }
+            renderGrid();
         }
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
