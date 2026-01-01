@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KTP Repeater - X476dw Tools</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* CSS Khusus untuk mensimulasikan kertas A4 dan Printing */
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        @media print {
+            body {
+                background-color: white;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .page {
+                box-shadow: none !important;
+                margin: 0 !important;
+                border: none !important;
+                width: 210mm !important;
+                height: 296mm !important;
+                page-break-after: always;
+            }
+        }
+
+        .page {
+            width: 210mm;
+            min-height: 297mm;
+            background: white;
+            margin: 0 auto;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 15mm; /* Margin aman untuk printer HP */
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            gap: 10mm; /* Jarak antar kartu */
+            box-sizing: border-box;
+        }
+
+        /* Ukuran KTP Standar ISO/IEC 7810 ID-1 */
+        .ktp-card {
+            width: 85.6mm;
+            height: 53.98mm;
+            border: 1px dashed #ccc; /* Garis bantu potong */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+            background-color: #f3f4f6;
+        }
+
+        .ktp-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: fill; /* Memaksa gambar memenuhi kotak */
+        }
+        
+        /* Filter untuk Grayscale */
+        .grayscale-mode img {
+            filter: grayscale(100%) contrast(120%);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen font-sans">
+
+    <!-- Control Panel (Tidak akan ikut ter-print) -->
+    <div class="no-print fixed top-0 left-0 w-full bg-blue-900 text-white shadow-lg z-50 p-4">
+        <div class="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <div>
+                <h1 class="text-xl font-bold">🛠️ KTP Repeater Pro</h1>
+                <p class="text-xs text-blue-200">Solusi Cepat HP OfficeJet Pro X476dw</p>
+            </div>
+
+            <div class="flex flex-wrap gap-3 items-center">
+                <!-- Input File -->
+                <label class="cursor-pointer bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded shadow transition">
+                    <span>📂 Upload Foto KTP</span>
+                    <input type="file" id="imageInput" accept="image/*" class="hidden" onchange="loadImage(event)">
+                </label>
+
+                <!-- Toggle Grayscale -->
+                <button onclick="toggleGrayscale()" id="btnGrayscale" class="bg-gray-600 hover:bg-gray-500 px-4 py-2 rounded shadow transition flex items-center gap-2">
+                    ⚪ Mode Hitam Putih: <span id="statusGrayscale" class="font-bold">OFF</span>
+                </button>
+
+                <!-- Tombol Print -->
+                <button onclick="window.print()" class="bg-green-600 hover:bg-green-500 px-6 py-2 rounded shadow font-bold text-lg transition flex items-center gap-2">
+                    🖨️ PRINT SEKARANG
+                </button>
+            </div>
+        </div>
+        
+        <!-- Pesan Peringatan untuk Teknisi -->
+        <div class="max-w-4xl mx-auto mt-2 text-center">
+            <p class="text-xs bg-yellow-600 text-white py-1 px-2 rounded inline-block">
+                💡 <b>Tips Teknisi:</b> Gunakan "Mode Hitam Putih" jika nozzle Cyan (Biru) masih bergaris agar hasil cetak mulus.
+            </p>
+        </div>
+    </div>
+
+    <!-- Spacer supaya halaman tidak tertutup menu -->
+    <div class="h-32 no-print"></div>
+
+    <!-- Area Kertas A4 (Preview) -->
+    <div class="flex justify-center mb-10">
+        <div id="printArea" class="page">
+            <!-- 10 Slot Kartu akan digenerate di sini -->
+            <!-- Placeholder Slots -->
+            <div class="ktp-card"><span class="text-gray-400 text-xs">Slot 1</span></div>
+            <div class="ktp-card"><span class="text-gray-400 text-xs">Slot 2</span></div>
+            <div class="ktp-card"><span class="text-gray-400 text-xs">Slot 3</span></div>
+            <div class="ktp-card"><span class="text-gray-400 text-xs">Slot 4</span></div>
+            <div class="ktp-card"><span class="text-gray-400 text-xs">Slot 5</span></div>
+            <div class="ktp-card"><span class="text-gray-400 text-xs">Slot 6</span></div>
+            <div class="ktp-card"><span class="text-gray-400 text-xs">Slot 7</span></div>
+            <div class="ktp-card"><span class="text-gray-400 text-xs">Slot 8</span></div>
+            <div class="ktp-card"><span class="text-gray-400 text-xs">Slot 9</span></div>
+            <div class="ktp-card"><span class="text-gray-400 text-xs">Slot 10</span></div>
+        </div>
+    </div>
+
+    <script>
+        let currentImageSrc = null;
+        let isGrayscale = false;
+
+        function loadImage(event) {
+            const input = event.target;
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    currentImageSrc = e.target.result;
+                    renderGrid();
+                }
+                
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function renderGrid() {
+            const container = document.getElementById('printArea');
+            container.innerHTML = ''; // Kosongkan container
+
+            if (!currentImageSrc) return;
+
+            // Buat 10 kartu
+            for (let i = 0; i < 10; i++) {
+                const cardDiv = document.createElement('div');
+                cardDiv.className = 'ktp-card';
+                if (isGrayscale) {
+                    cardDiv.classList.add('grayscale-mode');
+                }
+
+                const img = document.createElement('img');
+                img.src = currentImageSrc;
+                
+                // Hapus border dashed saat ada gambar agar terlihat rapi saat dipotong
+                cardDiv.style.border = "1px solid #e5e7eb"; 
+
+                cardDiv.appendChild(img);
+                container.appendChild(cardDiv);
+            }
+        }
+
+        function toggleGrayscale() {
+            isGrayscale = !isGrayscale;
+            const btn = document.getElementById('btnGrayscale');
+            const status = document.getElementById('statusGrayscale');
+
+            if (isGrayscale) {
+                btn.classList.remove('bg-gray-600');
+                btn.classList.add('bg-gray-800', 'ring-2', 'ring-white');
+                status.innerText = "ON";
+            } else {
+                btn.classList.add('bg-gray-600');
+                btn.classList.remove('bg-gray-800', 'ring-2', 'ring-white');
+                status.innerText = "OFF";
+            }
+            
+            // Re-render grid untuk menerapkan filter
+            if (currentImageSrc) {
+                renderGrid();
+            }
+        }
+    </script>
+</body>
+</html>
