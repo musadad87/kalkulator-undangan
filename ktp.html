@@ -4,7 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KTP Repeater - X476dw Tools</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Cropper.js CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    
     <style>
         /* CSS Khusus untuk mensimulasikan kertas A4 dan Printing */
         @page {
@@ -59,7 +63,6 @@
             align-content: start;
         }
 
-        /* Ukuran KTP Standar ISO/IEC 7810 ID-1 */
         .ktp-card {
             width: 85.6mm;
             height: 53.98mm;
@@ -76,14 +79,13 @@
         .ktp-card img {
             width: 100%;
             height: 100%;
-            object-fit: fill;
+            object-fit: fill; /* Memaksa gambar memenuhi kotak hasil crop */
         }
         
         .grayscale-mode img {
             filter: grayscale(100%) contrast(120%);
         }
         
-        /* Label Penanda Halaman (Hanya tampil di layar) */
         .page-label {
             position: absolute;
             top: -30px;
@@ -99,13 +101,20 @@
             border-radius: 4px;
         }
 
-        /* Style untuk tombol pilihan paket */
         .packet-btn.active {
-            background-color: #fbbf24; /* Amber-400 */
-            color: #1e3a8a; /* Blue-900 */
+            background-color: #fbbf24; 
+            color: #1e3a8a; 
             border-color: #f59e0b;
             font-weight: 800;
             transform: scale(1.05);
+        }
+
+        /* Modal Cropping Styles */
+        #cropModal {
+            background-color: rgba(0, 0, 0, 0.85);
+        }
+        .cropper-container {
+            max-height: 70vh;
         }
     </style>
 </head>
@@ -118,8 +127,8 @@
             <!-- Header & Print Button -->
             <div class="flex justify-between items-center border-b border-blue-700 pb-2">
                 <div>
-                    <h1 class="text-lg md:text-xl font-bold">🛠️ KTP Repeater Pro v4</h1>
-                    <p class="text-xs text-blue-200">Mode: Pilihan Paket Harga</p>
+                    <h1 class="text-lg md:text-xl font-bold">🛠️ KTP Repeater Pro v5</h1>
+                    <p class="text-xs text-blue-200">Fitur Baru: Potong (Crop) Gambar Presisi</p>
                 </div>
                 <button onclick="window.print()" class="bg-green-600 hover:bg-green-500 px-4 md:px-6 py-2 rounded shadow font-bold text-lg transition flex items-center gap-2">
                     🖨️ PRINT
@@ -144,13 +153,13 @@
                 <!-- 2. Tombol Upload -->
                 <div class="flex-1 flex gap-2 w-full">
                     <label class="cursor-pointer bg-blue-600 hover:bg-blue-500 px-3 py-2 rounded shadow transition flex-1 text-center border border-blue-400 flex flex-col justify-center">
-                        <span class="font-bold text-sm">📂 Upload Depan</span>
-                        <input type="file" id="imageInputFront" accept="image/*" class="hidden" onchange="loadImage(event, 'front')">
+                        <span class="font-bold text-sm">✂️ Upload & Potong Depan</span>
+                        <input type="file" id="imageInputFront" accept="image/*" class="hidden" onchange="initCrop(event, 'front')">
                     </label>
 
                     <label class="cursor-pointer bg-blue-600 hover:bg-blue-500 px-3 py-2 rounded shadow transition flex-1 text-center border border-blue-400 flex flex-col justify-center">
-                        <span class="font-bold text-sm">📂 Upload Belakang</span>
-                        <input type="file" id="imageInputBack" accept="image/*" class="hidden" onchange="loadImage(event, 'back')">
+                        <span class="font-bold text-sm">✂️ Upload & Potong Belakang</span>
+                        <input type="file" id="imageInputBack" accept="image/*" class="hidden" onchange="initCrop(event, 'back')">
                     </label>
                 </div>
 
@@ -170,21 +179,47 @@
         <div class="page flex items-center justify-center text-gray-400">
             <div class="text-center">
                 <p class="text-xl mb-2">Belum ada foto</p>
-                <p class="text-sm">Pilih Paket Harga & Upload Foto di menu atas</p>
+                <p class="text-sm">Klik Tombol "Upload & Potong" di menu atas</p>
             </div>
         </div>
     </div>
+
+    <!-- Modal Cropping -->
+    <div id="cropModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="bg-blue-900 text-white p-3 flex justify-between items-center">
+                <h3 class="font-bold text-lg">✂️ Potong Gambar KTP</h3>
+                <button onclick="closeModal()" class="text-gray-300 hover:text-white">&times;</button>
+            </div>
+            
+            <div class="p-4 flex-1 overflow-auto bg-gray-100 flex items-center justify-center">
+                <div class="max-w-full">
+                    <img id="imageToCrop" src="" alt="Crop Preview" class="max-w-full block">
+                </div>
+            </div>
+
+            <div class="p-4 bg-gray-50 border-t flex justify-end gap-3">
+                <button onclick="closeModal()" class="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold">Batal</button>
+                <button onclick="applyCrop()" class="px-6 py-2 rounded bg-green-600 hover:bg-green-700 text-white font-bold shadow-lg transform hover:scale-105 transition">✅ Potong & Pakai</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cropper JS Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 
     <script>
         let frontSrc = null;
         let backSrc = null;
         let isGrayscale = false;
-        let copiesPerPage = 10; // Default 10 (Rp 2000)
+        let copiesPerPage = 10;
+        
+        // Variabel untuk Cropper
+        let cropper = null;
+        let currentCropType = null; // 'front' or 'back'
 
         function setPacket(count) {
             copiesPerPage = count;
-            
-            // Update UI Tombol
             document.getElementById('btnPacket5').classList.remove('active');
             document.getElementById('btnPacket10').classList.remove('active');
             
@@ -193,24 +228,87 @@
             } else {
                 document.getElementById('btnPacket10').classList.add('active');
             }
-
-            // Render ulang jika gambar sudah ada
             renderGrid();
         }
 
-        function loadImage(event, type) {
+        // 1. Fungsi Inisialisasi Crop saat file dipilih
+        function initCrop(event, type) {
             const input = event.target;
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    if (type === 'front') frontSrc = e.target.result;
-                    else backSrc = e.target.result;
-                    renderGrid();
+                    currentCropType = type;
+                    openModal(e.target.result);
                 }
                 reader.readAsDataURL(input.files[0]);
             }
+            // Reset input value agar bisa pilih file yang sama jika dicancel
+            input.value = '';
         }
 
+        // 2. Buka Modal dan Pasang CropperJS
+        function openModal(imageSrc) {
+            const modal = document.getElementById('cropModal');
+            const imageElement = document.getElementById('imageToCrop');
+            
+            // Set sumber gambar
+            imageElement.src = imageSrc;
+            
+            // Tampilkan Modal
+            modal.classList.remove('hidden');
+
+            // Hapus cropper lama jika ada
+            if (cropper) {
+                cropper.destroy();
+            }
+
+            // Inisialisasi Cropper Baru
+            // Rasio KTP ISO/IEC 7810 ID-1: 85.60 × 53.98 mm
+            cropper = new Cropper(imageElement, {
+                aspectRatio: 85.6 / 53.98, 
+                viewMode: 1, // Membatasi crop box agar tidak keluar dari gambar
+                autoCropArea: 0.8,
+                movable: true,
+                zoomable: true,
+                rotatable: true,
+                scalable: true
+            });
+        }
+
+        // 3. Terapkan Hasil Crop
+        function applyCrop() {
+            if (!cropper) return;
+
+            // Ambil hasil crop sebagai Data URL (gambar base64)
+            const canvas = cropper.getCroppedCanvas({
+                width: 1011, // Resolusi tinggi (sekitar 300 DPI untuk 8.5cm)
+                height: 638,
+                imageSmoothingQuality: 'high'
+            });
+
+            const croppedImage = canvas.toDataURL('image/jpeg');
+
+            // Simpan ke variabel global sesuai tipe
+            if (currentCropType === 'front') {
+                frontSrc = croppedImage;
+            } else {
+                backSrc = croppedImage;
+            }
+
+            closeModal();
+            renderGrid();
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('cropModal');
+            modal.classList.add('hidden');
+            if (cropper) {
+                cropper.destroy();
+                cropper = null;
+            }
+        }
+
+        // Fungsi Render Grid (Sama seperti sebelumnya)
         function createPage(imageSrc, labelText) {
             const pageDiv = document.createElement('div');
             pageDiv.className = 'page';
@@ -220,7 +318,6 @@
             labelDiv.innerText = `HALAMAN ${labelText} (ISI ${copiesPerPage} KARTU)`;
             pageDiv.appendChild(labelDiv);
 
-            // Loop sesuai jumlah paket yang dipilih (5 atau 10)
             for (let i = 0; i < copiesPerPage; i++) {
                 const cardDiv = document.createElement('div');
                 cardDiv.className = 'ktp-card';
@@ -228,8 +325,8 @@
 
                 const img = document.createElement('img');
                 img.src = imageSrc;
+                // Karena sudah dicrop sesuai rasio, border bisa simple
                 cardDiv.style.border = "1px solid #e5e7eb"; 
-
                 cardDiv.appendChild(img);
                 pageDiv.appendChild(cardDiv);
             }
@@ -245,19 +342,14 @@
                     <div class="page flex items-center justify-center text-gray-400">
                          <div class="text-center">
                             <p class="text-xl mb-2">Belum ada foto</p>
-                            <p class="text-sm">Pilih Paket Harga & Upload Foto di menu atas</p>
+                            <p class="text-sm">Silakan upload dan crop foto di menu atas</p>
                         </div>
                     </div>`;
                 return;
             }
 
-            if (frontSrc) {
-                container.appendChild(createPage(frontSrc, "1: DEPAN"));
-            }
-
-            if (backSrc) {
-                container.appendChild(createPage(backSrc, "2: BELAKANG"));
-            }
+            if (frontSrc) container.appendChild(createPage(frontSrc, "1: DEPAN"));
+            if (backSrc) container.appendChild(createPage(backSrc, "2: BELAKANG"));
         }
 
         function toggleGrayscale() {
