@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CatatKas Pro - Data Management</title>
+    <title>CatatKas Pro - Debt & Installment</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -23,7 +23,7 @@
         <!-- Header -->
         <header class="bg-indigo-600 text-white p-6 rounded-b-[2.5rem] shadow-lg mb-6">
             <h1 class="text-2xl font-bold mb-1">CatatKas</h1>
-            <p class="text-indigo-100 text-sm">Kelola data keuangan dengan aman</p>
+            <p class="text-indigo-100 text-sm">Kelola data keuangan & cicilan</p>
             
             <div class="mt-6 bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20">
                 <p class="text-xs uppercase tracking-wider text-indigo-200 mb-1">Saldo Saat Ini</p>
@@ -106,117 +106,37 @@
 
         // --- Fitur Ekspor & Impor ---
         function exportDatabase() {
-            const data = {
-                transactions: transactions,
-                debts: debts,
-                exportedAt: new Date().toISOString()
-            };
+            const data = { transactions, debts, exportedAt: new Date().toISOString() };
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
             a.download = `CatatKas_Backup_${new Date().toLocaleDateString().replace(/\//g, '-')}.json`;
-            document.body.appendChild(a);
             a.click();
-            document.body.removeChild(a);
             URL.revokeObjectURL(url);
         }
 
-        function triggerImport() {
-            document.getElementById('importFile').click();
-        }
+        function triggerImport() { document.getElementById('importFile').click(); }
 
         function handleImport(input) {
             const file = input.files[0];
             if (!file) return;
-
             const reader = new FileReader();
             reader.onload = (e) => {
                 try {
                     const importedData = JSON.parse(e.target.result);
-                    if (importedData.transactions && Array.isArray(importedData.transactions)) {
-                        if (confirm('Data saat ini akan digabung dengan data impor. Lanjutkan?')) {
-                            // Menggabungkan data (menghindari duplikat berdasarkan ID jika perlu, tapi di sini kita append saja)
-                            transactions = [...transactions, ...importedData.transactions];
-                            debts = [...debts, ...(importedData.debts || [])];
-                            
-                            localStorage.setItem('transactions', JSON.stringify(transactions));
-                            localStorage.setItem('debts', JSON.stringify(debts));
-                            
-                            alert('Data berhasil diimpor!');
-                            render();
-                        }
-                    } else {
-                        alert('Format file tidak valid!');
+                    if (confirm('Data saat ini akan digabung dengan data impor. Lanjutkan?')) {
+                        transactions = [...transactions, ...(importedData.transactions || [])];
+                        debts = [...debts, ...(importedData.debts || [])];
+                        localStorage.setItem('transactions', JSON.stringify(transactions));
+                        localStorage.setItem('debts', JSON.stringify(debts));
+                        alert('Data berhasil diimpor!');
+                        render();
                     }
-                } catch (err) {
-                    alert('Gagal membaca file!');
-                }
-                input.value = ''; // Reset input
+                } catch (err) { alert('Gagal membaca file!'); }
+                input.value = '';
             };
             reader.readAsText(file);
-        }
-
-        // --- Grafik Logika ---
-        function getFilteredData() {
-            const now = new Date();
-            return transactions.filter(t => {
-                const tDate = new Date(t.date);
-                if (currentFilter === 'daily') return tDate.toDateString() === now.toDateString();
-                if (currentFilter === 'weekly') {
-                    const weekAgo = new Date(); weekAgo.setDate(now.getDate() - 7);
-                    return tDate >= weekAgo;
-                }
-                if (currentFilter === 'monthly') return tDate.getMonth() === now.getMonth() && tDate.getFullYear() === now.getFullYear();
-                return true;
-            });
-        }
-
-        function updateChart() {
-            const data = getFilteredData();
-            const income = data.filter(t => t.type === 'income').reduce((s, t) => s + Number(t.amount), 0);
-            const expense = data.filter(t => t.type === 'expense').reduce((s, t) => s + Number(t.amount), 0);
-            const ctx = document.getElementById('analyticsChart').getContext('2d');
-            if (chartInstance) chartInstance.destroy();
-            chartInstance = new Chart(ctx, {
-                type: currentChartType,
-                data: {
-                    labels: ['Masuk', 'Keluar'],
-                    datasets: [{ data: [income, expense], backgroundColor: ['#10b981', '#f43f5e'], borderWidth: 0, borderRadius: 8 }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: currentChartType === 'doughnut' } } }
-            });
-        }
-
-        function setFilter(filter) {
-            currentFilter = filter;
-            document.querySelectorAll('.filter-btn').forEach(btn => btn.className = `filter-btn px-2 py-1 rounded-lg text-[9px] font-bold ${btn.dataset.filter === filter ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500'}`);
-            updateChart();
-        }
-
-        function setChartType(type) {
-            currentChartType = type;
-            document.querySelectorAll('.type-btn').forEach(btn => btn.className = `type-btn p-2 rounded-lg ${btn.dataset.type === type ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-400'}`);
-            updateChart();
-        }
-
-        function openAnalytics() {
-            const content = document.getElementById('modal-content');
-            content.innerHTML = `
-                <div class="flex justify-between items-center mb-6"><h3 class="text-xl font-bold">Analisis Grafik</h3><button onclick="closeModal()" class="p-2 bg-slate-100 rounded-full"><i data-lucide="x-circle" class="w-5 h-5"></i></button></div>
-                <div class="space-y-6">
-                    <div class="flex justify-between bg-slate-100 p-1 rounded-xl">
-                        <button onclick="setFilter('daily')" data-filter="daily" class="filter-btn flex-1 py-1.5 rounded-lg text-[9px] font-bold bg-slate-100 text-slate-500">HARI INI</button>
-                        <button onclick="setFilter('weekly')" data-filter="weekly" class="filter-btn flex-1 py-1.5 rounded-lg text-[9px] font-bold bg-slate-100 text-slate-500">MINGGU</button>
-                        <button onclick="setFilter('monthly')" data-filter="monthly" class="filter-btn flex-1 py-1.5 rounded-lg text-[9px] font-bold bg-slate-100 text-slate-500">BULAN</button>
-                        <button onclick="setFilter('all')" data-filter="all" class="filter-btn flex-1 py-1.5 rounded-lg text-[9px] font-bold bg-indigo-600 text-white">SEMUA</button>
-                    </div>
-                    <div class="flex justify-center gap-4"><button onclick="setChartType('bar')" data-type="bar" class="type-btn p-2 rounded-lg bg-indigo-600 text-white shadow-md"><i data-lucide="bar-chart-2" class="w-5 h-5"></i></button><button onclick="setChartType('doughnut')" data-type="doughnut" class="type-btn p-2 rounded-lg bg-slate-100 text-slate-400"><i data-lucide="pie-chart" class="w-5 h-5"></i></button></div>
-                    <div class="bg-slate-50 rounded-2xl p-4 border h-64"><canvas id="analyticsChart"></canvas></div>
-                </div>
-            `;
-            document.getElementById('modal-backdrop').classList.remove('hidden');
-            initIcons(); setTimeout(updateChart, 100);
         }
 
         // --- Rendering ---
@@ -248,6 +168,7 @@
                                         <p class="font-bold text-sm ${t.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}">${formatIDR(t.amount)}</p>
                                     </div>
                                 `).join('')}
+                                ${transactions.length === 0 ? '<p class="text-center text-slate-400 text-xs py-4">Belum ada transaksi</p>' : ''}
                             </div>
                         </div>
                     </div>
@@ -257,19 +178,11 @@
                     <div class="space-y-4">
                         <div class="flex justify-between items-center px-1">
                             <h3 class="font-bold text-xl">Riwayat</h3>
-                            <button onclick="openAnalytics()" class="bg-indigo-600 text-white flex items-center gap-2 px-3 py-2 rounded-xl text-[10px] font-bold"><i data-lucide="bar-chart-3" class="w-3.5 h-3.5"></i> ANALISIS</button>
+                            <div class="flex gap-2">
+                                <button onclick="exportDatabase()" class="p-2 bg-emerald-50 text-emerald-600 rounded-lg"><i data-lucide="download" class="w-4 h-4"></i></button>
+                                <button onclick="triggerImport()" class="p-2 bg-amber-50 text-amber-600 rounded-lg"><i data-lucide="upload" class="w-4 h-4"></i></button>
+                            </div>
                         </div>
-
-                        <!-- Tombol Database -->
-                        <div class="grid grid-cols-2 gap-2">
-                            <button onclick="exportDatabase()" class="bg-emerald-50 text-emerald-700 p-3 rounded-2xl border border-emerald-100 flex items-center justify-center gap-2 text-[11px] font-bold">
-                                <i data-lucide="download" class="w-4 h-4"></i> EKSPOR JSON
-                            </button>
-                            <button onclick="triggerImport()" class="bg-amber-50 text-amber-700 p-3 rounded-2xl border border-amber-100 flex items-center justify-center gap-2 text-[11px] font-bold">
-                                <i data-lucide="upload" class="w-4 h-4"></i> IMPOR JSON
-                            </button>
-                        </div>
-
                         <div class="space-y-3">
                             ${transactions.map(t => `
                                 <div class="bg-white p-4 rounded-2xl shadow-sm flex items-center justify-between border border-slate-100">
@@ -289,25 +202,51 @@
             } else if (activeTab === 'debts') {
                 main.innerHTML = `
                     <div class="space-y-4">
-                        <div class="flex justify-between items-center px-1"><h3 class="font-bold text-xl">Hutang</h3><button onclick="openModal('debt')" class="bg-indigo-600 text-white p-2 rounded-lg"><i data-lucide="plus" class="w-4 h-4"></i></button></div>
+                        <div class="flex justify-between items-center px-1"><h3 class="font-bold text-xl">Hutang & Piutang</h3><button onclick="openModal('debt')" class="bg-indigo-600 text-white p-2 rounded-lg"><i data-lucide="plus" class="w-4 h-4"></i></button></div>
                         <div class="space-y-3">
                             ${debts.map(d => {
                                 const remaining = d.amount - d.paidAmount;
                                 const progress = (d.paidAmount / d.amount) * 100;
                                 return `
-                                <div class="bg-white p-4 rounded-2xl border transition-all ${d.isPaid ? 'opacity-60 grayscale' : 'border-slate-100'}">
+                                <div class="bg-white p-4 rounded-2xl border transition-all ${d.isPaid ? 'border-emerald-200 bg-emerald-50/30' : 'border-slate-100'}">
                                     <div class="flex justify-between mb-2">
-                                        <span class="text-[9px] font-bold uppercase ${d.debtType === 'owe_me' ? 'text-emerald-500' : 'text-rose-500'}">${d.debtType === 'owe_me' ? 'Piutang' : 'Hutang'}</span>
+                                        <span class="text-[9px] font-bold uppercase ${d.debtType === 'owe_me' ? 'text-emerald-500' : 'text-rose-500'}">
+                                            ${d.debtType === 'owe_me' ? 'Piutang' : 'Hutang'} ${d.isPaid ? '• LUNAS' : ''}
+                                        </span>
                                         <div class="flex gap-2">
-                                            ${!d.isPaid ? `<button onclick="openInstallmentModal(${d.id})" class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded">CICIL</button>` : ''}
+                                            ${!d.isPaid ? `<button onclick="openInstallmentModal(${d.id})" class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded">BAYAR</button>` : ''}
                                             <button onclick="deleteDebt(${d.id})" class="text-slate-300"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
                                         </div>
                                     </div>
-                                    <h4 class="font-bold text-sm">${d.person}</h4>
-                                    <p class="font-bold text-sm ${d.debtType === 'owe_me' ? 'text-emerald-600' : 'text-rose-600'}">${formatIDR(d.amount)}</p>
-                                    <div class="w-full bg-slate-100 h-1 rounded-full mt-2"><div class="bg-indigo-500 h-full" style="width:${progress}%"></div></div>
+                                    <div onclick="toggleDebtDetail(${d.id})" class="cursor-pointer">
+                                        <div class="flex justify-between items-end">
+                                            <div>
+                                                <h4 class="font-bold text-sm">${d.person}</h4>
+                                                <p class="text-[10px] text-slate-400">${d.date}</p>
+                                            </div>
+                                            <div class="text-right">
+                                                <p class="font-bold text-sm ${d.debtType === 'owe_me' ? 'text-emerald-600' : 'text-rose-600'}">${formatIDR(d.amount)}</p>
+                                                <p class="text-[9px] text-slate-400">Sisa: ${formatIDR(remaining)}</p>
+                                            </div>
+                                        </div>
+                                        <div class="w-full bg-slate-100 h-1.5 rounded-full mt-3 overflow-hidden">
+                                            <div class="h-full transition-all ${d.debtType === 'owe_me' ? 'bg-emerald-500' : 'bg-rose-500'}" style="width:${progress}%"></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Debt History Detail -->
+                                    <div id="debt-detail-${d.id}" class="hidden mt-4 pt-4 border-t border-dashed border-slate-200 space-y-2">
+                                        <p class="text-[10px] font-bold text-slate-500 uppercase">Riwayat Cicilan:</p>
+                                        ${(d.history || []).length > 0 ? d.history.map(h => `
+                                            <div class="flex justify-between text-[11px] bg-slate-50 p-2 rounded-lg">
+                                                <span class="text-slate-500">${h.date}</span>
+                                                <span class="font-bold text-indigo-600">+ ${formatIDR(h.amount)}</span>
+                                            </div>
+                                        `).join('') : '<p class="text-[10px] text-slate-400 italic">Belum ada cicilan</p>'}
+                                    </div>
                                 </div>
                             `;}).reverse().join('')}
+                            ${debts.length === 0 ? '<p class="text-center text-slate-400 text-xs py-10 italic">Belum ada catatan hutang</p>' : ''}
                         </div>
                     </div>
                 `;
@@ -315,22 +254,30 @@
             initIcons();
         }
 
+        function toggleDebtDetail(id) {
+            const el = document.getElementById(`debt-detail-${id}`);
+            el.classList.toggle('hidden');
+        }
+
         function openModal(type) {
             const content = document.getElementById('modal-content');
             const today = new Date().toISOString().split('T')[0];
             content.innerHTML = `
-                <div class="flex justify-between items-center mb-6"><h3 class="text-xl font-bold">Tambah Data</h3><button onclick="closeModal()" class="p-2 bg-slate-100 rounded-full"><i data-lucide="x-circle" class="w-5 h-5"></i></button></div>
+                <div class="flex justify-between items-center mb-6"><h3 class="text-xl font-bold">Tambah Data</h3><button onclick="closeModal()" class="p-2 bg-slate-100 rounded-full"><i data-lucide="x" class="w-5 h-5"></i></button></div>
                 <form id="finance-form" class="space-y-4">
                     ${type === 'debt' ? `
-                        <div class="flex bg-slate-100 p-1 rounded-xl gap-1"><button type="button" onclick="setDebtType('owe_me')" id="btn-owe_me" class="flex-1 py-2 rounded-lg text-xs font-bold bg-white shadow text-emerald-600">PIUTANG</button><button type="button" onclick="setDebtType('i_owe')" id="btn-i_owe" class="flex-1 py-2 rounded-lg text-xs font-bold text-slate-500">HUTANG</button></div>
+                        <div class="flex bg-slate-100 p-1 rounded-xl gap-1">
+                            <button type="button" onclick="setDebtType('owe_me')" id="btn-owe_me" class="flex-1 py-2 rounded-lg text-xs font-bold bg-white shadow text-emerald-600">PIUTANG (SAYA PINJAMKAN)</button>
+                            <button type="button" onclick="setDebtType('i_owe')" id="btn-i_owe" class="flex-1 py-2 rounded-lg text-xs font-bold text-slate-500">HUTANG (SAYA PINJAM)</button>
+                        </div>
                         <input type="hidden" id="debtType" value="owe_me">
-                        <input id="person" required placeholder="Nama Orang/Toko" class="w-full p-4 bg-slate-50 rounded-2xl outline-none border-none focus:ring-2 focus:ring-indigo-500">
+                        <input id="person" required placeholder="Nama Orang/Pihak" class="w-full p-4 bg-slate-50 rounded-2xl outline-none">
                     ` : ''}
-                    <input id="amount" required type="number" placeholder="Jumlah (Rp)" class="w-full text-2xl font-bold p-4 bg-slate-50 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 border-none">
-                    <input id="desc" placeholder="Keterangan" class="w-full p-4 bg-slate-50 rounded-2xl outline-none border-none focus:ring-2 focus:ring-indigo-500">
+                    <input id="amount" required type="number" placeholder="Jumlah (Rp)" class="w-full text-2xl font-bold p-4 bg-slate-50 rounded-2xl outline-none">
+                    <input id="desc" placeholder="Keterangan" class="w-full p-4 bg-slate-50 rounded-2xl outline-none">
                     <div class="grid grid-cols-2 gap-3">
                         <input id="date" type="date" value="${today}" class="w-full p-4 bg-slate-50 rounded-2xl text-sm border-none">
-                        ${type !== 'debt' ? `<select id="category" class="w-full p-4 bg-slate-50 rounded-2xl text-sm border-none"><option>Umum</option><option>Makan</option><option>Belanja</option><option>Gaji</option></select>` : ''}
+                        ${type !== 'debt' ? `<select id="category" class="w-full p-4 bg-slate-50 rounded-2xl text-sm border-none"><option>Umum</option><option>Makan</option><option>Belanja</option><option>Gaji</option><option>Transportasi</option></select>` : ''}
                     </div>
                     <button type="submit" class="w-full py-4 rounded-2xl font-bold text-white bg-indigo-600 shadow-lg">Simpan</button>
                 </form>
@@ -342,17 +289,26 @@
 
         function openInstallmentModal(debtId) {
             const debt = debts.find(d => d.id === debtId);
+            const remaining = debt.amount - debt.paidAmount;
             const content = document.getElementById('modal-content');
             content.innerHTML = `
-                <div class="flex justify-between items-center mb-6"><h3 class="text-xl font-bold">Bayar Cicilan</h3><button onclick="closeModal()" class="p-2 bg-slate-100 rounded-full"><i data-lucide="x-circle" class="w-5 h-5"></i></button></div>
+                <div class="flex justify-between items-center mb-6"><h3 class="text-xl font-bold">Bayar Cicilan</h3><button onclick="closeModal()" class="p-2 bg-slate-100 rounded-full"><i data-lucide="x" class="w-5 h-5"></i></button></div>
+                <div class="mb-4 p-4 bg-indigo-50 rounded-2xl">
+                    <p class="text-xs text-indigo-400 font-bold uppercase">Sisa Tagihan</p>
+                    <p class="text-xl font-bold text-indigo-700">${formatIDR(remaining)}</p>
+                </div>
                 <form id="installment-form" class="space-y-4">
-                    <input id="pay-amount" required type="number" placeholder="Jumlah Bayar" class="w-full p-4 bg-slate-50 rounded-2xl outline-none border-none focus:ring-2 focus:ring-indigo-500">
-                    <button type="submit" class="w-full py-4 rounded-2xl font-bold text-white bg-indigo-600">Konfirmasi</button>
+                    <input id="pay-amount" required type="number" max="${remaining}" placeholder="Jumlah Bayar" class="w-full p-4 bg-slate-50 rounded-2xl outline-none font-bold text-lg">
+                    <input id="pay-date" type="date" value="${new Date().toISOString().split('T')[0]}" class="w-full p-4 bg-slate-50 rounded-2xl outline-none">
+                    <button type="submit" class="w-full py-4 rounded-2xl font-bold text-white bg-indigo-600">Konfirmasi Pembayaran</button>
                 </form>
             `;
             document.getElementById('modal-backdrop').classList.remove('hidden');
             initIcons();
-            document.getElementById('installment-form').onsubmit = (e) => { e.preventDefault(); processInstallment(debtId, Number(document.getElementById('pay-amount').value)); };
+            document.getElementById('installment-form').onsubmit = (e) => { 
+                e.preventDefault(); 
+                processInstallment(debtId, Number(document.getElementById('pay-amount').value), document.getElementById('pay-date').value); 
+            };
         }
 
         function saveEntry(type) {
@@ -360,7 +316,17 @@
             const desc = document.getElementById('desc').value;
             const date = document.getElementById('date').value;
             if (type === 'debt') {
-                debts.push({ id: Date.now(), amount, paidAmount: 0, description: desc, date, person: document.getElementById('person').value, debtType: document.getElementById('debtType').value, isPaid: false });
+                debts.push({ 
+                    id: Date.now(), 
+                    amount, 
+                    paidAmount: 0, 
+                    description: desc, 
+                    date, 
+                    person: document.getElementById('person').value, 
+                    debtType: document.getElementById('debtType').value, 
+                    isPaid: false,
+                    history: [] 
+                });
                 localStorage.setItem('debts', JSON.stringify(debts));
             } else {
                 transactions.push({ id: Date.now(), amount, description: desc, date, category: document.getElementById('category').value, type });
@@ -369,10 +335,25 @@
             closeModal(); render();
         }
 
-        function processInstallment(id, pay) {
+        function processInstallment(id, pay, payDate) {
             const d = debts.find(x => x.id === id);
-            d.paidAmount += pay; if (d.paidAmount >= d.amount) d.isPaid = true;
-            transactions.push({ id: Date.now(), amount: pay, description: `Cicil: ${d.person}`, date: new Date().toISOString().split('T')[0], category: 'Utang', type: d.debtType === 'i_owe' ? 'expense' : 'income' });
+            if (!d.history) d.history = [];
+            
+            d.paidAmount += pay; 
+            d.history.push({ amount: pay, date: payDate });
+            
+            if (d.paidAmount >= d.amount) d.isPaid = true;
+
+            // Masukkan ke riwayat transaksi utama agar saldo berubah
+            transactions.push({ 
+                id: Date.now(), 
+                amount: pay, 
+                description: `Cicil: ${d.person}`, 
+                date: payDate, 
+                category: 'Hutang', 
+                type: d.debtType === 'i_owe' ? 'expense' : 'income' 
+            });
+
             localStorage.setItem('debts', JSON.stringify(debts));
             localStorage.setItem('transactions', JSON.stringify(transactions));
             closeModal(); render();
@@ -380,12 +361,12 @@
 
         function setDebtType(type) {
             document.getElementById('debtType').value = type;
-            document.getElementById('btn-owe_me').className = `flex-1 py-2 rounded-lg text-xs font-bold ${type === 'owe_me' ? 'bg-white shadow text-emerald-600' : 'text-slate-500'}`;
-            document.getElementById('btn-i_owe').className = `flex-1 py-2 rounded-lg text-xs font-bold ${type === 'i_owe' ? 'bg-white shadow text-rose-600' : 'text-slate-500'}`;
+            document.getElementById('btn-owe_me').className = `flex-1 py-2 rounded-lg text-[10px] font-bold ${type === 'owe_me' ? 'bg-white shadow text-emerald-600' : 'text-slate-500'}`;
+            document.getElementById('btn-i_owe').className = `flex-1 py-2 rounded-lg text-[10px] font-bold ${type === 'i_owe' ? 'bg-white shadow text-rose-600' : 'text-slate-500'}`;
         }
 
-        function deleteTransaction(id) { if(confirm('Hapus?')) { transactions = transactions.filter(t => t.id !== id); localStorage.setItem('transactions', JSON.stringify(transactions)); render(); } }
-        function deleteDebt(id) { if(confirm('Hapus?')) { debts = debts.filter(d => d.id !== id); localStorage.setItem('debts', JSON.stringify(debts)); render(); } }
+        function deleteTransaction(id) { if(confirm('Hapus riwayat ini? Saldo akan disesuaikan.')) { transactions = transactions.filter(t => t.id !== id); localStorage.setItem('transactions', JSON.stringify(transactions)); render(); } }
+        function deleteDebt(id) { if(confirm('Hapus catatan hutang ini?')) { debts = debts.filter(d => d.id !== id); localStorage.setItem('debts', JSON.stringify(debts)); render(); } }
         function closeModal() { document.getElementById('modal-backdrop').classList.add('hidden'); }
 
         window.onload = render;
