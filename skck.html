@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informasi Dokumen - SKCK</title>
+    
+    <!-- Menggunakan Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Menggunakan Font Awesome untuk Ikon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Menggunakan Google Fonts (Inter) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        /* Custom Wave Styling */
+        .wave-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 10;
+        }
+
+        /* Responsive styling for the right side background */
+        @media (min-width: 1024px) {
+            .bg-curve {
+                position: absolute;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                width: 45%; 
+                background-color: #1e2532; /* Dark Navy Color matching screenshot */
+            }
+            
+            .wave-svg {
+                position: absolute;
+                top: 0;
+                left: -150px; /* Adjust based on curve width */
+                height: 100%;
+                width: 151px;
+                fill: #1e2532;
+                filter: drop-shadow(-10px 0px 15px rgba(0, 0, 0, 0.15));
+            }
+        }
+    </style>
+</head>
+<body class="bg-white min-h-screen flex flex-col relative overflow-x-hidden">
+
+    <!-- Mobile Header Background (Only visible on small screens) -->
+    <div class="lg:hidden w-full h-4 bg-[#1e2532]"></div>
+
+    <!-- Main Container -->
+    <div class="flex-grow flex flex-col lg:flex-row relative z-20">
+        
+        <!-- Left Content Section -->
+        <div class="w-full lg:w-[55%] px-6 py-8 md:px-12 md:py-12 lg:pl-20 lg:pr-10 flex flex-col justify-center">
+            
+            <!-- Logo Section -->
+            <div class="mb-10">
+                <!-- Logo Polri (Tribrata) Placeholder/Asset -->
+                <img src="https://tte.polri.go.id/img/polri-logo.png" alt="Logo Polri" class="h-24 w-auto drop-shadow-sm">
+            </div>
+
+            <!-- Document Card -->
+            <div class="flex items-start border border-gray-200 rounded-lg p-4 mb-8 shadow-sm bg-white max-w-2xl relative">
+                <!-- PDF Icon -->
+                <div class="flex-shrink-0 mr-4">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/8/87/PDF_file_icon.svg" alt="PDF Icon" class="h-14 w-14">
+                </div>
+                
+                <!-- Card Content -->
+                <div class="flex-grow pt-1">
+                    <h2 class="text-gray-800 font-bold text-lg leading-tight uppercase pr-16">
+                        FERI RENALDO SITORUS, S.I.K., M.H.
+                    </h2>
+                    <p class="text-gray-500 text-sm mt-1">79 Kb</p>
+                </div>
+
+                <!-- Public Badge -->
+                <span class="absolute top-4 right-4 bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded tracking-wider">
+                    PUBLIC
+                </span>
+            </div>
+
+            <hr class="border-gray-200 mb-8">
+
+            <!-- Informasi Dokumen Section -->
+            <div class="mb-8 max-w-2xl">
+                <h3 class="text-[#1e2532] font-bold text-xl mb-6">Informasi Dokumen</h3>
+                
+                <div class="space-y-4 text-sm md:text-base">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-500">Total Halaman</span>
+                        <span class="text-gray-900 font-medium">1 Halaman</span>
+                    </div>
+                    <div class="flex justify-between items-start">
+                        <span class="text-gray-500">Penanda Tangan</span>
+                        <span class="text-gray-900 font-medium text-right uppercase">FERI RENALDO SITORUS, S.I.K., M.H.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row gap-4 max-w-2xl mt-4">
+                <a href="https://drive.google.com/file/d/1Aki9Az7SG4b7J-jeu1b1LZ5jFW_atdwP/view?usp=sharing" target="_blank" class="flex-1 bg-black text-white py-3 px-6 rounded text-xs font-bold tracking-wide hover:bg-gray-800 transition shadow-lg uppercase text-center flex items-center justify-center">
+                    Lihat Dokumen
+                </a>
+                <button class="flex-1 bg-gray-200 text-gray-800 py-3 px-6 rounded text-xs font-bold tracking-wide hover:bg-gray-300 transition shadow-sm uppercase text-center flex items-center justify-center">
+                    Lihat Catatan SKCK
+                </button>
+            </div>
+
+        </div>
+
+        <!-- Right Decoration Section (The Dark Wave) -->
+        <!-- Logic: We create a container that sits on the right side.
+             The SVG curve is positioned absolutely to the left of this container to create the wave shape. -->
+        <div class="hidden lg:block lg:w-[45%] relative bg-[#1e2532]">
+            <!-- The SVG Wave Shape -->
+            <svg class="wave-svg" viewBox="0 0 100 800" preserveAspectRatio="none">
+                <!-- This path draws a curve that bulges out then in -->
+                <path d="M100,0 L100,800 L20,800 C-60,500 120,300 20,0 Z" />
+            </svg>
+        </div>
+
+    </div>
+
+</body>
+</html>
