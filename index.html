@@ -3,292 +3,583 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MUSADAD SYSTEM PORTAL</title>
+    <title>MUSADAD SYSTEM - Dashboard Pro</title>
     
     <!-- TAILWIND CSS & ICONS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- FONTS -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Orbitron:wght@700&display=swap" rel="stylesheet">
-
-    <style>
-        body { font-family: 'Poppins', sans-serif; background: #f0f2f5; }
-        .digital-font { font-family: 'Orbitron', sans-serif; }
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-        }
-        .btn-menu {
-            transition: all 0.3s ease;
-        }
-        .btn-menu:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        }
-        /* Scrollbar custom untuk notes */
-        textarea::-webkit-scrollbar { width: 8px; }
-        textarea::-webkit-scrollbar-track { background: #f1f1f1; }
-        textarea::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        textarea::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-    </style>
-</head>
-<body class="min-h-screen flex flex-col bg-gradient-to-br from-slate-200 to-slate-300">
-
-    <!-- HEADER / TOP BAR -->
-    <div class="bg-gradient-to-r from-blue-900 to-blue-800 text-white shadow-lg sticky top-0 z-50">
-        <div class="container mx-auto px-4 py-3 flex flex-col md:flex-row justify-between items-center">
-            
-            <!-- BRANDING -->
-            <div class="flex items-center gap-3 mb-2 md:mb-0">
-                <div class="bg-white text-blue-900 rounded-full w-10 h-10 flex items-center justify-center text-xl font-bold shadow-md">
-                    <i class="fas fa-print"></i>
-                </div>
-                <div>
-                    <h1 class="font-bold text-xl tracking-wide leading-none">MUSADAD SYSTEM</h1>
-                    <p class="text-xs text-blue-200 opacity-80">Percetakan & Digital Service Portal</p>
-                </div>
-            </div>
-
-            <!-- WIDGET JAM & TANGGAL -->
-            <div class="text-center md:text-right bg-blue-950/30 px-4 py-2 rounded-lg border border-blue-700/50">
-                <div id="clockDisplay" class="digital-font text-2xl md:text-3xl font-bold text-cyan-300 leading-none tracking-widest">00:00:00</div>
-                <div id="dateDisplay" class="text-xs md:text-sm font-medium text-blue-100 uppercase tracking-wide mt-1">...</div>
-            </div>
-
-        </div>
-    </div>
-
-    <!-- MAIN CONTENT -->
-    <div class="container mx-auto px-4 py-6 flex-grow">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
-
-            <!-- KOLOM KIRI: MENU GRID (2/3 layar) -->
-            <div class="lg:col-span-2 space-y-6">
-                
-                <!-- GROUP 1: INPUT & DATA -->
-                <div class="glass-panel rounded-xl shadow-sm p-5">
-                    <h3 class="text-blue-900 font-bold border-b-2 border-blue-100 pb-2 mb-4 flex items-center gap-2">
-                        <i class="fas fa-database text-blue-500"></i> INPUT DATA UTAMA
-                    </h3>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        <button onclick="bukaLink('harga_kertas')" class="btn-menu bg-white p-3 rounded-lg border border-gray-200 shadow-sm hover:border-blue-300 flex flex-col items-center gap-2 group">
-                            <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                                <i class="fas fa-scroll"></i>
-                            </div>
-                            <span class="text-xs font-semibold text-gray-700 text-center">Harga Kertas</span>
-                        </button>
-                        <!-- Updated: Harga Produk maps to Jual/NOTA_OK.html as per context -->
-                        <button onclick="bukaLink('harga_produk')" class="btn-menu bg-white p-3 rounded-lg border border-gray-200 shadow-sm hover:border-blue-300 flex flex-col items-center gap-2 group">
-                            <div class="w-10 h-10 rounded-full bg-green-50 text-green-600 flex items-center justify-center group-hover:bg-green-600 group-hover:text-white transition-colors">
-                                <i class="fas fa-tags"></i>
-                            </div>
-                            <span class="text-xs font-semibold text-gray-700 text-center">Harga Produk</span>
-                        </button>
-                        <button onclick="bukaLink('beli')" class="btn-menu bg-white p-3 rounded-lg border border-gray-200 shadow-sm hover:border-blue-300 flex flex-col items-center gap-2 group">
-                            <div class="w-10 h-10 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center group-hover:bg-orange-600 group-hover:text-white transition-colors">
-                                <i class="fas fa-shopping-cart"></i>
-                            </div>
-                            <span class="text-xs font-semibold text-gray-700 text-center">Input Beli</span>
-                        </button>
-                        <button onclick="bukaLink('transaksi')" class="btn-menu bg-white p-3 rounded-lg border border-gray-200 shadow-sm hover:border-blue-300 flex flex-col items-center gap-2 group">
-                            <div class="w-10 h-10 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-colors">
-                                <i class="fas fa-cash-register"></i>
-                            </div>
-                            <span class="text-xs font-semibold text-gray-700 text-center">Transaksi</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- GROUP 2: TOOLS OPERASIONAL -->
-                <div class="glass-panel rounded-xl shadow-sm p-5">
-                    <h3 class="text-blue-900 font-bold border-b-2 border-blue-100 pb-2 mb-4 flex items-center gap-2">
-                        <i class="fas fa-tools text-blue-500"></i> TOOLS PERCETAKAN
-                    </h3>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        <button onclick="bukaLink('hitung_undangan')" class="btn-menu bg-white p-3 rounded-lg border border-gray-200 shadow-sm hover:border-blue-300 flex flex-col items-center gap-2 group">
-                            <div class="w-10 h-10 rounded-full bg-pink-50 text-pink-600 flex items-center justify-center group-hover:bg-pink-600 group-hover:text-white transition-colors">
-                                <i class="fas fa-envelope-open-text"></i>
-                            </div>
-                            <span class="text-xs font-semibold text-gray-700 text-center">Hitung Undangan</span>
-                        </button>
-                        <button onclick="bukaLink('fotocopy')" class="btn-menu bg-white p-3 rounded-lg border border-gray-200 shadow-sm hover:border-blue-300 flex flex-col items-center gap-2 group">
-                            <div class="w-10 h-10 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center group-hover:bg-gray-600 group-hover:text-white transition-colors">
-                                <i class="fas fa-copy"></i>
-                            </div>
-                            <span class="text-xs font-semibold text-gray-700 text-center">Fotocopy</span>
-                        </button>
-                        <button onclick="bukaLink('cetak_foto')" class="btn-menu bg-white p-3 rounded-lg border border-gray-200 shadow-sm hover:border-blue-300 flex flex-col items-center gap-2 group">
-                            <div class="w-10 h-10 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                                <i class="fas fa-image"></i>
-                            </div>
-                            <span class="text-xs font-semibold text-gray-700 text-center">Cetak Foto</span>
-                        </button>
-                        <button onclick="bukaLink('remove_bg')" class="btn-menu bg-white p-3 rounded-lg border border-gray-200 shadow-sm hover:border-blue-300 flex flex-col items-center gap-2 group">
-                            <div class="w-10 h-10 rounded-full bg-red-50 text-red-600 flex items-center justify-center group-hover:bg-red-600 group-hover:text-white transition-colors">
-                                <i class="fas fa-eraser"></i>
-                            </div>
-                            <span class="text-xs font-semibold text-gray-700 text-center">Hapus Background</span>
-                        </button>
-                        <button onclick="bukaLink('pertajam_foto')" class="btn-menu bg-white p-3 rounded-lg border border-gray-200 shadow-sm hover:border-blue-300 flex flex-col items-center gap-2 group">
-                            <div class="w-10 h-10 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center group-hover:bg-teal-600 group-hover:text-white transition-colors">
-                                <i class="fas fa-magic"></i>
-                            </div>
-                            <span class="text-xs font-semibold text-gray-700 text-center">Pertajam Foto</span>
-                        </button>
-                        <button onclick="bukaLink('npwp')" class="btn-menu bg-white p-3 rounded-lg border border-gray-200 shadow-sm hover:border-blue-300 flex flex-col items-center gap-2 group">
-                            <div class="w-10 h-10 rounded-full bg-yellow-50 text-yellow-600 flex items-center justify-center group-hover:bg-yellow-600 group-hover:text-white transition-colors">
-                                <i class="fas fa-id-card"></i>
-                            </div>
-                            <span class="text-xs font-semibold text-gray-700 text-center">Cek NPWP</span>
-                        </button>
-                        <!-- ADDED: NPWP 2 -->
-                        <button onclick="bukaLink('npwp1')" class="btn-menu bg-white p-3 rounded-lg border border-gray-200 shadow-sm hover:border-blue-300 flex flex-col items-center gap-2 group">
-                            <div class="w-10 h-10 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center group-hover:bg-amber-600 group-hover:text-white transition-colors">
-                                <i class="fas fa-file-invoice-dollar"></i>
-                            </div>
-                            <span class="text-xs font-semibold text-gray-700 text-center">NPWP 2</span>
-                        </button>
-                        <button onclick="bukaLink('blangko')" class="btn-menu bg-white p-3 rounded-lg border border-gray-200 shadow-sm hover:border-blue-300 flex flex-col items-center gap-2 group">
-                            <div class="w-10 h-10 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center group-hover:bg-rose-600 group-hover:text-white transition-colors">
-                                <i class="fas fa-file-invoice"></i>
-                            </div>
-                            <span class="text-xs font-semibold text-gray-700 text-center">Undangan Blangko</span>
-                        </button>
-                         <button onclick="bukaLink('ktp')" class="btn-menu bg-white p-3 rounded-lg border border-gray-200 shadow-sm hover:border-blue-300 flex flex-col items-center gap-2 group">
-                            <div class="w-10 h-10 rounded-full bg-sky-50 text-sky-600 flex items-center justify-center group-hover:bg-sky-600 group-hover:text-white transition-colors">
-                                <i class="fas fa-address-card"></i>
-                            </div>
-                            <span class="text-xs font-semibold text-gray-700 text-center">Buat KTP</span>
-                        </button>
-                        <button onclick="bukaLink('WARNA')" class="btn-menu bg-white p-3 rounded-lg border border-gray-200 shadow-sm hover:border-blue-300 flex flex-col items-center gap-2 group">
-                            <div class="w-10 h-10 rounded-full bg-sky-50 text-sky-600 flex items-center justify-center group-hover:bg-sky-600 group-hover:text-white transition-colors">
-                                <i class="fas fa-address-card"></i>
-                            </div>
-                            <span class="text-xs font-semibold text-gray-700 text-center">warna</span>
-                        </button>
-                    </div>
-                </div>
-
-                 <!-- GROUP 3: MOBILE & LAINNYA -->
-                <div class="glass-panel rounded-xl shadow-sm p-5">
-                    <h3 class="text-blue-900 font-bold border-b-2 border-blue-100 pb-2 mb-4 flex items-center gap-2">
-                        <i class="fas fa-mobile-alt text-blue-500"></i> AKSES MOBILE
-                    </h3>
-                    <div class="flex flex-wrap gap-3">
-                        <button onclick="bukaLink('pesanan')" class="btn-menu px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg shadow text-sm font-medium"><i class="fas fa-clipboard-list mr-1"></i> Pesanan</button>
-                        <button onclick="bukaLink('utang')" class="btn-menu px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg shadow text-sm font-medium"><i class="fas fa-book-dead mr-1"></i> Catatan Utang</button>
-                        <!-- Updated: Nota maps to akuntansi.html per instruction -->
-                        <button onclick="bukaLink('nota')" class="btn-menu px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg shadow text-sm font-medium"><i class="fas fa-receipt mr-1"></i> Buat Nota</button>
-                        <button onclick="bukaLink('pulsa')" class="btn-menu px-4 py-2 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-lg shadow text-sm font-medium"><i class="fas fa-wifi mr-1"></i> Transaksi Pulsa</button>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- KOLOM KANAN: NOTE PEKERJAAN (1/3 layar) -->
-            <div class="lg:col-span-1 h-full flex flex-col">
-                <div class="glass-panel rounded-xl shadow-md flex-grow flex flex-col h-full border-t-4 border-yellow-400">
-                    <!-- Note Header -->
-                    <div class="p-4 bg-yellow-50 border-b border-yellow-100 flex justify-between items-center rounded-t-lg">
-                        <h3 class="font-bold text-yellow-800 flex items-center gap-2">
-                            <i class="fas fa-sticky-note"></i> NOTE PEKERJAAN
-                        </h3>
-                        <span id="saveStatus" class="text-xs text-green-600 font-medium opacity-0 transition-opacity"><i class="fas fa-check"></i> Tersimpan</span>
-                    </div>
-                    
-                    <!-- Note Area -->
-                    <div class="p-0 flex-grow relative bg-yellow-50/30">
-                        <textarea id="workNotes" class="w-full h-full p-4 bg-transparent border-0 focus:ring-0 text-gray-700 text-sm leading-relaxed resize-none font-medium" 
-                        placeholder="Tulis daftar pekerjaan, pendingan, atau catatan penting di sini... (Otomatis tersimpan)"></textarea>
-                    </div>
-                    
-                    <!-- Note Footer -->
-                    <div class="p-3 bg-gray-50 border-t border-gray-200 text-xs text-gray-500 text-center">
-                        Jangan lupa cek catatan sebelum pulang!
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </div>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=Orbitron:wght@700&display=swap" rel="stylesheet">
 
     <script>
-        // 1. LOGIKA JAM & TANGGAL
-        function updateTime() {
-            const now = new Date();
-            
-            // Jam Digital
-            const timeString = now.toLocaleTimeString('id-ID', { hour12: false });
-            document.getElementById('clockDisplay').textContent = timeString;
-
-            // Tanggal
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            const dateString = now.toLocaleDateString('id-ID', options);
-            document.getElementById('dateDisplay').textContent = dateString;
+        tailwind.config = {
+            darkMode: 'class',
         }
-        setInterval(updateTime, 1000);
-        updateTime(); // Run immediately
+    </script>
 
-        // 2. LOGIKA NAVIGASI
-        // Link diperbarui sesuai permintaan (Referensi User Code)
-        const menuLinks = {
-            // INPUT DATA
-            'harga_kertas': 'https://musadad87.github.io/kalkulator-undangan/INPUT_HARGA_KERETAS.html', // dari action 'harga-kertas'
-            'harga_produk': 'https://musadad87.github.io/kalkulator-undangan/NOTA_OK.html', // dari action 'Jual'
-            'beli': 'https://musadad87.github.io/kalkulator-undangan/BELI.html', // dari action 'beli'
-            'transaksi': 'https://chat.z.ai/space/t0xt57qx46u0-art', // dari action 'Teransaksi'
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; transition: background-color 0.3s ease; }
+        .digital-font { font-family: 'Orbitron', sans-serif; }
+        
+        .theme-transition {
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+        }
 
-            // TOOLS PERCETAKAN
-            'hitung_undangan': 'https://musadad87.github.io/kalkulator-undangan/haraga_riza.html', // dari action 'hitung-riza'
-            'fotocopy': 'https://musadad87.github.io/kalkulator-undangan/fotocpy.html', // dari action 'focopy'
-            'cetak_foto': 'https://musadad87.github.io/kalkulator-undangan/print%20foto.HTML', // dari action 'cetak-foto'
-            'remove_bg': 'https://www.photoroom.com/tools/background-remover', // dari action 'Hapus_BC'
-            'pertajam_foto': 'https://picwish.com/photo-enhancer', // dari action 'Menajam_Fo'
-            'npwp': 'https://musadad87.github.io/kalkulator-undangan/NPWP%20google%20sheet.html', // dari action 'npwp'
-            'npwp1': 'https://musadad87.github.io/kalkulator-undangan/NPWP2.html', // dari action 'npwp1'
-            'blangko': 'https://musadad87.github.io/kalkulator-undangan/HARGA_Belangko.Html.html', // dari action 'undangan-belangko'
-            'ktp': 'https://musadad87.github.io/kalkulator-undangan/ktp.html', // dari action 'KTP'
-            'WARNA': 'https://musadad87.github.io/kalkulator-undangan/ktp.html', // dari action 'WARNA'
+        .menu-card {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .menu-card:hover {
+            transform: translateY(-5px);
+        }
 
-            // MOBILE
-            'pesanan': 'https://musadad87.github.io/kalkulator-undangan/pesanan.html', // dari action 'pesanan'
-            'utang': 'https://musadad87.github.io/kalkulator-undangan/utang.html', // dari action 'utang'
-            'nota': 'https://musadad87.github.io/kalkulator-undangan/akuntansi.html', // dari action 'nota'
-            'pulsa': 'https://isipulsa.web.id/' // dari action 'pulsa'
-        };
+        /* Analog Clock Styles */
+        .clock-container {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 2px solid white;
+            position: relative;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 10px auto 0 auto;
+        }
+        .dark .clock-container { border-color: #38bdf8; }
+        .hand {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: bottom;
+            border-radius: 10px;
+            background: white;
+        }
+        .dark .hand { background: #38bdf8; }
+        .hour-hand { width: 3px; height: 20px; z-index: 3; }
+        .min-hand { width: 2px; height: 28px; z-index: 2; }
+        .sec-hand { width: 1px; height: 32px; background: #fbbf24 !important; z-index: 1; }
 
-        function bukaLink(key) {
-            const url = menuLinks[key];
-            if (url) {
-                window.open(url, '_blank');
+        @keyframes pulse-red {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .alarm-active { animation: pulse-red 1s infinite; color: #f87171; }
+        
+        .tab-btn.active { border-bottom: 2px solid #fbbf24; color: #fbbf24; }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-50 dark:bg-slate-950 theme-transition">
+
+    <!-- HEADER -->
+    <header class="bg-blue-700 dark:bg-slate-900 text-white shadow-lg sticky top-0 z-50 theme-transition">
+        <div class="container mx-auto px-4 py-3 flex flex-wrap justify-between items-center">
+            
+            <!-- Logo & Store Status -->
+            <div class="flex items-center gap-3">
+                <div class="bg-white dark:bg-blue-600 text-blue-700 dark:text-white p-2 rounded-lg shadow-inner">
+                    <i class="fas fa-print fa-lg"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-xl tracking-tight leading-none">MUSADAD SYSTEM</h1>
+                    <div class="flex items-center gap-2 mt-1">
+                        <span id="storeStatusBadge" class="text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-tighter bg-green-500">BUKA</span>
+                        <span id="uptimeDisplay" class="text-[10px] text-blue-100 opacity-80">Aktif: 0j 0m</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Header Center: Productivity Tools -->
+            <div class="flex items-center gap-4 bg-blue-800/50 dark:bg-slate-800/50 px-4 py-2 rounded-2xl border border-white/10">
+                <!-- Tools Tab System -->
+                <div class="flex flex-col gap-2">
+                    <div class="flex gap-4 text-[10px] font-bold border-b border-white/10 pb-1">
+                        <button onclick="switchTool('alarm')" id="tab-alarm" class="tab-btn active uppercase tracking-widest">Alarm</button>
+                        <button onclick="switchTool('stopwatch')" id="tab-stopwatch" class="tab-btn uppercase tracking-widest">Stopwatch</button>
+                        <button onclick="switchTool('timer')" id="tab-timer" class="tab-btn uppercase tracking-widest">Timer</button>
+                    </div>
+
+                    <!-- Content: Alarm (Existing) -->
+                    <div id="content-alarm" class="flex flex-col gap-1 text-[10px]">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="opacity-70"><i class="fas fa-door-open"></i></span>
+                            <input type="time" id="openTime" value="08:00" onchange="saveSettings()" class="bg-transparent border-none text-white focus:ring-0 p-0 cursor-pointer w-16">
+                            <span class="opacity-70 ml-2"><i class="fas fa-door-closed"></i></span>
+                            <input type="time" id="closeTime" value="17:00" onchange="saveSettings()" class="bg-transparent border-none text-white focus:ring-0 p-0 cursor-pointer w-16">
+                        </div>
+                    </div>
+
+                    <!-- Content: Stopwatch -->
+                    <div id="content-stopwatch" class="hidden flex items-center gap-3">
+                        <span id="stopwatchDisplay" class="digital-font text-xs text-yellow-400 w-16">00:00:00</span>
+                        <div class="flex gap-2">
+                            <button onclick="toggleStopwatch()" id="swBtn" class="bg-white/10 hover:bg-white/20 p-1 rounded"><i class="fas fa-play text-[8px]"></i></button>
+                            <button onclick="resetStopwatch()" class="bg-white/10 hover:bg-white/20 p-1 rounded"><i class="fas fa-undo text-[8px]"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- Content: Timer -->
+                    <div id="content-timer" class="hidden flex items-center gap-2">
+                        <input type="number" id="timerInput" placeholder="Min" class="bg-white/10 border-none text-white text-[10px] rounded p-1 w-10 focus:ring-1 focus:ring-yellow-400">
+                        <span id="timerDisplay" class="digital-font text-xs text-orange-400 min-w-[45px]">00:00</span>
+                        <div class="flex gap-1">
+                            <button onclick="startTimer()" id="tmBtn" class="bg-white/10 hover:bg-white/20 p-1 rounded"><i class="fas fa-hourglass-start text-[8px]"></i></button>
+                            <button onclick="resetTimer()" class="bg-white/10 hover:bg-white/20 p-1 rounded"><i class="fas fa-redo text-[8px]"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Theme & Digital Clock -->
+            <div class="flex items-center gap-5">
+                <!-- Theme Toggle -->
+                <div class="flex flex-col items-center gap-1">
+                    <button onclick="toggleDarkMode()" class="p-2.5 bg-blue-800 dark:bg-slate-800 rounded-xl hover:bg-blue-600 dark:hover:bg-slate-700 transition-all border border-white/5">
+                        <i id="themeIcon" class="fas fa-sun text-yellow-300"></i>
+                    </button>
+                    <span id="themeText" class="text-[9px] font-bold">SIANG</span>
+                </div>
+
+                <!-- Digital Clock & Analog Below -->
+                <div class="hidden md:flex flex-col items-end border-l border-white/10 pl-4">
+                    <div id="clockDisplay" class="digital-font text-xl text-cyan-300">00:00:00</div>
+                    <div id="dateDisplay" class="text-[10px] font-medium text-blue-200">...</div>
+                    
+                    <!-- Analog Clock Container (Now Below Date) -->
+                    <div class="clock-container">
+                        <div id="hourHand" class="hand hour-hand"></div>
+                        <div id="minHand" class="hand min-hand"></div>
+                        <div id="secHand" class="hand sec-hand"></div>
+                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-white dark:bg-sky-400 rounded-full z-10 shadow-sm"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- SEARCH -->
+    <div class="container mx-auto px-4 mt-6">
+        <div class="relative max-w-2xl mx-auto">
+            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <input type="text" id="menuSearch" 
+                class="w-full pl-12 pr-4 py-4 rounded-2xl border-0 bg-white dark:bg-slate-900 shadow-sm dark:shadow-none focus:ring-2 focus:ring-blue-500 outline-none text-slate-700 dark:text-slate-200 transition-all" 
+                placeholder="Cari menu... (nota, warna, harga, ktp, dll)"
+                onkeyup="filterMenu()">
+        </div>
+    </div>
+
+    <!-- MAIN DASHBOARD -->
+    <main class="container mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 xl:grid-cols-4 gap-8">
+            
+            <div class="xl:col-span-3 space-y-10">
+                <!-- KATEGORI: TRANSAKSI -->
+                <section class="menu-section">
+                    <div class="flex items-center gap-2 mb-4 border-l-4 border-blue-600 pl-3">
+                        <h2 class="font-bold text-slate-800 dark:text-slate-100 tracking-tight uppercase text-sm">Transaksi & Penjualan</h2>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <button onclick="bukaLink('NOTA_OK')" class="menu-card bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col items-center group theme-transition">
+                            <div class="w-12 h-12 rounded-xl bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 flex items-center justify-center mb-3 group-hover:bg-green-600 group-hover:text-white transition-all">
+                                <i class="fas fa-file-invoice"></i>
+                            </div>
+                            <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Nota Baru</span>
+                        </button>
+                        <button onclick="bukaLink('Teransaksi')" class="menu-card bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col items-center group theme-transition">
+                            <div class="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-3 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                                <i class="fas fa-cash-register"></i>
+                            </div>
+                            <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Kasir Utama</span>
+                        </button>
+                        <button onclick="bukaLink('penjualan_Barang')" class="menu-card bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col items-center group theme-transition">
+                            <div class="w-12 h-12 rounded-xl bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 flex items-center justify-center mb-3 group-hover:bg-orange-600 group-hover:text-white transition-all">
+                                <i class="fas fa-box-open"></i>
+                            </div>
+                            <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Jual Barang</span>
+                        </button>
+                        <button onclick="bukaLink('pesanan')" class="menu-card bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col items-center group theme-transition">
+                            <div class="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-3 group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                                <i class="fas fa-clipboard-list"></i>
+                            </div>
+                            <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Pesanan</span>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- KATEGORI: TOOLS PERCETAKAN -->
+                <section class="menu-section">
+                    <div class="flex items-center gap-2 mb-4 border-l-4 border-rose-500 pl-3">
+                        <h2 class="font-bold text-slate-800 dark:text-slate-100 tracking-tight uppercase text-sm">Tools Percetakan</h2>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <button onclick="bukaLink('haraga_riza')" class="menu-card bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col items-center group theme-transition">
+                            <div class="w-12 h-12 rounded-xl bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 flex items-center justify-center mb-3 group-hover:bg-rose-600 group-hover:text-white transition-all">
+                                <i class="fas fa-heart"></i>
+                            </div>
+                            <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Undangan</span>
+                        </button>
+                        <button onclick="bukaLink('HITUNG_KERTAS')" class="menu-card bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col items-center group theme-transition">
+                            <div class="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-3 group-hover:bg-amber-600 group-hover:text-white transition-all">
+                                <i class="fas fa-calculator"></i>
+                            </div>
+                            <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Potong Kertas</span>
+                        </button>
+                        <button onclick="bukaLink('simulator_warna')" class="menu-card bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col items-center group theme-transition">
+                            <div class="w-12 h-12 rounded-xl bg-fuchsia-50 dark:bg-fuchsia-900/30 text-fuchsia-600 dark:text-fuchsia-400 flex items-center justify-center mb-3 group-hover:bg-fuchsia-600 group-hover:text-white transition-all">
+                                <i class="fas fa-palette"></i>
+                            </div>
+                            <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Simulasi Warna</span>
+                        </button>
+                        <button onclick="bukaLink('print_foto')" class="menu-card bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col items-center group theme-transition">
+                            <div class="w-12 h-12 rounded-xl bg-sky-50 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400 flex items-center justify-center mb-3 group-hover:bg-sky-600 group-hover:text-white transition-all">
+                                <i class="fas fa-print"></i>
+                            </div>
+                            <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Cetak Foto</span>
+                        </button>
+                        <button onclick="bukaLink('HARGA_Belangko')" class="menu-card bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col items-center group theme-transition">
+                            <div class="w-12 h-12 rounded-xl bg-pink-50 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 flex items-center justify-center mb-3 group-hover:bg-pink-600 group-hover:text-white transition-all">
+                                <i class="fas fa-book-open"></i>
+                            </div>
+                            <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Harga Blangko</span>
+                        </button>
+                        <button onclick="bukaLink('ktp')" class="menu-card bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col items-center group theme-transition">
+                            <div class="w-12 h-12 rounded-xl bg-cyan-50 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400 flex items-center justify-center mb-3 group-hover:bg-cyan-600 group-hover:text-white transition-all">
+                                <i class="fas fa-id-card"></i>
+                            </div>
+                            <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Cetak KTP</span>
+                        </button>
+                        <button onclick="bukaLink('skck')" class="menu-card bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col items-center group theme-transition">
+                            <div class="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-3 group-hover:bg-emerald-600 group-hover:text-white transition-all">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">SKCK</span>
+                        </button>
+                        <button onclick="bukaLink('fotocpy')" class="menu-card bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col items-center group theme-transition">
+                            <div class="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 flex items-center justify-center mb-3 group-hover:bg-gray-600 group-hover:text-white transition-all">
+                                <i class="fas fa-copy"></i>
+                            </div>
+                            <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Fotocopy</span>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- KATEGORI: ADMINISTRASI -->
+                <section class="menu-section">
+                    <div class="flex items-center gap-2 mb-4 border-l-4 border-purple-600 pl-3">
+                        <h2 class="font-bold text-slate-800 dark:text-slate-100 tracking-tight uppercase text-sm">Administrasi & Stok</h2>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <button onclick="bukaLink('akuntansi')" class="menu-card bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col items-center group theme-transition">
+                            <div class="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-3 group-hover:bg-purple-600 group-hover:text-white transition-all">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Pembukuan</span>
+                        </button>
+                        <button onclick="bukaLink('utang')" class="menu-card bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col items-center group theme-transition">
+                            <div class="w-12 h-12 rounded-xl bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 flex items-center justify-center mb-3 group-hover:bg-red-600 group-hover:text-white transition-all">
+                                <i class="fas fa-user-clock"></i>
+                            </div>
+                            <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Utang</span>
+                        </button>
+                        <button onclick="bukaLink('absen')" class="menu-card bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col items-center group theme-transition">
+                            <div class="w-12 h-12 rounded-xl bg-teal-50 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 flex items-center justify-center mb-3 group-hover:bg-teal-600 group-hover:text-white transition-all">
+                                <i class="fas fa-user-check"></i>
+                            </div>
+                            <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Absen</span>
+                        </button>
+                        <button onclick="bukaLink('BAHAN_HABIS')" class="menu-card bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col items-center group theme-transition">
+                            <div class="w-12 h-12 rounded-xl bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 flex items-center justify-center mb-3 group-hover:bg-yellow-600 group-hover:text-white transition-all">
+                                <i class="fas fa-boxes"></i>
+                            </div>
+                            <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Stok Bahan</span>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- KATEGORI: PENGATURAN -->
+                <section class="menu-section">
+                    <div class="flex items-center gap-2 mb-4 border-l-4 border-slate-400 pl-3">
+                        <h2 class="font-bold text-slate-800 dark:text-slate-100 tracking-tight uppercase text-sm">Data & Pengaturan</h2>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <button onclick="bukaLink('INPUT_HARGA_KERETAS')" class="menu-card bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col items-center group theme-transition">
+                            <div class="w-12 h-12 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 flex items-center justify-center mb-3 group-hover:bg-slate-600 group-hover:text-white transition-all">
+                                <i class="fas fa-cog"></i>
+                            </div>
+                            <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Set Harga</span>
+                        </button>
+                        <button onclick="bukaLink('BELI')" class="menu-card bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col items-center group theme-transition">
+                            <div class="w-12 h-12 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 flex items-center justify-center mb-3 group-hover:bg-slate-600 group-hover:text-white transition-all">
+                                <i class="fas fa-shopping-basket"></i>
+                            </div>
+                            <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Beli Stok</span>
+                        </button>
+                        <button onclick="bukaLink('HITUNG_UANG')" class="menu-card bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col items-center group theme-transition">
+                            <div class="w-12 h-12 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 flex items-center justify-center mb-3 group-hover:bg-slate-600 group-hover:text-white transition-all">
+                                <i class="fas fa-money-bill-wave"></i>
+                            </div>
+                            <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Kas Kasir</span>
+                        </button>
+                        <button onclick="bukaLink('email')" class="menu-card bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col items-center group theme-transition">
+                            <div class="w-12 h-12 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 flex items-center justify-center mb-3 group-hover:bg-slate-600 group-hover:text-white transition-all">
+                                <i class="fas fa-database"></i>
+                            </div>
+                            <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Config</span>
+                        </button>
+                    </div>
+                </section>
+            </div>
+
+            <!-- RIGHT COLUMN: NOTES -->
+            <div class="xl:col-span-1">
+                <div class="sticky top-24 space-y-6">
+                    <div class="bg-yellow-50 dark:bg-amber-900/20 rounded-3xl shadow-sm border border-yellow-100 dark:border-amber-900/50 flex flex-col min-h-[450px] overflow-hidden theme-transition">
+                        <div class="p-4 bg-yellow-100/50 dark:bg-amber-900/40 border-b border-yellow-200 dark:border-amber-900/50 flex justify-between items-center">
+                            <h3 class="font-bold text-yellow-800 dark:text-amber-400 flex items-center gap-2">
+                                <i class="fas fa-sticky-note"></i> NOTE HARIAN
+                            </h3>
+                            <span id="saveStatus" class="text-[10px] bg-green-500 text-white px-2 py-0.5 rounded-full opacity-0">OK</span>
+                        </div>
+                        <textarea id="dailyNotes" class="w-full flex-grow p-5 bg-transparent border-0 focus:ring-0 text-slate-700 dark:text-slate-300 text-sm leading-relaxed resize-none font-medium placeholder:text-yellow-600/50" 
+                        placeholder="Tulis list kerjaan..."></textarea>
+                    </div>
+
+                    <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-sm border border-slate-100 dark:border-slate-800 theme-transition">
+                        <h4 class="font-bold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2 text-sm uppercase">
+                            <i class="fas fa-external-link-alt text-blue-500"></i> Links
+                        </h4>
+                        <div class="space-y-2">
+                            <a href="https://www.photoroom.com/tools/background-remover" target="_blank" class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all text-xs font-medium text-slate-600 dark:text-slate-400">
+                                <i class="fas fa-eraser text-red-400"></i> Hapus BG
+                            </a>
+                            <a href="https://picwish.com/photo-enhancer" target="_blank" class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all text-xs font-medium text-slate-600 dark:text-slate-400">
+                                <i class="fas fa-magic text-teal-400"></i> Jernihkan Foto
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // Global variables
+        let stopwatchInterval;
+        let stopwatchTime = 0;
+        let isStopwatchRunning = false;
+
+        let timerInterval;
+        let timerTime = 0;
+        let isTimerRunning = false;
+
+        function switchTool(tool) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-' + tool).classList.add('active');
+            
+            ['alarm', 'stopwatch', 'timer'].forEach(t => {
+                document.getElementById('content-' + t).classList.add('hidden');
+            });
+            document.getElementById('content-' + tool).classList.remove('hidden');
+        }
+
+        // Stopwatch Logic
+        function toggleStopwatch() {
+            const btn = document.getElementById('swBtn');
+            if (isStopwatchRunning) {
+                clearInterval(stopwatchInterval);
+                btn.innerHTML = '<i class="fas fa-play text-[8px]"></i>';
             } else {
-                alert('Link belum tersedia untuk menu ini.');
+                stopwatchInterval = setInterval(() => {
+                    stopwatchTime++;
+                    updateStopwatchDisplay();
+                }, 1000);
+                btn.innerHTML = '<i class="fas fa-pause text-[8px]"></i>';
+            }
+            isStopwatchRunning = !isStopwatchRunning;
+        }
+
+        function resetStopwatch() {
+            clearInterval(stopwatchInterval);
+            stopwatchTime = 0;
+            isStopwatchRunning = false;
+            document.getElementById('swBtn').innerHTML = '<i class="fas fa-play text-[8px]"></i>';
+            updateStopwatchDisplay();
+        }
+
+        function updateStopwatchDisplay() {
+            const h = Math.floor(stopwatchTime / 3600).toString().padStart(2, '0');
+            const m = Math.floor((stopwatchTime % 3600) / 60).toString().padStart(2, '0');
+            const s = (stopwatchTime % 60).toString().padStart(2, '0');
+            document.getElementById('stopwatchDisplay').textContent = `${h}:${m}:${s}`;
+        }
+
+        // Timer Logic
+        function startTimer() {
+            const btn = document.getElementById('tmBtn');
+            const input = document.getElementById('timerInput');
+
+            if (isTimerRunning) {
+                clearInterval(timerInterval);
+                btn.innerHTML = '<i class="fas fa-hourglass-start text-[8px]"></i>';
+            } else {
+                if (timerTime <= 0) {
+                    const mins = parseInt(input.value) || 0;
+                    if (mins <= 0) return;
+                    timerTime = mins * 60;
+                }
+                timerInterval = setInterval(() => {
+                    timerTime--;
+                    updateTimerDisplay();
+                    if (timerTime <= 0) {
+                        clearInterval(timerInterval);
+                        isTimerRunning = false;
+                        btn.innerHTML = '<i class="fas fa-hourglass-start text-[8px]"></i>';
+                        document.getElementById('timerDisplay').classList.add('alarm-active');
+                    }
+                }, 1000);
+                btn.innerHTML = '<i class="fas fa-pause text-[8px]"></i>';
+                document.getElementById('timerDisplay').classList.remove('alarm-active');
+            }
+            isTimerRunning = !isTimerRunning;
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            timerTime = 0;
+            isTimerRunning = false;
+            document.getElementById('tmBtn').innerHTML = '<i class="fas fa-hourglass-start text-[8px]"></i>';
+            document.getElementById('timerDisplay').classList.remove('alarm-active');
+            updateTimerDisplay();
+        }
+
+        function updateTimerDisplay() {
+            const m = Math.floor(timerTime / 60).toString().padStart(2, '0');
+            const s = (timerTime % 60).toString().padStart(2, '0');
+            document.getElementById('timerDisplay').textContent = `${m}:${s}`;
+        }
+
+        // Standard Store Logics (Clock, Status, DarkMode)
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            const isDark = document.documentElement.classList.contains('dark');
+            localStorage.setItem('musadad_theme', isDark ? 'dark' : 'light');
+            updateThemeUI(isDark);
+        }
+
+        function updateThemeUI(isDark) {
+            const icon = document.getElementById('themeIcon');
+            const text = document.getElementById('themeText');
+            if (isDark) {
+                icon.className = "fas fa-moon text-blue-300";
+                text.textContent = "MALAM";
+            } else {
+                icon.className = "fas fa-sun text-yellow-400";
+                text.textContent = "SIANG";
             }
         }
 
-        // 3. LOGIKA NOTE PEKERJAAN (LOCAL STORAGE)
-        const noteArea = document.getElementById('workNotes');
-        const saveStatus = document.getElementById('saveStatus');
+        function updateClock() {
+            const now = new Date();
+            const hour = now.getHours();
+            const min = now.getMinutes();
+            const sec = now.getSeconds();
 
-        // Load saved notes on startup
-        const savedNotes = localStorage.getItem('musadad_work_notes');
-        if (savedNotes) {
-            noteArea.value = savedNotes;
+            document.getElementById('clockDisplay').textContent = now.toLocaleTimeString('id-ID', { hour12: false });
+            document.getElementById('dateDisplay').textContent = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase();
+
+            const hDeg = (hour % 12) * 30 + min * 0.5;
+            const mDeg = min * 6;
+            const sDeg = sec * 6;
+            document.getElementById('hourHand').style.transform = `rotate(${hDeg}deg)`;
+            document.getElementById('minHand').style.transform = `rotate(${mDeg}deg)`;
+            document.getElementById('secHand').style.transform = `rotate(${sDeg}deg)`;
+
+            updateStoreStatus(now);
         }
 
-        // Save on typing
-        noteArea.addEventListener('input', function() {
-            localStorage.setItem('musadad_work_notes', this.value);
+        function updateStoreStatus(now) {
+            const currentTimeStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+            const statusBadge = document.getElementById('storeStatusBadge');
+            const uptimeText = document.getElementById('uptimeDisplay');
+            const openInput = document.getElementById('openTime').value;
+            const closeInput = document.getElementById('closeTime').value;
+
+            const isAfloat = currentTimeStr >= openInput && currentTimeStr < closeInput;
+
+            if (isAfloat) {
+                statusBadge.textContent = "BUKA";
+                statusBadge.className = "text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-tighter bg-green-500 text-white";
+                const [hOpen, mOpen] = openInput.split(':').map(Number);
+                const openDate = new Date(now);
+                openDate.setHours(hOpen, mOpen, 0);
+                const diffMs = now - openDate;
+                const diffHrs = Math.floor(diffMs / 3600000);
+                const diffMins = Math.floor((diffMs % 3600000) / 60000);
+                uptimeText.textContent = `Aktif: ${diffHrs}j ${diffMins}m`;
+                if (currentTimeStr === closeInput) statusBadge.classList.add('alarm-active');
+                else statusBadge.classList.remove('alarm-active');
+            } else {
+                statusBadge.textContent = "TUTUP";
+                statusBadge.className = "text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-tighter bg-red-500 text-white";
+                uptimeText.textContent = `Toko Istirahat`;
+            }
+        }
+
+        function saveSettings() {
+            localStorage.setItem('musadad_open', document.getElementById('openTime').value);
+            localStorage.setItem('musadad_close', document.getElementById('closeTime').value);
+        }
+
+        function filterMenu() {
+            const query = document.getElementById('menuSearch').value.toLowerCase();
+            const cards = document.getElementsByClassName('menu-card');
+            const sections = document.getElementsByClassName('menu-section');
+            for (let card of cards) {
+                const title = card.querySelector('span').textContent.toLowerCase();
+                card.style.display = title.includes(query) ? 'flex' : 'none';
+            }
+            for (let section of sections) {
+                const hasVisible = section.querySelectorAll('.menu-card[style="display: flex;"]').length > 0 || query === "";
+                section.style.display = hasVisible ? 'block' : 'none';
+            }
+        }
+
+        const base = "https://musadad87.github.io/kalkulator-undangan/";
+        function bukaLink(file) {
+            if (file === 'simulator_warna') {
+                window.open("https://ddd-vffd.my.canva.site/simulator-aksesibilitas-warna-interaktif", '_blank');
+                return;
+            }
+            let ext = ".html";
+            if (file === "print_foto") file = "print%20foto.HTML"; 
+            if (file === "HITUNG_KERTAS") file = "HITUNG_KERTAS.html";
+            window.open(base + file + (file.includes(".") ? "" : ext), '_blank');
+        }
+
+        window.onload = () => {
+            const savedTheme = localStorage.getItem('musadad_theme');
+            if (savedTheme === 'dark') {
+                document.documentElement.classList.add('dark');
+                updateThemeUI(true);
+            } else {
+                updateThemeUI(false);
+            }
             
-            // Show "Tersimpan" indicator
-            saveStatus.classList.remove('opacity-0');
-            setTimeout(() => {
-                saveStatus.classList.add('opacity-0');
-            }, 2000);
-        });
+            const savedOpen = localStorage.getItem('musadad_open');
+            const savedClose = localStorage.getItem('musadad_close');
+            if(savedOpen) document.getElementById('openTime').value = savedOpen;
+            if(savedClose) document.getElementById('closeTime').value = savedClose;
+
+            updateClock();
+            setInterval(updateClock, 1000);
+            
+            const noteText = document.getElementById('dailyNotes');
+            const saveStatus = document.getElementById('saveStatus');
+            noteText.value = localStorage.getItem('musadad_notes_v2') || "";
+            noteText.addEventListener('input', () => {
+                localStorage.setItem('musadad_notes_v2', noteText.value);
+                saveStatus.style.opacity = "1";
+                setTimeout(() => { saveStatus.style.opacity = "0"; }, 1000);
+            });
+        };
     </script>
 </body>
 </html>
-
