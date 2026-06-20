@@ -3,721 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MUSADAD SYSTEM V9 PRO - ONLINE</title>
+    <title>MUSADAD SYSTEM V9 PRO - EDITABLE</title>
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
-    <!-- FIREBASE SDK -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-        // --- KONFIGURASI DATABASE ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyAXOHHI9ytfcjK1sc4ZoErSheJ3zPyM3u4",
-            authDomain: "x-casing-482715-v7.firebaseapp.com",
-            projectId: "x-casing-482715-v7",
-            storageBucket: "x-casing-482715-v7.firebasestorage.app",
-            messagingSenderId: "752575391484",
-            appId: "1:752575391484:web:5d455dc03149f5f8d4d979",
-            measurementId: "G-8R1HZBEXL0"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const appId = 'toko-musadad-v9'; 
-
-        // Variabel Global
-        window.localCache = { produk: [], nota: [], pengeluaran: [], pemasukanLain: [] };
-        window.activeNotaId = null; 
-        window.editProdukId = null;
-        window.keranjang = [];
-        window.currentFilter = 'bulan';
+    <style>
+        /* Menggunakan font custom untuk estetika yang lebih baik */
+        @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Roboto+Condensed:wght@400;700&display=swap');
         
-        // Config Sort & Edit
-        window.sortGudangState = { col: 'stok', order: 'asc' }; 
-        window.editingExpId = null;
-        window.editingInId = null;
-
-        // --- AUTHENTICATION ---
-        signInAnonymously(auth).catch((error) => {
-            console.error("Gagal Login:", error);
-            showNotification("Gagal koneksi ke server database.", "danger");
-        });
-
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                console.log("Online. UID:", user.uid);
-                document.getElementById('statusKoneksi').innerHTML = '<span class="badge bg-success"><i class="fas fa-wifi"></i> Online</span>';
-                mulaiDengarData();
-            } else {
-                document.getElementById('statusKoneksi').innerHTML = '<span class="badge bg-danger"><i class="fas fa-times"></i> Offline</span>';
-            }
-        });
-
-        // --- REALTIME LISTENER ---
-        function mulaiDengarData() {
-            const basePath = `data_toko/${appId}`;
-
-            // 1. Produk
-            onSnapshot(collection(db, basePath, 'produk'), (snapshot) => {
-                window.localCache.produk = [];
-                snapshot.forEach((doc) => window.localCache.produk.push({ docId: doc.id, ...doc.data() }));
-                renderGudang();
-                renderStokOption();
-            });
-
-            // 2. Nota (Transaksi)
-            onSnapshot(collection(db, basePath, 'nota'), (snapshot) => {
-                window.localCache.nota = [];
-                snapshot.forEach((doc) => window.localCache.nota.push({ docId: doc.id, ...doc.data() }));
-                window.localCache.nota.sort((a, b) => new Date(b.tgl) - new Date(a.tgl));
-                
-                renderRiwayatNota(); 
-                renderHutang();      
-                renderLaporan();     
-                
-                if (!window.activeNotaId) updateAutoNoNota();
-            });
-
-            // 3. Pengeluaran
-            onSnapshot(collection(db, basePath, 'pengeluaran'), (snapshot) => {
-                window.localCache.pengeluaran = [];
-                snapshot.forEach((doc) => window.localCache.pengeluaran.push({ docId: doc.id, ...doc.data() }));
-                renderLaporan();
-            });
-
-            // 4. Pemasukan Lain
-            onSnapshot(collection(db, basePath, 'pemasukanLain'), (snapshot) => {
-                window.localCache.pemasukanLain = [];
-                snapshot.forEach((doc) => window.localCache.pemasukanLain.push({ docId: doc.id, ...doc.data() }));
-                renderLaporan();
-            });
+        body { 
+            background-color: #f0f2f5; 
+            font-family: 'Segoe UI', sans-serif; 
+        }
+        
+        /* Desain Header Utama */
+        .header-app { 
+            background: linear-gradient(90deg, #1e3c72 0%, #2a5298 100%); 
+            color: white; 
+            padding: 15px 0; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
+        }
+        
+        /* Navigasi Tab */
+        .nav-link.active { 
+            background-color: #1e3c72 !important; 
+            color: white !important; 
+        }
+        .nav-link { 
+            color: #1e3c72; 
+            font-weight: bold; 
+        }
+        
+        /* NOTA STYLE - Tampilan Khusus Area Cetak */
+        #areaNota { 
+            background: white; 
+            padding: 30px; 
+            box-shadow: 0 0 15px rgba(0,0,0,0.1); 
+            font-family: 'Roboto Condensed', sans-serif; 
+            color: #000; 
+            position: relative; 
+        }
+        .brand-title { 
+            font-family: 'Oswald', sans-serif; 
+            color: #1a2a6c; 
+            font-size: 2.5rem; 
+            letter-spacing: 2px; 
+            margin-bottom: 0; 
+            line-height: 1.1; 
+            text-transform: uppercase; 
+        }
+        .sub-brand { 
+            font-weight: 900; 
+            color: #b91d1d; 
+            font-size: 0.9rem; 
+            letter-spacing: 1px; 
+            text-transform: uppercase; 
+        }
+        .address-text { 
+            font-size: 0.8rem; 
+            color: #333; 
+            border-top: 2px solid #1a2a6c; 
+            border-bottom: 1px solid #1a2a6c; 
+            padding: 5px 0; 
+            margin-top: 5px; 
+            margin-bottom: 15px; 
+        }
+        .info-group { 
+            display: flex; 
+            align-items: center; 
+            margin-bottom: 5px; 
+        }
+        .info-label { 
+            width: 70px; 
+            font-weight: bold; 
+            text-align: right; 
+            margin-right: 10px; 
+            font-size: 14px; 
+        }
+        .info-value { 
+            border-bottom: 1px dotted #000; 
+            width: 100%; 
+            font-size: 14px; 
+            min-height: 24px; 
+        }
+        
+        /* Tabel di dalam Nota */
+        .custom-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 15px; 
+            border: 1px solid #000; 
+        }
+        .custom-table th { 
+            background-color: #1a2a6c !important; 
+            color: white !important; 
+            padding: 8px; 
+            text-align: center; 
+            font-weight: normal; 
+            letter-spacing: 1px; 
+            -webkit-print-color-adjust: exact; 
+        }
+        .custom-table td { 
+            border-bottom: 1px solid #ddd; 
+            padding: 5px 8px; 
+        }
+        
+        /* Input dinamis di Tabel Nota */
+        #notaIsi input { 
+            background: transparent; 
+            font-family: 'Roboto Condensed', sans-serif; 
+            font-size: 14px; 
+            color: #000; 
+            border-radius: 0; 
+            padding: 2px; 
+            width: 100%; 
+        }
+        #notaIsi input:focus { 
+            background: #fff9c4; 
+            outline: none; 
         }
 
-        // --- RESTORE DATA ---
-        window.restoreData = async (input) => {
-            const file = input.files[0];
-            if (!file) return;
-            if(!confirm("Gabungkan data dari file JSON ini?")) return;
-            const reader = new FileReader();
-            reader.onload = async function(e) {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    let count = 0;
-                    const importCollection = async (collName, items) => {
-                        if (!items || items.length === 0) return;
-                        const colRef = collection(db, `data_toko/${appId}/${collName}`);
-                        for (const item of items) {
-                            const { docId, id, ...cleanItem } = item; 
-                            await addDoc(colRef, cleanItem);
-                            count++;
-                        }
-                    };
-                    document.getElementById('statusKoneksi').innerHTML = '<span class="badge bg-warning text-dark">Mengupload...</span>';
-                    await importCollection('produk', data.produk);
-                    await importCollection('nota', data.nota);
-                    await importCollection('pengeluaran', data.pengeluaran);
-                    await importCollection('pemasukanLain', data.pemasukanLain);
-                    showNotification(`Berhasil merestore ${count} data!`, "success");
-                    input.value = ''; 
-                    document.getElementById('statusKoneksi').innerHTML = '<span class="badge bg-success"><i class="fas fa-wifi"></i> Online</span>';
-                } catch (err) { showNotification("Gagal baca file: " + err.message, "danger"); }
-            };
-            reader.readAsText(file);
-        };
-
-        // --- CUSTOM NOTIFICATION MODAL ---
-        window.showNotification = (msg, type = "info") => {
-            const container = document.getElementById('notifContainer');
-            const id = 'notif-' + Date.now();
-            const alertHtml = `
-                <div id="${id}" class="alert alert-${type} alert-dismissible fade show shadow" role="alert">
-                    <div>${msg}</div>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            `;
-            container.insertAdjacentHTML('beforeend', alertHtml);
-            setTimeout(() => {
-                const el = document.getElementById(id);
-                if (el) {
-                    const bsAlert = bootstrap.Alert.getOrCreateInstance(el);
-                    bsAlert.close();
-                }
-            }, 4000);
-        };
-
-        // --- METODE HUTANG ---
-        window.renderHutang = () => {
-            let tbody = document.getElementById('isiTabelHutang');
-            tbody.innerHTML = '';
-            let totalPiutang = 0;
-            let count = 0;
-
-            window.localCache.nota.forEach(n => {
-                let kurang = n.total - n.dp;
-                if (kurang > 0) {
-                    count++;
-                    totalPiutang += kurang;
-                    tbody.innerHTML += `
-                    <tr>
-                        <td class="small">${new Date(n.tgl).toLocaleDateString('id-ID')}</td>
-                        <td class="fw-bold">${n.nama || 'Umum'} <br><small class="text-muted">${n.no}</small></td>
-                        <td class="text-end">${n.total.toLocaleString()}</td>
-                        <td class="text-end text-success">${n.dp.toLocaleString()}</td>
-                        <td class="text-end text-danger fw-bold">${kurang.toLocaleString()}</td>
-                        <td class="text-center">
-                            <button onclick="lunasiHutang('${n.docId}', ${n.total}, ${kurang})" class="btn btn-sm btn-outline-success fw-bold shadow-sm">
-                                <i class="fas fa-check"></i> LUNASI
-                            </button>
-                        </td>
-                    </tr>
-                    `;
-                }
-            });
-
-            if(count === 0) tbody.innerHTML = '<tr><td colspan="6" class="text-center py-3 text-muted">Tidak ada catatan hutang. Semua lunas!</td></tr>';
-            
-            document.getElementById('infoTotalHutang').innerText = "Total Piutang: Rp " + totalPiutang.toLocaleString();
-            document.getElementById('badgeHutang').innerText = count > 0 ? count : '';
-        };
-
-        window.lunasiHutang = async (docId, totalTagihan, kekurangan) => {
-            if(!confirm(`Pelanggan akan melunasi sisa tagihan sebesar Rp ${kekurangan.toLocaleString()}?\n\nKlik OK jika uang sudah diterima.`)) return;
-            try {
-                // Saat melunasi hutang, asumsikan pelunasan masuk ke rekening/transfer (atau bisa disesuaikan)
-                await updateDoc(doc(db, `data_toko/${appId}/nota`, docId), { dp: totalTagihan, sisaInfo: 'LUNAS', caraBayar: 'rekening' });
-                showNotification("Berhasil dilunasi! Pembayaran dialokasikan ke Rekening.", "success");
-            } catch (e) { showNotification("Gagal update: " + e.message, "danger"); }
-        };
-
-        // --- MANAJEMEN GUDANG ---
-        window.simpanProduk = async () => {
-            const nama = document.getElementById('prodNama').value;
-            const harga = Number(document.getElementById('prodHarga').value);
-            const stok = Number(document.getElementById('prodStok').value);
-            const min = Number(document.getElementById('prodMin').value);
-            if(!nama) return showNotification("Nama wajib diisi!", "warning");
-            const btn = document.getElementById('btnSimpanProduk'); btn.disabled = true; btn.innerText = "Menyimpan...";
-            try {
-                if (window.editProdukId) {
-                    await updateDoc(doc(db, `data_toko/${appId}/produk`, window.editProdukId), { nama, harga, stok, min });
-                    showNotification("Produk diperbarui!", "success");
-                } else {
-                    await addDoc(collection(db, `data_toko/${appId}/produk`), { nama, harga, stok, min, createdAt: Date.now() });
-                    showNotification("Produk baru berhasil disimpan!", "success");
-                }
-                resetFormGudang();
-            } catch (e) { showNotification("Gagal: " + e.message, "danger"); } finally { btn.disabled = false; }
-        };
-
-        window.hapusProduk = async (docId) => {
-            if(!confirm("Hapus barang ini?")) return;
-            try { 
-                await deleteDoc(doc(db, `data_toko/${appId}/produk`, docId)); 
-                showNotification("Produk terhapus dari cloud", "info");
-            } catch(e) { showNotification("Gagal: " + e.message, "danger"); }
-        };
-
-        window.resetFormGudang = () => {
-            document.getElementById('prodNama').value = '';
-            document.getElementById('prodHarga').value = '';
-            document.getElementById('prodStok').value = '';
-            document.getElementById('prodMin').value = '';
-            document.getElementById('formTitle').innerText = "Tambah Produk Baru";
-            document.getElementById('btnBatalEdit').style.display = 'none';
-            window.editProdukId = null;
-        };
-
-        window.editProduk = (docId) => {
-            const p = window.localCache.produk.find(item => item.docId === docId);
-            if(p) {
-                document.getElementById('prodNama').value = p.nama;
-                document.getElementById('prodHarga').value = p.harga;
-                document.getElementById('prodStok').value = p.stok;
-                document.getElementById('prodMin').value = p.min || 0;
-                document.getElementById('formTitle').innerText = "Edit Produk";
-                document.getElementById('btnBatalEdit').style.display = 'inline-block';
-                window.editProdukId = docId;
-                
-                // Switch ke tab Gudang agar user langsung melihat formnya
-                const tabTrigger = new bootstrap.Tab(document.querySelector('button[data-bs-target="#tabGudang"]'));
-                tabTrigger.show();
-            }
-        };
-
-        // --- TRANSAKSI KASIR ---
-        window.tambahPulsa = () => {
-            const ket = document.getElementById('pulsaKet').value;
-            const no = document.getElementById('pulsaNo').value;
-            const harga = Number(document.getElementById('pulsaHarga').value);
-            if(!ket || !harga) return showNotification("Keterangan & Harga jual harus diisi!", "warning");
-            
-            const item = {
-                id: 'pulsa_' + Date.now(),
-                nama: `[PULSA/TOKEN] ${ket} (${no})`,
-                qty: 1,
-                harga: harga,
-                total: harga
-            };
-            window.keranjang.push(item);
-            renderKeranjang();
-            document.getElementById('pulsaKet').value = '';
-            document.getElementById('pulsaNo').value = '';
-            document.getElementById('pulsaHarga').value = '';
-        };
-
-        window.renderStokOption = () => {
-            const list = document.getElementById('listBarang');
-            list.innerHTML = '';
-            window.localCache.produk.forEach(p => {
-                const opt = document.createElement('option');
-                opt.value = p.nama;
-                list.appendChild(opt);
-            });
-        };
-
-        window.updateHarga = () => {
-            const val = document.getElementById('inputBarang').value;
-            const prod = window.localCache.produk.find(p => p.nama === val);
-            if(prod) {
-                document.getElementById('hargaBarang').value = prod.harga;
-            }
-        };
-
-        window.tambahItem = () => {
-            const namaInput = document.getElementById('inputBarang').value;
-            const harga = Number(document.getElementById('hargaBarang').value);
-            const qty = Number(document.getElementById('qtyBarang').value);
-            if(!namaInput) return showNotification("Pilih atau isi nama barang!", "warning");
-
-            const prod = window.localCache.produk.find(p => p.nama === namaInput);
-            const item = {
-                id: prod ? prod.docId : 'manual_' + Date.now(),
-                nama: namaInput,
-                qty: qty,
-                harga: harga,
-                total: harga * qty
-            };
-
-            window.keranjang.push(item);
-            renderKeranjang();
-            document.getElementById('inputBarang').value = '';
-            document.getElementById('hargaBarang').value = '';
-            document.getElementById('qtyBarang').value = '1';
-        };
-
-        window.renderKeranjang = () => {
-            const tbody = document.getElementById('notaIsi');
-            tbody.innerHTML = '';
-            let total = 0;
-            window.keranjang.forEach((item, index) => {
-                total += item.total;
-                tbody.innerHTML += `
-                    <tr>
-                        <td class="text-center">${index + 1}</td>
-                        <td>${item.nama}</td>
-                        <td class="text-center">${item.qty}</td>
-                        <td class="text-end">${item.harga.toLocaleString()}</td>
-                        <td class="text-end">${item.total.toLocaleString()}</td>
-                        <td class="no-print text-center">
-                            <button onclick="hapusKeranjang(${index})" class="btn btn-sm btn-outline-danger py-0 px-1"><i class="fas fa-trash"></i></button>
-                        </td>
-                    </tr>
-                `;
-            });
-            document.getElementById('notaTotal').innerText = total.toLocaleString();
-            document.getElementById('notaTotal').dataset.val = total;
-            document.getElementById('notaYth').innerText = document.getElementById('custNama').value || 'PELANGGAN UMUM';
-            document.getElementById('notaHp').innerText = document.getElementById('custTelp').value || '-';
-            hitungSisa();
-        };
-
-        window.hapusKeranjang = (idx) => {
-            window.keranjang.splice(idx, 1);
-            renderKeranjang();
-        };
-
-        window.hitungSisa = () => {
-            const total = Number(document.getElementById('notaTotal').dataset.val) || 0;
-            const dp = Number(document.getElementById('inputDP').value) || 0;
-            const sisa = Math.max(0, total - dp);
-            document.getElementById('notaSisa').innerText = sisa.toLocaleString();
-        };
-
-        window.updateAutoNoNota = () => {
-            const count = window.localCache.nota.length + 1;
-            const dateStr = new Date().toISOString().split('T')[0].replace(/-/g, '');
-            document.getElementById('notaNo').innerText = `MSD-${dateStr}-${String(count).padStart(3, '0')}`;
-            document.getElementById('notaTgl').innerText = new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
-        };
-
-        window.simpanDanCetak = async () => {
-            if(window.keranjang.length === 0) return showNotification("Keranjang masih kosong!", "warning");
-            const btn = document.getElementById('btnSimpan'); btn.innerText = "Memproses..."; btn.disabled = true;
-            try {
-                const colProdukPath = `data_toko/${appId}/produk`;
-                if (window.activeNotaId) {
-                    const oldNota = window.localCache.nota.find(n => n.docId === window.activeNotaId);
-                    if (oldNota) {
-                        for (const item of oldNota.items) {
-                            const prodRef = window.localCache.produk.find(p => p.docId == item.id); 
-                            if (prodRef) await updateDoc(doc(db, colProdukPath, prodRef.docId), { stok: prodRef.stok + item.qty });
-                        }
-                    }
-                }
-                for (const item of window.keranjang) {
-                    if (!String(item.id).startsWith('manual_') && !String(item.id).startsWith('pulsa_')) {
-                        const prodRef = window.localCache.produk.find(p => p.docId === item.id);
-                        if (prodRef) await updateDoc(doc(db, colProdukPath, prodRef.docId), { stok: prodRef.stok - item.qty });
-                    }
-                }
-                
-                const totalVal = Number(document.getElementById('notaTotal').dataset.val);
-                const dpVal = Number(document.getElementById('inputDP').value);
-                const isLunas = dpVal >= totalVal;
-                
-                // Menambahkan input Cara Pembayaran (tunai atau rekening)
-                const caraBayar = document.getElementById('inputCaraBayar').value;
-
-                const notaData = {
-                    no: document.getElementById('notaNo').innerText,
-                    tgl: new Date().toISOString(),
-                    nama: document.getElementById('custNama').value || 'PELANGGAN UMUM',
-                    telp: document.getElementById('custTelp').value || '-',
-                    items: window.keranjang,
-                    total: totalVal,
-                    dp: dpVal,
-                    caraBayar: caraBayar, // 'tunai' atau 'rekening'
-                    sisaInfo: isLunas ? 'LUNAS' : 'KURANG'
-                };
-
-                if (window.activeNotaId) {
-                    await updateDoc(doc(db, `data_toko/${appId}/nota`, window.activeNotaId), notaData);
-                    showNotification("Nota sukses di-update!", "success");
-                } else {
-                    await addDoc(collection(db, `data_toko/${appId}/nota`), notaData);
-                    showNotification("Nota transaksi tersimpan!", "success");
-                }
-                
-                document.body.classList.add('print-nota'); 
-                window.print(); 
-                document.body.classList.remove('print-nota'); 
-                resetNota();
-            } catch (e) { console.error(e); showNotification("Error: " + e.message, "danger"); } finally { btn.disabled = false; btn.innerHTML = '<i class="fas fa-print"></i> SIMPAN & CETAK'; }
-        };
-
-        window.resetNota = () => {
-            window.keranjang = [];
-            window.activeNotaId = null;
-            document.getElementById('custNama').value = '';
-            document.getElementById('custTelp').value = '';
-            document.getElementById('inputDP').value = '0';
-            document.getElementById('inputCaraBayar').value = 'tunai';
-            document.getElementById('badgeEditMode').classList.add('d-none');
-            document.getElementById('areaNota').classList.remove('editing-mode');
-            renderKeranjang();
-            updateAutoNoNota();
-        };
-
-        window.editNota = (docId) => {
-            const n = window.localCache.nota.find(item => item.docId === docId);
-            if (n) {
-                window.activeNotaId = docId;
-                document.getElementById('custNama').value = n.nama;
-                document.getElementById('custTelp').value = n.telp || '';
-                document.getElementById('notaNo').innerText = n.no;
-                document.getElementById('inputDP').value = n.dp;
-                if (n.caraBayar) document.getElementById('inputCaraBayar').value = n.caraBayar;
-                
-                window.keranjang = [...n.items];
-                renderKeranjang();
-
-                document.getElementById('badgeEditMode').classList.remove('d-none');
-                document.getElementById('areaNota').classList.add('editing-mode');
-                
-                // Scroll up ke form input
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-                showNotification("Masuk mode edit transaksi " + n.no, "warning");
-            }
-        };
-
-        // --- FILTER & LAPORAN ---
-        window.setFilter = (mode) => {
-            window.currentFilter = mode;
-            document.querySelectorAll('.btn-filter-group button').forEach(b => b.classList.remove('active'));
-            document.getElementById(`btn-filter-${mode}`).classList.add('active');
-            
-            document.getElementById('wrap-filter-hari').style.display = mode === 'hari' ? 'block' : 'none';
-            document.getElementById('wrap-filter-bulan').style.display = mode === 'bulan' ? 'block' : 'none';
-            document.getElementById('wrap-filter-tahun').style.display = mode === 'tahun' ? 'block' : 'none';
-            
-            renderLaporan();
-        };
-
-        window.renderRiwayatNota = () => {
-            const keyword = document.getElementById('cariNota').value.toLowerCase();
-            const tbody = document.getElementById('tabelRiwayatNota');
-            tbody.innerHTML = '';
-            
-            window.localCache.nota.forEach(n => {
-                if(n.no.toLowerCase().includes(keyword) || (n.nama && n.nama.toLowerCase().includes(keyword))) {
-                    tbody.innerHTML += `
-                        <tr>
-                            <td><small>${n.no}</small><br><strong>${n.nama || 'Umum'}</strong></td>
-                            <td class="text-end font-monospace small">${n.total.toLocaleString()}</td>
-                            <td class="text-end">
-                                <button onclick="editNota('${n.docId}')" class="btn btn-sm btn-outline-warning py-0 px-1"><i class="fas fa-edit"></i></button>
-                            </td>
-                        </tr>
-                    `;
-                }
-            });
-            if(window.localCache.nota.length === 0) tbody.innerHTML = '<tr><td colspan="3" class="text-center">Belum ada transaksi</td></tr>';
-        };
-
-        window.renderGudang = () => {
-            const keyword = document.getElementById('cariGudang').value.toLowerCase();
-            const tbody = document.getElementById('isiTabelGudang');
-            tbody.innerHTML = '';
-
-            let filtered = window.localCache.produk.filter(p => p.nama.toLowerCase().includes(keyword));
-
-            // Sorting
-            const col = window.sortGudangState.col;
-            const order = window.sortGudangState.order;
-            filtered.sort((a, b) => {
-                let valA = a[col];
-                let valB = b[col];
-                if (typeof valA === 'string') valA = valA.toLowerCase();
-                if (typeof valB === 'string') valB = valB.toLowerCase();
-                
-                if (valA < valB) return order === 'asc' ? -1 : 1;
-                if (valA > valB) return order === 'asc' ? 1 : -1;
-                return 0;
-            });
-
-            filtered.forEach(p => {
-                const isLimit = p.stok <= (p.min || 0);
-                tbody.innerHTML += `
-                    <tr class="${isLimit ? 'table-danger' : ''}">
-                        <td>
-                            <strong>${p.nama}</strong>
-                            ${isLimit ? '<br><span class="badge bg-danger px-1 py-0 small" style="font-size:10px">Limit Stok!</span>' : ''}
-                        </td>
-                        <td class="text-end font-monospace">${p.harga.toLocaleString()}</td>
-                        <td class="text-center font-monospace fw-bold">${p.stok}</td>
-                        <td class="text-center text-muted small">${p.min || 0}</td>
-                        <td class="text-center">
-                            <button onclick="editProduk('${p.docId}')" class="btn btn-sm btn-warning py-0 px-1 text-dark me-1"><i class="fas fa-edit"></i></button>
-                            <button onclick="hapusProduk('${p.docId}')" class="btn btn-sm btn-danger py-0 px-1"><i class="fas fa-trash"></i></button>
-                        </td>
-                    </tr>
-                `;
-            });
-
-            if (filtered.length === 0) tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Data stok kosong/tidak ditemukan</td></tr>';
-        };
-
-        window.aturSort = (col) => {
-            const curState = window.sortGudangState;
-            if(curState.col === col) {
-                curState.order = curState.order === 'asc' ? 'desc' : 'asc';
-            } else {
-                curState.col = col;
-                curState.order = 'asc';
-            }
-            // Update icon sorting di header tabel
-            document.querySelectorAll('.sortable-header i').forEach(i => i.className = 'fas fa-sort sort-icon');
-            renderGudang();
-        };
-
-        window.cetakBelanja = () => {
-            const itemsLimit = window.localCache.produk.filter(p => p.stok <= (p.min || 0));
-            const tbody = document.getElementById('isiBelanja');
-            tbody.innerHTML = '';
-            
-            if(itemsLimit.length === 0) {
-                alert("Semua stok barang aman di atas batas minimal!");
-                return;
-            }
-
-            itemsLimit.forEach((p, idx) => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${idx + 1}</td>
-                        <td><strong>${p.nama}</strong></td>
-                        <td class="text-center font-monospace">${p.stok} (Min:${p.min || 0})</td>
-                        <td style="width: 50px;">[  ]</td>
-                    </tr>
-                `;
-            });
-
-            document.body.classList.add('print-belanja');
-            window.print();
-            document.body.classList.remove('print-belanja');
-        };
-
-        // --- MANAJEMEN LAPORAN & REKONSILIASI REKENING (KUNCI UTAMA AMAN) ---
-        window.renderLaporan = () => {
-            const filterHari = document.getElementById('filter-hari-input').value;
-            const filterBulan = document.getElementById('filter-bulan-input').value;
-            const filterTahun = document.getElementById('filter-tahun-input').value;
-
-            let filterFn = () => false;
-
-            if (window.currentFilter === 'hari') {
-                filterFn = (tglStr) => tglStr.startsWith(filterHari);
-            } else if (window.currentFilter === 'bulan') {
-                filterFn = (tglStr) => tglStr.substring(0, 7) === filterBulan;
-            } else if (window.currentFilter === 'tahun') {
-                filterFn = (tglStr) => tglStr.startsWith(filterTahun);
-            }
-
-            // 1. Hitung Penjualan (Nota)
-            let totalPenjualanMasuk = 0; // Total riil uang yang masuk (DP/Pelunasan)
-            let totalCash = 0;           // Penjualan Tunai
-            let totalRekening = 0;       // Penjualan Rekening/Transfer
-
-            window.localCache.nota.forEach(n => {
-                const nTgl = n.tgl.split('T')[0];
-                if (filterFn(nTgl)) {
-                    // Yang dihitung pemasukan riil adalah uang muka (DP) yang diterima pada nota
-                    totalPenjualanMasuk += n.dp;
-                    
-                    if (n.caraBayar === 'rekening') {
-                        totalRekening += n.dp;
-                    } else {
-                        totalCash += n.dp;
-                    }
-                }
-            });
-
-            // 2. Hitung Pengeluaran
-            let totalExp = 0;
-            let tbodyExp = document.getElementById('tabelLaporanPengeluaran');
-            tbodyExp.innerHTML = '';
-            window.localCache.pengeluaran.forEach(e => {
-                if (filterFn(e.tglStr)) {
-                    totalExp += e.jml;
-                    tbodyExp.innerHTML += `
-                        <tr>
-                            <td><small>${e.tglStr}</small></td>
-                            <td>${e.ket}</td>
-                            <td class="text-end font-monospace">${e.jml.toLocaleString()}</td>
-                            <td class="text-end">
-                                <button onclick="hapusKeuangan('pengeluaran', '${e.docId}')" class="btn btn-sm text-danger p-0"><i class="fas fa-trash"></i></button>
-                            </td>
-                        </tr>
-                    `;
-                }
-            });
-            if(totalExp === 0) tbodyExp.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Tidak ada pengeluaran.</td></tr>';
-
-            // 3. Hitung Pemasukan Lain
-            let totalIn = 0;
-            let tbodyIn = document.getElementById('tabelLaporanPemasukan');
-            tbodyIn.innerHTML = '';
-            window.localCache.pemasukanLain.forEach(i => {
-                if (filterFn(i.tglStr)) {
-                    totalIn += i.jml;
-                    tbodyIn.innerHTML += `
-                        <tr>
-                            <td><small>${i.tglStr}</small></td>
-                            <td>${i.ket}</td>
-                            <td class="text-end font-monospace">${i.jml.toLocaleString()}</td>
-                            <td class="text-end">
-                                <button onclick="hapusKeuangan('pemasukanLain', '${i.docId}')" class="btn btn-sm text-danger p-0"><i class="fas fa-trash"></i></button>
-                            </td>
-                        </tr>
-                    `;
-                }
-            });
-            if(totalIn === 0) tbodyIn.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Tidak ada pemasukan lain.</td></tr>';
-
-            // Ringkasan Keuangan Global
-            const totalPemasukanBersih = totalPenjualanMasuk + totalIn;
-            const labaBersih = totalPemasukanBersih - totalExp;
-
-            document.getElementById('lapTotalPenjualan').innerText = "Rp " + totalPenjualanMasuk.toLocaleString();
-            document.getElementById('lapTotalPemasukanLain').innerText = "Rp " + totalIn.toLocaleString();
-            document.getElementById('lapTotalPengeluaran').innerText = "Rp " + totalExp.toLocaleString();
-            
-            const labaEl = document.getElementById('lapLabaBersih');
-            labaEl.innerText = "Rp " + labaBersih.toLocaleString();
-            if (labaBersih >= 0) {
-                labaEl.className = "fs-3 fw-bold text-success";
-            } else {
-                labaEl.className = "fs-3 fw-bold text-danger";
-            }
-
-            // Tampilkan Detail Pemisahan Saldo Aplikasi (Tunai vs Transfer Rekening)
-            document.getElementById('lapSistemTunai').innerText = "Rp " + totalCash.toLocaleString();
-            document.getElementById('lapSistemRekening').innerText = "Rp " + totalRekening.toLocaleString();
-
-            // Jalankan Perhitungan Rekonsiliasi Rekening
-            jalankanRekonsiliasi(totalRekening);
-        };
-
-        window.jalankanRekonsiliasi = (saldoRekeningSistem) => {
-            const inputRekeningRiil = Number(document.getElementById('inputRekeningRiil').value) || 0;
-            
-            // Hitung Selisih
-            const selisih = inputRekeningRiil - saldoRekeningSistem;
-            
-            const selisihBox = document.getElementById('boxSelisih');
-            const selisihVal = document.getElementById('nilaiSelisih');
-            const selisihStatus = document.getElementById('statusSelisih');
-
-            selisihVal.innerText = "Rp " + Math.abs(selisih).toLocaleString();
-
-            if (selisih === 0) {
-                selisihBox.className = "alert alert-success mt-3 d-flex align-items-center gap-3";
-                selisihStatus.innerHTML = `<strong>Cocok (SINKRON)!</strong> Saldo di rekening Anda sama persis dengan pencatatan aplikasi.`;
-            } else if (selisih > 0) {
-                selisihBox.className = "alert alert-warning mt-3 d-flex align-items-center gap-3";
-                selisihStatus.innerHTML = `<strong>Uang Rekening Berlebih!</strong> Ada saldo sebesar <strong>Rp ${selisih.toLocaleString()}</strong> di rekening Anda yang belum dicatat di aplikasi (atau nota cara bayar salah pilih).`;
-            } else {
-                selisihBox.className = "alert alert-danger mt-3 d-flex align-items-center gap-3";
-                selisihStatus.innerHTML = `<strong>SELISIH KURANG!</strong> Saldo di rekening riil Anda kurang <strong>Rp ${Math.abs(selisih).toLocaleString()}</strong> dibanding data aplikasi. Cek jika ada mutasi transfer masuk yang belum lolos atau salah pencatatan cara bayar di nota!`;
-            }
-        };
-
-        window.hapusKeuangan = async (coll, docId) => {
-            if (!confirm("Hapus catatan keuangan ini?")) return;
-            try {
-                await deleteDoc(doc(db, `data_toko/${appId}/${coll}`, docId));
-                showNotification("Data berhasil dihapus!", "success");
-            } catch (e) { showNotification("Gagal hapus: " + e.message, "danger"); }
-        };
-
-        window.hapusSemuaNotaLunas = async () => {
-            if(!confirm("⚠️ PERINGATAN: Menghapus data akan mengosongkan riwayat yang tersimpan di cloud. Pastikan Anda sudah membackup file JSON. Lanjutkan?")) return;
-            // Hanya menghapus lokal nota lunas (bisa disesuaikan kebutuhan)
-            alert("Sistem menyarankan membiarkan riwayat transaksi agar laporan bulanan tetap presisi.");
-        };
-    </script>
-    
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Roboto+Condensed:wght@400;700&display=swap');
-        body { background-color: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
-        .header-app { background: linear-gradient(90deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 15px 0; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .nav-link.active { background-color: #1e3c72 !important; color: white !important; }
-        .nav-link { color: #1e3c72; font-weight: bold; }
-        #areaNota { background: white; padding: 30px; box-shadow: 0 0 15px rgba(0,0,0,0.1); font-family: 'Roboto Condensed', sans-serif; color: #000; position: relative; }
-        .brand-title { font-family: 'Oswald', sans-serif; color: #1a2a6c; font-size: 2.5rem; letter-spacing: 2px; margin-bottom: 0; line-height: 1.1; text-transform: uppercase; }
-        .sub-brand { font-weight: 900; color: #b91d1d; font-size: 0.9rem; letter-spacing: 1px; text-transform: uppercase; }
-        .address-text { font-size: 0.8rem; color: #333; border-top: 2px solid #1a2a6c; border-bottom: 1px solid #1a2a6c; padding: 5px 0; margin-top: 5px; margin-bottom: 15px; }
-        .info-group { display: flex; align-items: center; margin-bottom: 5px; }
-        .info-label { width: 70px; font-weight: bold; text-align: right; margin-right: 10px; font-size: 14px; }
-        .info-value { border-bottom: 1px dotted #000; width: 100%; font-size: 14px; min-height: 24px; }
-        .custom-table { width: 100%; border-collapse: collapse; margin-top: 15px; border: 1px solid #000; }
-        .custom-table th { background-color: #1a2a6c !important; color: white !important; padding: 8px; text-align: center; font-weight: normal; letter-spacing: 1px; -webkit-print-color-adjust: exact; }
-        .custom-table td { border-bottom: 1px solid #ddd; padding: 5px 8px; }
-        #notaIsi input { background: transparent; font-family: 'Roboto Condensed', sans-serif; font-size: 14px; color: #000; border-radius: 0; padding: 2px; width: 100%; }
-        #notaIsi input:focus { background: #fff9c4; outline: none; }
+        /* Footer Nota */
         .footer-grid { display: flex; justify-content: space-between; margin-top: 20px; }
         .sign-area { width: 40%; text-align: center; margin-top: 10px; }
         .sign-line { border-bottom: 1px solid #000; margin-top: 70px; width: 80%; margin-left: auto; margin-right: auto; }
@@ -728,23 +136,24 @@
         .bottom-section { border-top: 2px solid #000; margin-top: 20px; padding-top: 10px; display: flex; justify-content: space-between; }
         .payment-info { font-size: 11px; font-weight: bold; width: 50%; }
         .warning-box { border: 2px solid red; background-color: #fff5f5; color: red; width: 45%; text-align: center; padding: 8px; font-size: 11px; font-weight: bold; -webkit-print-color-adjust: exact; }
-        .editing-mode { border: 3px solid #ffc107; position: relative; }
-        .editing-badge { background: #ffc107; color: black; position: absolute; top: 0; right: 0; padding: 5px 10px; font-weight: bold; z-index: 100; }
-        .btn-filter-group .btn.active { background-color: #1e3c72; color: white; border-color: #1e3c72; }
-        .sortable-header { cursor: pointer; user-select: none; }
-        .sortable-header:hover { background-color: #333 !important; }
-        .sort-icon { font-size: 0.8em; margin-left: 5px; opacity: 0.7; }
-        .badge-notify { position: absolute; top: 0; right: 0; transform: translate(50%, -50%); }
-
-        /* Notification Container Styling */
-        #notifContainer {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 9999;
-            max-width: 350px;
+        
+        /* Highlight khusus Mode Edit Nota */
+        .editing-mode { 
+            border: 3px solid #ffc107; 
+            position: relative; 
+        }
+        .editing-badge { 
+            background: #ffc107; 
+            color: black; 
+            position: absolute; 
+            top: 0; 
+            right: 0; 
+            padding: 5px 10px; 
+            font-weight: bold; 
+            z-index: 100; 
         }
 
+        /* Mengatur Tampilan Saat Diprint */
         @media print {
             body * { visibility: hidden; }
             .header-app, .no-print, .nav, .tab-content > .tab-pane:not(.active) { display: none !important; }
@@ -759,128 +168,189 @@
 </head>
 <body>
 
-<!-- Kontainer Notifikasi -->
-<div id="notifContainer"></div>
-
-<input type="file" id="jsonFile" accept=".json" style="display:none" onchange="restoreData(this)">
-
+<!-- HEADER APLIKASI -->
 <div class="header-app mb-3 no-print">
     <div class="container d-flex justify-content-between align-items-center">
         <div>
-            <h4 class="mb-0 fw-bold"><i class="fas fa-cloud"></i> MUSADAD ONLINE V9 PRO</h4>
-            <div id="statusKoneksi" class="small">Menghubungkan...</div>
+            <h4 class="mb-0 fw-bold"><i class="fas fa-print"></i> MUSADAD SYSTEM V9</h4>
         </div>
         <div class="d-flex gap-2">
-            <button class="btn btn-warning btn-sm text-dark fw-bold shadow" onclick="document.getElementById('jsonFile').click()">📂 Restore Data Offline</button>
-            <button onclick="showNotification('Data otomatis sinkron di Cloud!', 'success')" class="btn btn-success btn-sm fw-bold shadow"><i class="fas fa-check-circle"></i> Auto-Save On</button>
+            <!-- Tombol Link Eksternal -->
+            <button class="btn btn-info btn-sm text-white fw-bold shadow" onclick="window.open('https://musadad87.github.io/kalkulator-undangan/', '_blank')">
+                ➕ Menu Awal
+            </button>
+            <!-- Tombol Backup/Restore Data -->
+            <button onclick="downloadDB()" class="btn btn-warning btn-sm text-dark fw-bold shadow">💾 Backup</button>
+            <input type="file" id="fileInput" hidden onchange="uploadDB(this)">
+            <button onclick="document.getElementById('fileInput').click()" class="btn btn-light btn-sm fw-bold shadow">📂 Restore</button>
         </div>
     </div>
 </div>
 
 <div class="container mb-5">
+    <!-- NAVIGASI TAB MENU -->
     <ul class="nav nav-pills nav-fill mb-3 bg-white p-2 rounded shadow-sm no-print">
-        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabKasir">🛒 Kasir</button></li>
-        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabGudang">📦 Gudang</button></li>
-        <li class="nav-item position-relative">
-            <button class="nav-link text-danger" data-bs-toggle="tab" data-bs-target="#tabHutang">
-                📒 Hutang <span id="badgeHutang" class="badge bg-danger rounded-pill ms-1"></span>
-            </button>
+        <li class="nav-item">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabKasir">🛒 Kasir</button>
         </li>
-        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabLaporan">📊 Laporan & Rekening</button></li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabGudang">📦 Gudang</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabLaporan">📊 Laporan</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabRekonsiliasi">🏦 Kas & Bank</button>
+        </li>
     </ul>
 
+    <!-- KONTEN TAB -->
     <div class="tab-content">
-        <!-- TAB KASIR -->
+        
+        <!-- ==================== TAB KASIR ==================== -->
         <div class="tab-pane fade show active" id="tabKasir">
             <div class="row">
+                <!-- Panel Kiri: Input dan Riwayat -->
                 <div class="col-md-4 no-print">
-                    <div class="card p-3 shadow-sm mb-3 border-0 bg-info bg-opacity-10">
-                        <h6 class="fw-bold text-primary"><i class="fas fa-mobile-alt"></i> Menu Pulsa / Token</h6>
-                        <input type="text" id="pulsaKet" class="form-control form-control-sm mb-2" placeholder="Ket (Cth: Tsel 10k / Token 20k)">
-                        <input type="number" id="pulsaNo" class="form-control form-control-sm mb-2" placeholder="No HP / ID Pelanggan">
-                        <input type="number" id="pulsaHarga" class="form-control form-control-sm mb-2" placeholder="Harga Jual">
-                        <button onclick="tambahPulsa()" class="btn btn-primary btn-sm w-100 fw-bold"><i class="fas fa-plus-circle"></i> MASUKKAN KE NOTA</button>
-                    </div>
-
+                    
+                    <!-- Panel Input Transaksi -->
                     <div class="card p-3 shadow-sm mb-3 border-0">
-                        <h6 class="fw-bold text-dark">Input Barang / Jasa</h6>
-                        <input type="text" id="custNama" class="form-control form-control-sm mb-2" placeholder="Nama Pelanggan" onkeyup="renderKeranjang()">
-                        <input type="text" id="custTelp" class="form-control form-control-sm mb-2" placeholder="No HP/WA" onkeyup="renderKeranjang()">
+                        <h6 class="fw-bold text-primary">Input Transaksi</h6>
+                        <input type="text" id="custNama" class="form-control form-control-sm mb-2" placeholder="Nama Pelanggan">
+                        <input type="text" id="custTelp" class="form-control form-control-sm mb-2" placeholder="No HP/WA">
+                        
                         <hr class="my-2">
+                        
                         <label class="small text-muted">Cari Barang:</label>
+                        <!-- Input dengan Datalist untuk pencarian barang -->
                         <input list="listBarang" id="inputBarang" class="form-control mb-2" placeholder="Ketik nama..." onchange="updateHarga()" autocomplete="off">
                         <datalist id="listBarang"></datalist>
+                        
                         <div class="row g-2">
-                            <div class="col-8"><input type="number" id="hargaBarang" class="form-control form-control-sm" placeholder="Harga"></div>
-                            <div class="col-4"><input type="number" id="qtyBarang" class="form-control form-control-sm" value="1"></div>
+                            <div class="col-8">
+                                <input type="number" id="hargaBarang" class="form-control form-control-sm" placeholder="Harga" readonly>
+                            </div>
+                            <div class="col-4">
+                                <input type="number" id="qtyBarang" class="form-control form-control-sm" value="1">
+                            </div>
                         </div>
-                        <button onclick="tambahItem()" class="btn btn-dark btn-sm w-100 mt-3 fw-bold">➕ MASUKKAN BARANG</button>
+                        
+                        <button onclick="tambahItem()" class="btn btn-primary btn-sm w-100 mt-3 fw-bold">➕ MASUKKAN</button>
                     </div>
 
-                    <div class="card p-3 shadow-sm border-0 mb-3">
-                        <h6 class="fw-bold text-dark">Riwayat Nota (Terbaru)</h6>
+                    <!-- Panel Riwayat Nota (Bisa Edit) -->
+                    <div class="card p-3 shadow-sm border-0">
+                        <h6 class="fw-bold text-dark">Riwayat Nota (Bisa Edit)</h6>
                         <input type="text" id="cariNota" class="form-control form-control-sm mb-2" placeholder="Cari..." onkeyup="renderRiwayatNota()">
                         <div style="max-height: 200px; overflow-y: auto;">
                             <table class="table table-sm table-hover small font-monospace">
-                                <thead class="table-light"><tr><th>No</th><th>Nama</th><th class="text-end">Aksi</th></tr></thead>
-                                <tbody id="tabelRiwayatNota"><tr><td colspan="3" class="text-center">Memuat data...</td></tr></tbody>
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Nama</th>
+                                        <th class="text-end">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabelRiwayatNota"></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
 
+                <!-- Panel Kanan: Area Cetak Nota -->
                 <div class="col-md-8">
+                    <!-- Area Nota yang akan di-print -->
                     <div id="areaNota">
+                        <!-- Badge peringatan jika sedang dalam mode edit -->
                         <div id="badgeEditMode" class="editing-badge d-none">MODE EDIT AKTIF</div>
+                        
                         <div class="row">
+                            <!-- Kop Nota Kiri -->
                             <div class="col-7">
                                 <div class="brand-title">MUSADAD.COM</div>
                                 <div class="sub-brand">PERCETAKAN & SERVICE</div>
                                 <div class="address-text">Jl. Rp.Garendong - cisema Petir, Kab.Serang BANTEN<br>Tlp/WA. 0838-1235-2663 | musadad08@gmail.com</div>
                             </div>
+                            <!-- Kop Nota Kanan -->
                             <div class="col-5">
-                                <div class="info-group"><span class="info-label">Tanggal</span><div class="info-value" id="notaTgl"></div></div>
-                                <div class="info-group"><span class="info-label">Tuan</span><div class="info-value text-uppercase fw-bold" id="notaYth"></div></div>
-                                <div class="info-group"><span class="info-label">Tlp</span><div class="info-value" id="notaHp"></div></div>
-                                <div class="mt-2 text-end"><small class="fw-bold">NO: <span id="notaNo">LOADING...</span></small></div>
+                                <div class="info-group">
+                                    <span class="info-label">Tanggal</span>
+                                    <div class="info-value" id="notaTgl"></div>
+                                </div>
+                                <div class="info-group">
+                                    <span class="info-label">Tuan</span>
+                                    <div class="info-value text-uppercase fw-bold" id="notaYth"></div>
+                                </div>
+                                <div class="info-group">
+                                    <span class="info-label">Tlp</span>
+                                    <div class="info-value" id="notaHp"></div>
+                                </div>
+                                <div class="mt-2 text-end">
+                                    <small class="fw-bold">NO: <span id="notaNo">AUTO</span></small>
+                                </div>
                             </div>
                         </div>
+                        
+                        <!-- Tabel Item Nota -->
                         <table class="custom-table">
-                            <thead><tr><th width="5%">No</th><th>NAMA BARANG</th><th width="10%">QTY</th><th width="20%">HARGA</th><th width="20%">JUMLAH</th><th width="5%" class="no-print">#</th></tr></thead>
+                            <thead>
+                                <tr>
+                                    <th width="5%">No</th>
+                                    <th>NAMA BARANG</th>
+                                    <th width="10%">QTY</th>
+                                    <th width="20%">HARGA</th>
+                                    <th width="20%">JUMLAH</th>
+                                    <th width="5%" class="no-print">#</th>
+                                </tr>
+                            </thead>
                             <tbody id="notaIsi"></tbody>
                         </table>
+                        
+                        <!-- Footer Nota -->
                         <div class="footer-grid">
-                            <div class="sign-area"><div class="text-start mb-5 fw-bold">Diterima,</div><div class="sign-line"></div><div>( ........................... )</div></div>
+                            <div class="sign-area">
+                                <div class="text-start mb-5 fw-bold">Diterima,</div>
+                                <div class="sign-line"></div>
+                                <div>( ........................... )</div>
+                            </div>
                             <div class="total-area">
-                                <div class="total-row"><span class="total-label">Jumlah Rp.</span><div class="total-box" id="notaTotal" data-val="0">0</div></div>
                                 <div class="total-row">
-                                    <span class="total-label">Metode:</span>
-                                    <select id="inputCaraBayar" class="total-box py-1 px-2 no-print" style="width: 150px; border-radius: 4px;">
-                                        <option value="tunai">💵 Tunai / Cash</option>
-                                        <option value="rekening">🏦 Transfer/Rek/E-Wallet</option>
-                                    </select>
+                                    <span class="total-label">Jumlah Rp.</span>
+                                    <div class="total-box" id="notaTotal">0</div>
                                 </div>
-                                <div class="total-row"><span class="total-label">Uang Muka Rp.</span><input type="number" id="inputDP" class="total-box text-end no-border-input" style="background: white;" value="0" onkeyup="hitungSisa()"></div>
-                                <div class="total-row"><span class="total-label text-danger">Kurang Rp.</span><div class="total-box text-danger" id="notaSisa">0</div></div>
+                                <div class="total-row">
+                                    <span class="total-label">Uang Muka Rp.</span>
+                                    <input type="number" id="inputDP" class="total-box text-end no-border-input" style="background: white;" value="0" onkeyup="hitungSisa()">
+                                </div>
+                                <div class="total-row">
+                                    <span class="total-label text-danger">Kurang Rp.</span>
+                                    <div class="total-box text-danger" id="notaSisa">0</div>
+                                </div>
                             </div>
                         </div>
+                        
+                        <!-- Catatan Bawah Nota -->
                         <div class="bottom-section">
                             <div class="payment-info">PEMBAYARAN BISA MELALUI:<br><span class="fw-bold">BCA: 5410927839</span> (ROHMATULLOH)<br><span class="fw-bold">DANA,OVO,GOJEK: 083812352663</span></div>
                             <div class="warning-box"><span class="d-block fw-bold mb-1">PERHATIAN !!!</span>Barang-barang yang sudah dibeli tidak bisa ditukar / dikembalikan</div>
                         </div>
                     </div>
                     
+                    <!-- Tombol Aksi Nota -->
                     <div class="d-grid gap-2 mt-3 no-print">
-                        <button onclick="simpanDanCetak()" id="btnSimpan" class="btn btn-primary btn-lg fw-bold"><i class="fas fa-print"></i> SIMPAN & CETAK</button>
+                        <button onclick="simpanDanCetak()" id="btnSimpan" class="btn btn-primary btn-lg fw-bold">
+                            <i class="fas fa-print"></i> SIMPAN & CETAK
+                        </button>
                         <button onclick="resetNota()" class="btn btn-secondary">Reset / Batal</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- TAB GUDANG -->
+        <!-- ==================== TAB GUDANG ==================== -->
         <div class="tab-pane fade" id="tabGudang">
             <div class="row">
+                <!-- Panel Input Gudang -->
                 <div class="col-md-4 no-print mb-3">
                     <div class="card p-3 shadow-sm bg-light">
                         <div class="d-flex justify-content-between">
@@ -891,197 +361,768 @@
                         <input type="number" id="prodHarga" class="form-control mb-2" placeholder="Harga Jual">
                         <div class="row g-2 mb-2">
                             <div class="col-6"><input type="number" id="prodStok" class="form-control" placeholder="Stok"></div>
-                            <div class="col-6"><input type="number" id="prodMin" class="form-control" placeholder="Min Stok"></div>
+                            <div class="col-6"><input type="number" id="prodMin" class="form-control" placeholder="Min (Batas Alert)"></div>
                         </div>
-                        <button onclick="simpanProduk()" id="btnSimpanProduk" class="btn btn-primary w-100">Simpan Ke Cloud</button>
+                        <button onclick="simpanProduk()" id="btnSimpanProduk" class="btn btn-primary w-100">Simpan</button>
+                        <small class="text-muted d-block mt-2 text-center">*Klik nama barang di tabel untuk mengedit</small>
                     </div>
-                    <button onclick="cetakBelanja()" class="btn btn-warning w-100 mt-3 fw-bold">Print Daftar Belanja</button>
+                    <button onclick="cetakBelanja()" class="btn btn-warning w-100 mt-3 fw-bold">Print Daftar Belanja (Stok Menipis)</button>
                 </div>
 
+                <!-- Panel Tabel Gudang -->
                 <div class="col-md-8">
                     <div class="card p-3 shadow-sm">
                         <input type="text" id="cariGudang" class="form-control mb-3" placeholder="Cari stok..." onkeyup="renderGudang()">
                         <div class="table-responsive">
-                            <table class="table table-hover align-middle small table-striped" id="tabelGudang">
+                            <table class="table table-hover align-middle small table-striped" id="tabelGudang" style="cursor: pointer;">
                                 <thead class="table-dark">
                                     <tr>
-                                        <th class="sortable-header" onclick="aturSort('nama')">Barang <i class="fas fa-sort sort-icon"></i></th>
-                                        <th class="sortable-header" onclick="aturSort('harga')">Harga <i class="fas fa-sort sort-icon"></i></th>
-                                        <th class="sortable-header" onclick="aturSort('stok')">Stok <i class="fas fa-sort sort-icon"></i></th>
+                                        <th>Barang (Klik utk Edit)</th>
+                                        <th>Harga</th>
+                                        <th>Stok</th>
                                         <th>Min</th>
                                         <th>Aksi</th>
                                     </tr>
                                 </thead>
-                                <tbody id="isiTabelGudang"><tr><td colspan="5" class="text-center">Menghubungkan ke database...</td></tr></tbody>
+                                <tbody id="isiTabelGudang"></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
                 
+                <!-- Area Cetak Daftar Belanja (Disembunyikan, hanya muncul saat print) -->
                 <div id="areaBelanja" class="d-none">
                     <h3 class="text-center">DAFTAR BELANJA MUSADAD.COM</h3>
-                    <table class="table table-bordered mt-3"><thead><tr><th>No</th><th>Nama</th><th>Sisa</th><th>Cek</th></tr></thead><tbody id="isiBelanja"></tbody></table>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB HUTANG -->
-        <div class="tab-pane fade" id="tabHutang">
-            <div class="card p-4 shadow-sm border-0">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="fw-bold text-danger mb-0"><i class="fas fa-book-open"></i> Catatan Piutang Pelanggan</h5>
-                    <span id="infoTotalHutang" class="badge bg-danger fs-6 p-2 shadow-sm">Total Piutang: Rp 0</span>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead class="table-danger text-dark">
-                            <tr>
-                                <th>Tanggal</th>
-                                <th>Nama Pelanggan</th>
-                                <th class="text-end">Total Tagihan</th>
-                                <th class="text-end">Uang Masuk (DP)</th>
-                                <th class="text-end">Sisa Hutang</th>
-                                <th class="text-center">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="isiTabelHutang">
-                            <tr><td colspan="6" class="text-center py-3">Memuat data hutang...</td></tr>
-                        </tbody>
+                    <table class="table table-bordered mt-3">
+                        <thead><tr><th>No</th><th>Nama</th><th>Sisa</th><th>Cek</th></tr></thead>
+                        <tbody id="isiBelanja"></tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <!-- TAB LAPORAN -->
+        <!-- ==================== TAB LAPORAN ==================== -->
         <div class="tab-pane fade" id="tabLaporan">
-            <div class="row mb-3 no-print">
-                <div class="col-md-6">
-                    <div class="card p-3 shadow-sm h-100">
-                        <h6 class="fw-bold text-dark"><i class="fas fa-filter"></i> Periode Laporan Keuangan</h6>
-                        <div class="btn-group btn-filter-group w-100 mb-3" role="group">
-                            <button id="btn-filter-hari" type="button" class="btn btn-outline-primary" onclick="setFilter('hari')">Harian</button>
-                            <button id="btn-filter-bulan" type="button" class="btn btn-outline-primary active" onclick="setFilter('bulan')">Bulanan</button>
-                            <button id="btn-filter-tahun" type="button" class="btn btn-outline-primary" onclick="setFilter('tahun')">Tahunan</button>
-                        </div>
-                        
-                        <div id="wrap-filter-hari" style="display:none;"><input type="date" id="filter-hari-input" class="form-control" onchange="renderLaporan()"></div>
-                        <div id="wrap-filter-bulan"><input type="month" id="filter-bulan-input" class="form-control" onchange="renderLaporan()"></div>
-                        <div id="wrap-filter-tahun" style="display:none;"><select id="filter-tahun-input" class="form-select" onchange="renderLaporan()"></select></div>
-                    </div>
+            <!-- Dashboard Ringkasan -->
+            <div class="card p-3 shadow-sm mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0"><i class="fas fa-chart-line"></i> Dashboard Keuangan</h5>
+                    <button onclick="resetData()" class="btn btn-outline-danger btn-sm"><i class="fas fa-trash"></i> Reset Data</button>
                 </div>
-
-                <div class="col-md-6">
-                    <!-- FITUR KUNCI: REKONSILIASI SALDO REKENING -->
-                    <div class="card p-3 shadow-sm border-primary bg-primary bg-opacity-10 h-100">
-                        <h6 class="fw-bold text-primary"><i class="fas fa-wallet"></i> Keamanan & Sinkronisasi Rekening</h6>
-                        <p class="small text-muted mb-2">Input total nominal mutasi atau saldo yang ada di rekening e-wallet/BCA Anda saat ini untuk dibandingkan dengan catatan transaksi sistem.</p>
-                        <div class="input-group">
-                            <span class="input-group-text fw-bold bg-primary text-white">Rp</span>
-                            <input type="number" id="inputRekeningRiil" class="form-control form-control-lg font-monospace fw-bold" placeholder="Input Uang di Rekening Saat Ini..." onkeyup="renderLaporan()" onchange="renderLaporan()">
+                <div class="row text-center g-2">
+                    <div class="col-md-4">
+                        <div class="p-3 bg-success text-white rounded shadow-sm">
+                            <small>Total Pemasukan</small>
+                            <h4 class="fw-bold mb-0" id="totMasuk">0</h4>
                         </div>
                     </div>
-                </div>
-            </div>
-
-            <!-- RINGKASAN DATA LAPORAN -->
-            <div class="row g-3 mb-4">
-                <div class="col-md-3">
-                    <div class="card p-3 bg-white shadow-sm border-0 border-start border-primary border-4 text-center">
-                        <span class="small text-muted text-uppercase fw-bold">Penjualan (Kasir)</span>
-                        <h3 id="lapTotalPenjualan" class="fw-bold text-primary mt-1">Rp 0</h3>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card p-3 bg-white shadow-sm border-0 border-start border-success border-4 text-center">
-                        <span class="small text-muted text-uppercase fw-bold">Pemasukan Lain</span>
-                        <h3 id="lapTotalPemasukanLain" class="fw-bold text-success mt-1">Rp 0</h3>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card p-3 bg-white shadow-sm border-0 border-start border-danger border-4 text-center">
-                        <span class="small text-muted text-uppercase fw-bold">Pengeluaran Toko</span>
-                        <h3 id="lapTotalPengeluaran" class="fw-bold text-danger mt-1">Rp 0</h3>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card p-3 bg-dark text-white shadow-sm border-0 text-center">
-                        <span class="small text-light text-uppercase fw-bold">Estimasi Untung/Rugi</span>
-                        <h3 id="lapLabaBersih" class="fw-bold mt-1 text-success">Rp 0</h3>
-                    </div>
-                </div>
-            </div>
-
-            <!-- PERBANDINGAN SALDO & DETEKTOR SELISIH -->
-            <div class="card p-4 shadow-sm mb-4 border-0">
-                <h6 class="fw-bold mb-3 text-secondary"><i class="fas fa-balance-scale"></i> Perbandingan Alur Dana di Aplikasi (Sistem)</h6>
-                <div class="row">
-                    <div class="col-md-6 border-end">
-                        <div class="d-flex justify-content-between p-2 bg-light rounded mb-2">
-                            <span>💵 Total Saldo Tunai (Cash):</span>
-                            <strong id="lapSistemTunai" class="font-monospace text-dark">Rp 0</strong>
-                        </div>
-                        <div class="d-flex justify-content-between p-2 bg-light rounded">
-                            <span>🏦 Total Saldo Rekening (Transfer):</span>
-                            <strong id="lapSistemRekening" class="font-monospace text-primary">Rp 0</strong>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-danger text-white rounded shadow-sm">
+                            <small>Total Pengeluaran</small>
+                            <h4 class="fw-bold mb-0" id="totKeluar">0</h4>
                         </div>
                     </div>
-                    <div class="col-md-6 d-flex flex-column justify-content-center">
-                        <!-- Box Notifikasi Selisih Rekening -->
-                        <div id="boxSelisih" class="alert alert-secondary mt-0 d-flex align-items-center gap-3" role="alert">
-                            <i class="fas fa-exclamation-triangle fs-3"></i>
-                            <div>
-                                <h5 class="alert-heading fw-bold mb-1">Status Selisih Rekening: <span id="nilaiSelisih">Rp 0</span></h5>
-                                <p id="statusSelisih" class="mb-0 small">Masukkan angka nominal saldo rekening Anda di atas untuk memulai analisis rekonsiliasi.</p>
-                            </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-primary text-white rounded shadow-sm">
+                            <small>Saldo Bersih</small>
+                            <h4 class="fw-bold mb-0" id="totProfit">0</h4>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- TABEL INPUT PENGELUARAN & PEMASUKAN LAIN -->
-            <div class="row no-print">
-                <div class="col-md-6 mb-3">
-                    <div class="card p-3 shadow-sm border-0">
-                        <h6 class="fw-bold text-danger mb-3"><i class="fas fa-minus-circle"></i> Input Pengeluaran Baru</h6>
-                        <div class="row g-2 mb-2">
-                            <div class="col-6"><input type="date" id="expTgl" class="form-control form-control-sm"></div>
-                            <div class="col-6"><input type="number" id="expJml" class="form-control form-control-sm" placeholder="Jumlah (Rp)"></div>
-                        </div>
-                        <input type="text" id="expKet" class="form-control form-control-sm mb-2" placeholder="Keterangan (Contoh: Beli Kertas Foto, Token Listrik)">
-                        <button onclick="simpanPengeluaran()" id="btnSimpanExp" class="btn btn-danger btn-sm w-100 fw-bold">Simpan Pengeluaran</button>
-                        
-                        <div class="table-responsive mt-3" style="max-height: 250px; overflow-y:auto;">
-                            <table class="table table-sm table-hover align-middle small">
-                                <thead class="table-light"><tr><th>Tgl</th><th>Keterangan</th><th class="text-end">Jumlah</th><th>Hapus</th></tr></thead>
-                                <tbody id="tabelLaporanPengeluaran"></tbody>
-                            </table>
-                        </div>
+            <div class="row">
+                <!-- Panel Input Tambahan Pemasukan/Pengeluaran -->
+                <div class="col-md-4 mb-3">
+                    <div class="card p-3 border-success mb-2 bg-success bg-opacity-10">
+                        <h6 class="fw-bold text-success">Input Pemasukan Lain (Modal, dll)</h6>
+                        <input type="date" id="inTgl" class="form-control mb-1 bg-white">
+                        <input type="text" id="inKet" class="form-control mb-1 bg-white" placeholder="Keterangan (Cth: Modal Awal)">
+                        <input type="number" id="inJml" class="form-control mb-2 bg-white" placeholder="Nominal Rp">
+                        <button onclick="simpanPemasukanLain()" class="btn btn-success w-100 btn-sm fw-bold">Simpan Pemasukan</button>
+                    </div>
+                    <div class="card p-3 border-danger bg-danger bg-opacity-10">
+                        <h6 class="fw-bold text-danger">Input Pengeluaran (Biaya)</h6>
+                        <input type="date" id="expTgl" class="form-control mb-1 bg-white">
+                        <input type="text" id="expKet" class="form-control mb-1 bg-white" placeholder="Keterangan (Cth: Listrik, Bensin)">
+                        <input type="number" id="expJml" class="form-control mb-2 bg-white" placeholder="Nominal Rp">
+                        <button onclick="simpanPengeluaran()" class="btn btn-danger w-100 btn-sm fw-bold">Simpan Pengeluaran</button>
                     </div>
                 </div>
 
-                <div class="col-md-6 mb-3">
-                    <div class="card p-3 shadow-sm border-0">
-                        <h6 class="fw-bold text-success mb-3"><i class="fas fa-plus-circle"></i> Input Pemasukan Lain-lain</h6>
-                        <div class="row g-2 mb-2">
-                            <div class="col-6"><input type="date" id="inTgl" class="form-control form-control-sm"></div>
-                            <div class="col-6"><input type="number" id="inJml" class="form-control form-control-sm" placeholder="Jumlah (Rp)"></div>
-                        </div>
-                        <input type="text" id="inKet" class="form-control form-control-sm mb-2" placeholder="Keterangan (Contoh: Jasa Desain Banner, Service Laptop)">
-                        <button onclick="simpanPemasukanLain()" id="btnSimpanIn" class="btn btn-success btn-sm w-100 fw-bold">Simpan Pemasukan</button>
-
-                        <div class="table-responsive mt-3" style="max-height: 250px; overflow-y:auto;">
-                            <table class="table table-sm table-hover align-middle small">
-                                <thead class="table-light"><tr><th>Tgl</th><th>Keterangan</th><th class="text-end">Jumlah</th><th>Hapus</th></tr></thead>
-                                <tbody id="tabelLaporanPemasukan"></tbody>
+                <!-- Panel Tabel Rincian -->
+                <div class="col-md-8">
+                    <div class="card p-0 shadow-sm overflow-hidden">
+                        <div class="card-header bg-light fw-bold">Rincian Transaksi (Diurutkan dari Terbaru)</div>
+                        <div style="height: 400px; overflow-y: auto;">
+                            <table class="table table-bordered table-striped table-sm small mb-0">
+                                <thead class="table-dark sticky-top">
+                                    <tr>
+                                        <th>Tanggal Waktu</th>
+                                        <th>Keterangan</th>
+                                        <th class="text-end">Masuk</th>
+                                        <th class="text-end">Keluar</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabelLaporan"></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- ==================== TAB KAS & BANK (REKONSILIASI) ==================== -->
+        <div class="tab-pane fade" id="tabRekonsiliasi">
+            <div class="card p-4 shadow-sm mb-3">
+                <h5 class="fw-bold mb-4"><i class="fas fa-balance-scale"></i> Pencocokan Saldo Aplikasi vs Uang Nyata (Bank/Kas)</h5>
+                
+                <div class="row text-center mb-4 g-3">
+                    <div class="col-md-4">
+                        <div class="p-3 bg-primary text-white rounded shadow-sm h-100">
+                            <small>Total Saldo di Aplikasi</small>
+                            <h3 class="fw-bold mb-0 mt-2">Rp <span id="rekSaldoSistem">0</span></h3>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-info text-white rounded shadow-sm h-100">
+                            <small>Total Uang Nyata (Bank + Kas)</small>
+                            <h3 class="fw-bold mb-0 mt-2">Rp <span id="rekTotalNyata">0</span></h3>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light text-dark rounded shadow-sm border h-100" id="rekBoxSelisih">
+                            <small class="text-muted fw-bold">Status / Selisih</small>
+                            <h4 class="fw-bold mb-0 mt-2" id="rekSelisih">0</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="fw-bold mb-2">Uang di Rekening / Dompet Digital <br><small class="text-muted fw-normal">(BCA, Mandiri, DANA, OVO, dll)</small></label>
+                        <div class="input-group">
+                            <span class="input-group-text fw-bold">Rp</span>
+                            <input type="number" id="inputRekBank" class="form-control form-control-lg bg-light" value="0" onkeyup="hitungRekonsiliasi()" onchange="hitungRekonsiliasi()">
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="fw-bold mb-2">Uang Tunai / Cash <br><small class="text-muted fw-normal">(Di Kasir / Laci Toko)</small></label>
+                        <div class="input-group">
+                            <span class="input-group-text fw-bold">Rp</span>
+                            <input type="number" id="inputRekKas" class="form-control form-control-lg bg-light" value="0" onkeyup="hitungRekonsiliasi()" onchange="hitungRekonsiliasi()">
+                        </div>
+                    </div>
+                </div>
+
+                <hr>
+                <button onclick="simpanRekonsiliasi()" class="btn btn-success btn-lg w-100 mt-2 fw-bold shadow"><i class="fas fa-save"></i> Simpan Data Uang Nyata</button>
+            </div>
+        </div>
+
     </div>
 </div>
 
+<!-- Bootstrap Bundle JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // --- DATABASE MENGGUNAKAN LOCAL STORAGE ---
+    let db = {
+        produk: JSON.parse(localStorage.getItem('musadad_prod')) || [],
+        nota: JSON.parse(localStorage.getItem('musadad_nota')) || [],
+        pengeluaran: JSON.parse(localStorage.getItem('musadad_exp')) || [],
+        pemasukanLain: JSON.parse(localStorage.getItem('musadad_income')) || [],
+        saldoAktual: JSON.parse(localStorage.getItem('musadad_saldo')) || { bank: 0, kas: 0 }
+    };
+    
+    // Variabel State Aplikasi
+    let keranjang = [];
+    let editProdukIndex = -1; // -1 berarti tidak sedang mengedit produk gudang
+    let activeNotaNo = null; // null berarti tidak sedang mengedit nota kasir
+
+    // Inisialisasi saat halaman dimuat
+    window.onload = function() {
+        let todayStr = new Date().toISOString().split('T')[0];
+        document.getElementById('expTgl').value = todayStr;
+        document.getElementById('inTgl').value = todayStr;
+        initView();
+    };
+
+    // Fungsi utilitas untuk menyimpan data
+    function simpanKeBrowser() {
+        localStorage.setItem('musadad_prod', JSON.stringify(db.produk));
+        localStorage.setItem('musadad_nota', JSON.stringify(db.nota));
+        localStorage.setItem('musadad_exp', JSON.stringify(db.pengeluaran));
+        localStorage.setItem('musadad_income', JSON.stringify(db.pemasukanLain));
+        localStorage.setItem('musadad_saldo', JSON.stringify(db.saldoAktual));
+    }
+
+    // Fungsi untuk memperbarui semua tampilan
+    function initView() {
+        renderStokOption(); 
+        renderGudang(); 
+        renderRiwayatNota(); 
+        renderLaporan();
+        
+        // Atur nomor nota otomatis jika tidak sedang dalam mode edit nota
+        if (!activeNotaNo) {
+            let today = new Date();
+            document.getElementById('notaNo').innerText = `INV/${today.getDate()}${today.getMonth()+1}/${db.nota.length + 1}`;
+            document.getElementById('notaTgl').innerText = today.toLocaleDateString('id-ID');
+        }
+    }
+
+    // ==================== LOGIKA KASIR ====================
+    
+    // Mengisi pilihan barang di input pencarian
+    function renderStokOption() {
+        let dl = document.getElementById('listBarang'); 
+        dl.innerHTML = '';
+        db.produk.forEach(p => {
+            dl.innerHTML += `<option value="${p.nama}">Stok: ${p.stok} | Rp ${p.harga}</option>`;
+        });
+    }
+
+    // Mengambil harga dari gudang saat nama barang dipilih
+    function updateHarga() {
+        let val = document.getElementById('inputBarang').value;
+        let p = db.produk.find(x => x.nama === val);
+        if(p) { 
+            document.getElementById('hargaBarang').value = p.harga; 
+            document.getElementById('qtyBarang').focus(); 
+        }
+    }
+
+    // Menambahkan item ke keranjang belanja
+    function tambahItem() {
+        let val = document.getElementById('inputBarang').value;
+        let qty = Number(document.getElementById('qtyBarang').value);
+        let p = db.produk.find(x => x.nama === val);
+        
+        let harga = 0;
+        let idItem = '';
+
+        if(!p) {
+             // Jika barang diketik manual (tidak ada di gudang)
+             harga = Number(document.getElementById('hargaBarang').value) || 0;
+             if(!val || !harga) return alert("Barang tidak ditemukan di gudang atau harga masih kosong!");
+             idItem = 'manual_'+Date.now();
+        } else {
+            // Jika barang ada di gudang
+            if(p.stok < qty) alert("Peringatan: Stok di gudang kurang!");
+            harga = p.harga; 
+            idItem = p.id;
+        }
+
+        // Masukkan ke array
+        keranjang.push({ id: idItem, nama: val, harga: harga, qty: qty, total: harga * qty });
+        renderNotaIsi();
+        
+        // Reset input kasir
+        document.getElementById('inputBarang').value = ""; 
+        document.getElementById('hargaBarang').value = ""; 
+        document.getElementById('qtyBarang').value = "1"; 
+        document.getElementById('inputBarang').focus();
+    }
+
+    // Menampilkan isi keranjang ke dalam tabel nota
+    function renderNotaIsi() {
+        let tbody = document.getElementById('notaIsi'); 
+        tbody.innerHTML = ''; 
+        let total = 0;
+        
+        keranjang.forEach((item, idx) => {
+            total += item.total;
+            tbody.innerHTML += `
+                <tr>
+                    <td class="text-center align-middle">${idx + 1}</td>
+                    <td class="p-0">
+                        <input type="text" class="form-control form-control-sm border-0 shadow-none fw-bold" value="${item.nama}" onchange="updateItemKeranjang(${idx}, 'nama', this.value)">
+                    </td>
+                    <td class="p-0" width="10%">
+                        <input type="number" class="form-control form-control-sm border-0 shadow-none text-center" value="${item.qty}" onchange="updateItemKeranjang(${idx}, 'qty', this.value)">
+                    </td>
+                    <td class="p-0" width="20%">
+                        <input type="number" class="form-control form-control-sm border-0 shadow-none text-end" value="${item.harga}" onchange="updateItemKeranjang(${idx}, 'harga', this.value)">
+                    </td>
+                    <td class="text-end align-middle fw-bold px-2">${item.total.toLocaleString()}</td>
+                    <td class="no-print align-middle text-center">
+                        <a href="#" onclick="keranjang.splice(${idx},1); renderNotaIsi()" class="text-danger"><i class="fas fa-times"></i></a>
+                    </td>
+                </tr>`;
+        });
+        
+        // Update informasi di nota
+        document.getElementById('notaTotal').innerText = total.toLocaleString();
+        document.getElementById('notaTotal').dataset.val = total;
+        document.getElementById('notaYth').innerText = document.getElementById('custNama').value || "..................";
+        document.getElementById('notaHp').innerText = document.getElementById('custTelp').value || "";
+        hitungSisa();
+    }
+
+    // Memungkinkan pengeditan langsung di tabel nota
+    function updateItemKeranjang(index, field, value) {
+        if (field === 'qty') { 
+            keranjang[index].qty = Number(value); 
+            keranjang[index].total = keranjang[index].qty * keranjang[index].harga; 
+        } else if (field === 'harga') { 
+            keranjang[index].harga = Number(value); 
+            keranjang[index].total = keranjang[index].qty * keranjang[index].harga; 
+        } else if (field === 'nama') { 
+            keranjang[index].nama = value; 
+        }
+        renderNotaIsi();
+    }
+
+    // Menghitung sisa pembayaran (DP)
+    function hitungSisa() {
+        let total = Number(document.getElementById('notaTotal').dataset.val || 0);
+        let dp = Number(document.getElementById('inputDP').value || 0);
+        let sisa = dp - total;
+        document.getElementById('notaSisa').innerText = sisa >= 0 ? "LUNAS (" + sisa.toLocaleString() + ")" : "KURANG: " + Math.abs(sisa).toLocaleString();
+    }
+
+    // Proses Simpan, Cetak dan Edit Nota
+    function simpanDanCetak() {
+        if(keranjang.length === 0) return alert("Keranjang masih kosong!");
+
+        // 1. Logika Jika dalam Mode Edit Nota: Kembalikan Stok Lama Dulu
+        if (activeNotaNo) {
+            let oldNota = db.nota.find(n => n.no === activeNotaNo);
+            if (oldNota) {
+                oldNota.items.forEach(oldItem => {
+                    let prod = db.produk.find(p => p.id == oldItem.id);
+                    // Kembalikan stok ke gudang sebelum dipotong dengan data yang baru
+                    if (prod) prod.stok += oldItem.qty; 
+                });
+            }
+        }
+
+        // 2. Potong Stok Berdasarkan Keranjang Saat Ini (Berlaku untuk Baru & Edit)
+        keranjang.forEach((item) => {
+            let p = db.produk.find(x => x.id == item.id);
+            if(p) p.stok -= item.qty;
+        });
+
+        // 3. Susun Objek Data Nota
+        let notaData = {
+            no: document.getElementById('notaNo').innerText,
+            tgl: new Date().toISOString(), // Simpan waktu persis kapan di simpan/update
+            nama: document.getElementById('custNama').value,
+            items: [...keranjang],
+            total: Number(document.getElementById('notaTotal').dataset.val),
+            dp: Number(document.getElementById('inputDP').value),
+            sisaInfo: document.getElementById('notaSisa').innerText
+        };
+
+        // 4. Simpan Data
+        if (activeNotaNo) {
+            // MODE UPDATE: Cari index nota lama, lalu ganti isinya
+            let idx = db.nota.findIndex(n => n.no === activeNotaNo);
+            if (idx !== -1) db.nota[idx] = notaData;
+            alert("Data Nota Berhasil Diperbarui!");
+        } else {
+            // MODE BARU: Tambahkan ke array
+            db.nota.push(notaData);
+        }
+
+        simpanKeBrowser();
+        
+        // 5. Cetak
+        document.body.classList.add('print-nota');
+        window.print();
+        document.body.classList.remove('print-nota');
+
+        // 6. Selesai, kembalikan ke awal
+        resetNota(); 
+    }
+
+    // Fungsi untuk mengaktifkan Mode Edit Nota
+    function editNota(noNota) {
+        let n = db.nota.find(x => x.no === noNota);
+        if(!n) return;
+
+        // Set variabel flag bahwa kita sedang mengedit nota ini
+        activeNotaNo = n.no; 
+        
+        // Isi form dengan data lama
+        document.getElementById('notaNo').innerText = n.no;
+        document.getElementById('custNama').value = n.nama;
+        document.getElementById('inputDP').value = n.dp;
+        
+        // Copy isi keranjang (agar tidak merusak referensi aslinya)
+        keranjang = JSON.parse(JSON.stringify(n.items));
+        
+        // Update UI menjadi Mode Edit
+        renderNotaIsi();
+        document.getElementById('btnSimpan').innerHTML = '<i class="fas fa-save"></i> UPDATE PERUBAHAN';
+        document.getElementById('btnSimpan').classList.replace('btn-primary', 'btn-warning');
+        document.getElementById('areaNota').classList.add('editing-mode');
+        document.getElementById('badgeEditMode').classList.remove('d-none');
+        
+        // Scroll layar ke atas agar nota terlihat
+        window.scrollTo(0,0);
+    }
+
+    // Membatalkan transaksi / keluar dari mode edit
+    function resetNota() {
+        keranjang = [];
+        document.getElementById('custNama').value = "";
+        document.getElementById('custTelp').value = "";
+        document.getElementById('inputDP').value = "0";
+        
+        // Kembalikan UI dari mode edit ke normal
+        document.getElementById('areaNota').classList.remove('editing-mode');
+        document.getElementById('badgeEditMode').classList.add('d-none');
+        document.getElementById('btnSimpan').innerHTML = '<i class="fas fa-print"></i> SIMPAN & CETAK';
+        document.getElementById('btnSimpan').classList.replace('btn-warning', 'btn-primary');
+        
+        // Matikan flag edit
+        activeNotaNo = null; 
+        renderNotaIsi();
+        initView(); // initView akan mereset nomor nota ke otomatis yang baru
+    }
+
+    // Menampilkan riwayat nota di panel kiri
+    function renderRiwayatNota() {
+        let key = document.getElementById('cariNota').value.toLowerCase();
+        let tbody = document.getElementById('tabelRiwayatNota'); 
+        tbody.innerHTML = '';
+        
+        // Tampilkan dari yang paling baru (reverse)
+        db.nota.slice().reverse().forEach(n => {
+            if(n.nama?.toLowerCase().includes(key) || n.no.toLowerCase().includes(key)) {
+                tbody.innerHTML += `
+                <tr>
+                    <td>${n.no}</td>
+                    <td>${n.nama}</td>
+                    <td class="text-end">
+                        <button onclick="editNota('${n.no}')" class="btn btn-sm btn-warning py-0 me-1" title="Edit Nota"><i class="fas fa-pencil-alt"></i></button>
+                        <button onclick="cetakUlang('${n.no}')" class="btn btn-sm btn-outline-primary py-0" title="Print Ulang"><i class="fas fa-print"></i></button>
+                    </td>
+                </tr>`;
+            }
+        });
+    }
+
+    function cetakUlang(no) {
+        let n = db.nota.find(x => x.no === no); 
+        if(!n) return;
+        
+        // Isi sementara ke nota untuk diprint
+        document.getElementById('notaNo').innerText = n.no; 
+        document.getElementById('notaYth').innerText = n.nama;
+        let tbody = document.getElementById('notaIsi'); tbody.innerHTML = '';
+        n.items.forEach((item, idx) => {
+            tbody.innerHTML += `<tr><td class="text-center">${idx + 1}</td><td>${item.nama}</td><td class="text-center">${item.qty}</td><td class="text-end">${item.harga.toLocaleString()}</td><td class="text-end fw-bold">${item.total.toLocaleString()}</td><td></td></tr>`;
+        });
+        document.getElementById('notaTotal').innerText = n.total.toLocaleString(); 
+        document.getElementById('inputDP').value = n.dp; 
+        document.getElementById('notaSisa').innerText = n.sisaInfo;
+        
+        // Print
+        document.body.classList.add('print-nota'); 
+        window.print(); 
+        document.body.classList.remove('print-nota');
+        
+        resetNota(); // Kembalikan nota ke keadaan kosong
+    }
+
+    // ==================== LOGIKA GUDANG ====================
+    
+    function simpanProduk() {
+        let nama = document.getElementById('prodNama').value;
+        let harga = Number(document.getElementById('prodHarga').value);
+        let stok = Number(document.getElementById('prodStok').value);
+        let min = Number(document.getElementById('prodMin').value);
+        
+        if(!nama) return alert("Nama barang wajib diisi!");
+
+        if(editProdukIndex === -1) { 
+            // Tambah Baru
+            db.produk.push({ id: Date.now(), nama, harga, stok, min }); 
+        } else { 
+            // Update / Edit
+            db.produk[editProdukIndex].nama = nama; 
+            db.produk[editProdukIndex].harga = harga; 
+            db.produk[editProdukIndex].stok = stok; 
+            db.produk[editProdukIndex].min = min; 
+        }
+
+        simpanKeBrowser(); 
+        initView(); 
+        resetFormGudang();
+    }
+    
+    // Fungsi Edit saat baris tabel diklik
+    function editProduk(index) {
+        editProdukIndex = index; 
+        let p = db.produk[index];
+        
+        document.getElementById('prodNama').value = p.nama; 
+        document.getElementById('prodHarga').value = p.harga; 
+        document.getElementById('prodStok').value = p.stok; 
+        document.getElementById('prodMin').value = p.min;
+        
+        // Ubah UI
+        document.getElementById('btnSimpanProduk').innerText = "Update Barang"; 
+        document.getElementById('btnSimpanProduk').classList.replace('btn-primary', 'btn-success');
+        document.getElementById('formTitle').innerText = "Edit Barang: " + p.nama; 
+        document.getElementById('btnBatalEdit').style.display = 'block';
+    }
+    
+    function resetFormGudang() {
+        editProdukIndex = -1; 
+        document.getElementById('prodNama').value = ""; 
+        document.getElementById('prodHarga').value = ""; 
+        document.getElementById('prodStok').value = ""; 
+        document.getElementById('prodMin').value = "";
+        
+        // Kembalikan UI
+        document.getElementById('btnSimpanProduk').innerText = "Simpan"; 
+        document.getElementById('btnSimpanProduk').classList.replace('btn-success', 'btn-primary');
+        document.getElementById('formTitle').innerText = "Tambah Produk Baru"; 
+        document.getElementById('btnBatalEdit').style.display = 'none';
+    }
+    
+    function renderGudang() {
+        let key = document.getElementById('cariGudang').value.toLowerCase(); 
+        let tbody = document.getElementById('isiTabelGudang'); 
+        tbody.innerHTML = '';
+        
+        db.produk.forEach((p, idx) => {
+            if(p.nama.toLowerCase().includes(key)) {
+                tbody.innerHTML += `
+                <tr onclick="editProduk(${idx})" title="Klik untuk mengedit">
+                    <td class="fw-bold text-primary">${p.nama}</td>
+                    <td>${p.harga.toLocaleString()}</td>
+                    <td class="${p.stok <= p.min ? 'text-danger fw-bold' : ''}">${p.stok}</td>
+                    <td>${p.min}</td>
+                    <td onclick="event.stopPropagation()">
+                        <button onclick="hapusProduk(${idx})" class="btn btn-danger btn-sm py-0">Hapus</button>
+                    </td>
+                </tr>`;
+            }
+        });
+    }
+    
+    function hapusProduk(idx) { 
+        if(confirm("Apakah Anda yakin ingin menghapus barang ini?")) { 
+            db.produk.splice(idx,1); 
+            simpanKeBrowser(); 
+            initView(); 
+        } 
+    }
+    
+    function cetakBelanja() {
+        let tbody = document.getElementById('isiBelanja'); 
+        tbody.innerHTML = ''; 
+        let no = 1;
+        
+        db.produk.forEach(p => { 
+            if(p.stok <= p.min) {
+                tbody.innerHTML += `<tr><td>${no++}</td><td>${p.nama}</td><td>${p.stok}</td><td>[ ]</td></tr>`; 
+            }
+        });
+        
+        if(no > 1) { 
+            document.body.classList.add('print-belanja'); 
+            window.print(); 
+            document.body.classList.remove('print-belanja'); 
+        } else {
+            alert("Stok di gudang masih aman (Tidak ada yang dibawah batas minimum).");
+        }
+    }
+
+    // ==================== LOGIKA LAPORAN ====================
+    
+    function simpanPengeluaran() { 
+        let tgl=document.getElementById('expTgl').value; 
+        let ket=document.getElementById('expKet').value; 
+        let jml=Number(document.getElementById('expJml').value); 
+        if(tgl&&ket&&jml) { 
+            db.pengeluaran.push({tglStr:tgl, ket, jml}); 
+            simpanKeBrowser(); 
+            renderLaporan(); 
+            document.getElementById('expKet').value=''; 
+            document.getElementById('expJml').value=''; 
+        } 
+    }
+    
+    function simpanPemasukanLain() { 
+        let tgl=document.getElementById('inTgl').value; 
+        let ket=document.getElementById('inKet').value; 
+        let jml=Number(document.getElementById('inJml').value); 
+        if(tgl&&ket&&jml) { 
+            db.pemasukanLain.push({tglStr:tgl, ket, jml}); 
+            simpanKeBrowser(); 
+            renderLaporan(); 
+            document.getElementById('inKet').value=''; 
+            document.getElementById('inJml').value=''; 
+        } 
+    }
+    
+    function renderLaporan() {
+        let tbody = document.getElementById('tabelLaporan'); 
+        tbody.innerHTML = ''; 
+        
+        let allData = [];
+        
+        // 1. Ambil Data Penjualan dari Nota
+        db.nota.forEach(n => { 
+            allData.push({
+                dateObj: new Date(n.tgl), // Disimpan sebagai objek tanggal untuk keperluan sorting
+                displayTgl: new Date(n.tgl).toLocaleString('id-ID'), // Tampilan jam dan tanggal
+                ket: `Penjualan: ${n.no} (${n.nama})`, 
+                in: n.total, 
+                out: 0, 
+                color: 'text-primary'
+            }); 
+        });
+        
+        // 2. Ambil Data Pengeluaran
+        db.pengeluaran.forEach(e => { 
+            allData.push({
+                dateObj: new Date(e.tglStr), 
+                displayTgl: new Date(e.tglStr).toLocaleDateString('id-ID'), 
+                ket: `Biaya: ${e.ket}`, 
+                in: 0, 
+                out: e.jml, 
+                color: 'text-danger'
+            }); 
+        });
+        
+        // 3. Ambil Data Pemasukan Tambahan
+        db.pemasukanLain.forEach(i => { 
+            allData.push({
+                dateObj: new Date(i.tglStr), 
+                displayTgl: new Date(i.tglStr).toLocaleDateString('id-ID'), 
+                ket: `Modal/Lain: ${i.ket}`, 
+                in: i.jml, 
+                out: 0, 
+                color: 'text-success'
+            }); 
+        });
+        
+        // URUTKAN: Dari Tanggal Paling Baru ke Paling Lama
+        allData.sort((a, b) => b.dateObj - a.dateObj);
+        
+        let totMasuk = 0, totKeluar = 0;
+        
+        // Render ke HTML
+        allData.forEach(item => {
+            totMasuk += item.in; 
+            totKeluar += item.out;
+            tbody.innerHTML += `
+                <tr>
+                    <td class="small">${item.displayTgl}</td>
+                    <td class="${item.color}">${item.ket}</td>
+                    <td class="text-end">${item.in > 0 ? item.in.toLocaleString() : '-'}</td>
+                    <td class="text-end text-danger">${item.out > 0 ? item.out.toLocaleString() : '-'}</td>
+                </tr>`;
+        });
+        
+        // Hitung Dashboard
+        document.getElementById('totMasuk').innerText = totMasuk.toLocaleString(); 
+        document.getElementById('totKeluar').innerText = totKeluar.toLocaleString(); 
+        document.getElementById('totProfit').innerText = (totMasuk - totKeluar).toLocaleString();
+        
+        // Panggil fungsi rekonsiliasi agar datanya terupdate
+        globalSaldoSistem = totMasuk - totKeluar;
+        renderRekonsiliasi();
+    }
+
+    // ==================== LOGIKA REKONSILIASI KAS & BANK ====================
+    let globalSaldoSistem = 0;
+
+    function renderRekonsiliasi() {
+        document.getElementById('inputRekBank').value = db.saldoAktual.bank;
+        document.getElementById('inputRekKas').value = db.saldoAktual.kas;
+        hitungRekonsiliasi();
+    }
+
+    function hitungRekonsiliasi() {
+        let bank = Number(document.getElementById('inputRekBank').value) || 0;
+        let kas = Number(document.getElementById('inputRekKas').value) || 0;
+        let totalNyata = bank + kas;
+        let selisih = totalNyata - globalSaldoSistem;
+
+        document.getElementById('rekSaldoSistem').innerText = globalSaldoSistem.toLocaleString();
+        document.getElementById('rekTotalNyata').innerText = totalNyata.toLocaleString();
+        
+        let elSelisih = document.getElementById('rekSelisih');
+        let elBox = document.getElementById('rekBoxSelisih');
+        
+        if (selisih === 0) {
+            elSelisih.innerHTML = '<span class="text-success"><i class="fas fa-check-circle"></i> MATCH (Rp 0)</span>';
+            elBox.className = "p-3 bg-light text-dark rounded shadow-sm border border-success border-3 h-100";
+        } else if (selisih > 0) {
+            elSelisih.innerHTML = '<span class="text-primary">LEBIH: Rp ' + selisih.toLocaleString() + '</span>';
+            elBox.className = "p-3 bg-light text-dark rounded shadow-sm border border-primary border-3 h-100";
+        } else {
+            elSelisih.innerHTML = '<span class="text-danger">KURANG: Rp ' + Math.abs(selisih).toLocaleString() + '</span>';
+            elBox.className = "p-3 bg-light text-dark rounded shadow-sm border border-danger border-3 h-100";
+        }
+    }
+
+    function simpanRekonsiliasi() {
+        db.saldoAktual.bank = Number(document.getElementById('inputRekBank').value) || 0;
+        db.saldoAktual.kas = Number(document.getElementById('inputRekKas').value) || 0;
+        simpanKeBrowser();
+        
+        // Munculkan pop-up notifikasi yang elegan
+        let msg = document.createElement('div');
+        msg.innerHTML = '<div style="position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#28a745;color:white;padding:15px;border-radius:5px;z-index:9999;box-shadow: 0 4px 10px rgba(0,0,0,0.2);"><i class="fas fa-check-circle"></i> Data Kas & Bank berhasil disimpan!</div>';
+        document.body.appendChild(msg);
+        setTimeout(() => msg.remove(), 2500);
+    }
+
+    function resetData() { 
+        if(confirm("PERINGATAN!\n\nApakah Anda yakin ingin menghapus SEMUA data permanen?")) { 
+            localStorage.clear(); 
+            location.reload(); 
+        } 
+    }
+    
+    function downloadDB() { 
+        let dataStr = JSON.stringify(db); 
+        let linkElement = document.createElement('a'); 
+        linkElement.setAttribute('href', 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr)); 
+        linkElement.setAttribute('download', 'BACKUP_MUSADAD_V9_' + new Date().toISOString().split('T')[0] + '.json'); 
+        linkElement.click(); 
+    }
+    
+    function uploadDB(input) { 
+        let file = input.files[0]; 
+        if (!file) return; 
+        
+        let reader = new FileReader(); 
+        reader.onload = function(e) { 
+            try { 
+                let content = JSON.parse(e.target.result); 
+                if(content.produk && content.nota) { 
+                    localStorage.setItem('musadad_prod', JSON.stringify(content.produk)); 
+                    localStorage.setItem('musadad_nota', JSON.stringify(content.nota)); 
+                    localStorage.setItem('musadad_exp', JSON.stringify(content.pengeluaran || [])); 
+                    localStorage.setItem('musadad_income', JSON.stringify(content.pemasukanLain || [])); 
+                    localStorage.setItem('musadad_saldo', JSON.stringify(content.saldoAktual || { bank: 0, kas: 0 })); 
+                    
+                    // Notifikasi khusus browser karena tidak boleh pakai alert di Immersive UI
+                    let msg = document.createElement('div');
+                    msg.innerHTML = '<div style="position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#28a745;color:white;padding:15px;border-radius:5px;z-index:9999;">Data berhasil dipulihkan! Halaman akan dimuat ulang.</div>';
+                    document.body.appendChild(msg);
+                    
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    console.error("Format file salah!"); 
+                }
+            } catch (err) { 
+                console.error("File corrupt."); 
+            } 
+        }; 
+        reader.readAsText(file); 
+    }
+</script>
 </body>
 </html>
