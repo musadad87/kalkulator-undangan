@@ -7,6 +7,9 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
+    <!-- CHART JS -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <!-- FIREBASE SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -31,7 +34,7 @@
         const appId = 'toko-musadad-v9'; 
 
         // Variabel Global
-        window.localCache = { produk: [], nota: [], pengeluaran: [], pemasukanLain: [] };
+        window.localCache = { produk: [], nota: [], pengeluaran: [], pemasukanLain: [], tutupKas: [] };
         window.activeNotaId = null; 
         window.editProdukId = null;
         window.keranjang = [];
@@ -95,6 +98,13 @@
                 window.localCache.pemasukanLain = [];
                 snapshot.forEach((doc) => window.localCache.pemasukanLain.push({ docId: doc.id, ...doc.data() }));
                 renderLaporan();
+            });
+
+            // 5. Tutup Kasir
+            onSnapshot(collection(db, basePath, 'tutupKas'), (snapshot) => {
+                window.localCache.tutupKas = [];
+                snapshot.forEach((doc) => window.localCache.tutupKas.push({ docId: doc.id, ...doc.data() }));
+                renderRiwayatTutupKas();
             });
         }
 
@@ -677,6 +687,41 @@
                                 Apakah Anda pernah memakai uang toko untuk bayar listrik, beli galon, bensin, rokok, atau keperluan rumah tangga? Jika iya dan <b class="text-danger">tidak dicatat di menu Pengeluaran</b>, maka saldo aplikasi akan terlihat besar tapi uang aslinya habis.
                             </li>
                         </ul>
+                    </div>
+                </div>
+
+                <!-- TOMBOL SIMPAN & GRAFIK (TAMBAHAN BARU) -->
+                <div class="row mt-4">
+                    <div class="col-md-12 mb-3 text-center">
+                        <button onclick="simpanTutupKas()" class="btn btn-success btn-lg fw-bold shadow-sm rounded-pill px-4">
+                            <i class="fas fa-save me-2"></i> SIMPAN SALDO HARI INI (TUTUP WARUNG)
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row mt-2">
+                    <div class="col-md-8 mb-3">
+                        <div class="card shadow-sm border-0 h-100">
+                            <div class="card-header bg-white fw-bold"><i class="fas fa-chart-area text-primary"></i> Grafik Perkembangan Kas Fisik</div>
+                            <div class="card-body" style="height: 250px;">
+                                <canvas id="kasChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card shadow-sm border-0 h-100">
+                            <div class="card-header bg-white fw-bold"><i class="fas fa-history text-secondary"></i> Riwayat Tutup Kasir</div>
+                            <div class="card-body p-0" style="max-height: 250px; overflow-y: auto;">
+                                <table class="table table-sm table-hover mb-0 text-center align-middle">
+                                    <thead class="table-light sticky-top">
+                                        <tr><th>Tanggal</th><th>Total Fisik</th><th>Status</th></tr>
+                                    </thead>
+                                    <tbody id="isiRiwayatKas">
+                                        <tr><td colspan="3" class="text-muted small py-3">Memuat data...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
