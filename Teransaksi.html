@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SI-PRINTING v7.0 - Edisi Online Cloud Firebase</title>
+    <title>SI-PRINTING v7.1 - Edisi Online Cloud Firebase & Safety Limit</title>
     <!-- Tailwind CSS CDN untuk Paparan Moden & Responsif -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -28,12 +28,12 @@
         <div class="max-w-[1600px] mx-auto px-4 py-6 flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="text-center md:text-left">
                 <span class="bg-emerald-500/30 text-emerald-300 text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-wider">Misi 6 Bulan & Online Cloud Sync</span>
-                <h1 class="text-3xl font-extrabold tracking-tight mt-1">SI-PRINTING <span class="text-yellow-400">v7.0</span></h1>
+                <h1 class="text-3xl font-extrabold tracking-tight mt-1">SI-PRINTING <span class="text-yellow-400">v7.1</span></h1>
                 <p class="text-xs text-slate-300 mt-1">Sistem Terpadu Pembukuan, Tabungan Utama, Kas Penyelenggaraan Mesin & Inventori Stok</p>
             </div>
             <div class="bg-white/10 backdrop-blur-md px-5 py-3 rounded-xl border border-white/10 text-center md:text-right">
                 <span class="block text-xs text-slate-400">Profesi Utama Anda:</span>
-                <span class="font-bold text-green-400 text-base">👨‍🏫 MUSADAD.COM</span>
+                <span class="font-bold text-green-400 text-base">👨‍🏫 Guru SMK & Juragan Percetakan</span>
             </div>
         </div>
     </header>
@@ -96,7 +96,7 @@
                             </h2>
                             <span id="cloudStatus" class="bg-red-500/20 text-red-400 border border-red-500/30 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">Lokal (Offline)</span>
                         </div>
-                        <p class="text-[10px] text-slate-400 mb-3">1:752575391484:web:15111344c032cd6ad4d979</p>
+                        <p class="text-[10px] text-slate-400 mb-3">Ketik Nama Bahan/Kunci khusus toko Anda untuk sinkronisasi otomatis antar perangkat:</p>
                         
                         <div class="flex gap-2">
                             <input type="text" id="inputKodeAkses" placeholder="Contoh: tokoproguru" class="bg-slate-950 border border-slate-800 p-2 rounded-lg text-xs font-mono font-bold text-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-500 flex-1">
@@ -183,7 +183,21 @@
                         <span class="text-2xl">⚡</span>
                         <div>
                             <h3 class="font-bold text-blue-900 leading-tight">HP PageWide 476/477dw</h3>
-                            <span class="text-[10px] text-blue-600 uppercase tracking-wider font-semibold">Kertas HVS / Undangan</span>
+                            <span class="text-[10px] text-blue-600 uppercase tracking-wider font-semibold font-mono">HVS / Undangan (Batas: 1k Lbr)</span>
+                        </div>
+                    </div>
+
+                    <div id="warnPW" class="mb-3 p-2.5 bg-red-100 text-red-800 text-xs rounded-lg border border-red-300 hidden font-bold animate-pulse">
+                        ⚠️ LIMIT HARIAN TERLAMPAUI! Istirahatkan mesin sejenak agar fuser tidak overheat.
+                    </div>
+                    <div class="text-[11px] text-slate-500 mb-3 bg-slate-50 p-1.5 rounded border border-slate-100 flex flex-col gap-1">
+                        <div class="flex justify-between items-center">
+                            <span>Sdh Dicatat Hari Ini:</span>
+                            <span id="recordedPW" class="font-mono font-bold text-slate-800 text-xs">0 Lbr</span>
+                        </div>
+                        <div class="flex justify-between items-center border-t border-slate-200/60 pt-1">
+                            <span>Total Akumulasi:</span>
+                            <span class="font-mono font-bold text-blue-800 text-xs"><span id="totalInputPW">0</span> / 1.000 Lbr</span>
                         </div>
                     </div>
 
@@ -209,10 +223,9 @@
                         <!-- Print Warna -->
                         <div>
                             <div class="flex justify-between text-xs mb-1">
-                                <label class="font-bold text-slate-600">Print Warna / Undangan (Rp2.000)</label>
-                                <span class="text-green-600 font-semibold">Untung: Rp1.300</span>
+                                <label class="font-bold text-slate-600">Print Warna / Undangan (Rp2k)</label>
+                                <span class="text-green-600 font-semibold">Untung: Rp1.3k</span>
                             </div>
-                            <!-- Pilihan Jenis Kertas untuk Print Warna -->
                             <select id="inputPW_JenisKertas" class="w-full mb-2 p-1.5 border border-slate-200 rounded text-xs focus:ring-1 focus:ring-blue-500">
                                 <option value="hvs">Pakai Kertas HVS Toko</option>
                                 <option value="undangan">Pakai Kertas Undangan Toko</option>
@@ -230,7 +243,21 @@
                         <span class="text-2xl">🌱</span>
                         <div>
                             <h3 class="font-bold text-teal-900 leading-tight">Epson L14150 (A3+)</h3>
-                            <span class="text-[10px] text-teal-600 uppercase tracking-wider font-semibold">EcoTank Hemat & Bandel</span>
+                            <span class="text-[10px] text-teal-600 uppercase tracking-wider font-semibold font-mono">EcoTank Hemat (Batas: 200 Lbr)</span>
+                        </div>
+                    </div>
+
+                    <div id="warnEP" class="mb-3 p-2.5 bg-red-100 text-red-800 text-xs rounded-lg border border-red-300 hidden font-bold animate-pulse">
+                        ⚠️ LIMIT HARIAN TERLAMPAUI! Istirahatkan mesin sejenak agar dinamo motor dingin.
+                    </div>
+                    <div class="text-[11px] text-slate-500 mb-3 bg-slate-50 p-1.5 rounded border border-slate-100 flex flex-col gap-1">
+                        <div class="flex justify-between items-center">
+                            <span>Sdh Dicatat Hari Ini:</span>
+                            <span id="recordedEP" class="font-mono font-bold text-slate-800 text-xs">0 Lbr</span>
+                        </div>
+                        <div class="flex justify-between items-center border-t border-slate-200/60 pt-1">
+                            <span>Total Akumulasi:</span>
+                            <span class="font-mono font-bold text-teal-800 text-xs"><span id="totalInputEP">0</span> / 200 Lbr</span>
                         </div>
                     </div>
 
@@ -256,10 +283,9 @@
                         <!-- Print Warna -->
                         <div>
                             <div class="flex justify-between text-xs mb-1">
-                                <label class="font-bold text-slate-600">Print Warna / Undangan (Rp2.000)</label>
-                                <span class="text-green-600 font-semibold">Untung: Rp1.300</span>
+                                <label class="font-bold text-slate-600">Print Warna / Undangan (Rp2k)</label>
+                                <span class="text-green-600 font-semibold">Untung: Rp1.3k</span>
                             </div>
-                            <!-- Pilihan Jenis Kertas untuk Print Warna Epson -->
                             <select id="inputEP_JenisKertas" class="w-full mb-2 p-1.5 border border-slate-200 rounded text-xs focus:ring-1 focus:ring-teal-500">
                                 <option value="hvs">Pakai Kertas HVS Toko</option>
                                 <option value="undangan">Pakai Kertas Undangan Toko</option>
@@ -277,7 +303,21 @@
                         <span class="text-2xl">🎨</span>
                         <div>
                             <h3 class="font-bold text-purple-900 leading-tight">Mesin XP600</h3>
-                            <span class="text-[10px] text-purple-600 uppercase tracking-wider font-semibold font-mono">Spanduk & Stiker</span>
+                            <span class="text-[10px] text-purple-600 uppercase tracking-wider font-semibold font-mono">Spanduk / Stiker (Batas: 20m)</span>
+                        </div>
+                    </div>
+
+                    <div id="warnXP" class="mb-3 p-2.5 bg-red-100 text-red-800 text-xs rounded-lg border border-red-300 hidden font-bold animate-pulse">
+                        ⚠️ LIMIT HARIAN TERLAMPAUI! Istirahatkan mesin sejenak agar sirkulasi tinta stabil.
+                    </div>
+                    <div class="text-[11px] text-slate-500 mb-3 bg-slate-50 p-1.5 rounded border border-slate-100 flex flex-col gap-1">
+                        <div class="flex justify-between items-center">
+                            <span>Sdh Dicatat Hari Ini:</span>
+                            <span id="recordedXP" class="font-mono font-bold text-slate-800 text-xs">0 m</span>
+                        </div>
+                        <div class="flex justify-between items-center border-t border-slate-200/60 pt-1">
+                            <span>Total Akumulasi:</span>
+                            <span class="font-mono font-bold text-purple-800 text-xs"><span id="totalInputXP">0</span> / 20 m</span>
                         </div>
                     </div>
 
@@ -319,7 +359,7 @@
                         <span class="text-2xl">📅</span>
                         <div>
                             <h3 class="font-bold text-slate-800 leading-tight">Tanggal & Info</h3>
-                            <span class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Sistem Catatan</span>
+                            <span class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold font-mono">Sistem Kalender</span>
                         </div>
                     </div>
 
@@ -329,13 +369,13 @@
 
                     <!-- Ringkasan Singkat Counter Akumulasi -->
                     <div class="bg-slate-50 p-3 rounded-xl border border-slate-150 space-y-1 text-xs">
-                        <span class="font-bold text-slate-600 block mb-1">📊 Akumulasi Produksi:</span>
+                        <span class="font-bold text-slate-600 block mb-1">📊 Keseluruhan Produksi:</span>
                         <div class="flex justify-between text-slate-600">
-                            <span>Kertas PageWide:</span>
+                            <span>Total PageWide:</span>
                             <span id="statPageWide" class="font-bold text-blue-950">0 Lbr</span>
                         </div>
                         <div class="flex justify-between text-slate-600">
-                            <span>Kertas Epson:</span>
+                            <span>Total Epson:</span>
                             <span id="statEpson" class="font-bold text-teal-800">0 Lbr</span>
                         </div>
                         <div class="flex justify-between text-slate-600">
@@ -571,7 +611,6 @@
 
     <!-- CODE LOGICAL CONTROLLER (FIREBASE SCRIPT MODULE) -->
     <script type="module">
-        // Import Firebase SDK dari CDN Resmi
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -587,7 +626,6 @@
             measurementId: "G-VP8Q3DSHMD"
         };
 
-        // Fallback untuk setup environment runtime jika ada
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : localFirebaseConfig;
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
@@ -608,8 +646,11 @@
 
         let activeKodeAkses = localStorage.getItem('si_printing_cloud_key') || "";
         let cloudUnsubscribe = null;
-        let isSyncing = false; // Mencegah loop penyimpanan tak berujung
-        let tempCloudData = null; // Menyimpan sementara data cloud jika ada konflik
+        let isSyncing = false; 
+        let tempCloudData = null; 
+
+        // Set tanggal input kalender otomatis ke hari ini
+        document.getElementById('inputTanggal').valueAsDate = new Date();
 
         // Konfigurasi Tarif Toko & Keuntungan Bersih
         const TARIF = {
@@ -665,7 +706,7 @@
             return "Rp " + angka.toLocaleString('id-ID');
         }
 
-        // Tampilkan Modal Peringatan Khusus (Pengganti alert)
+        // Tampilkan Modal Peringatan Khusus
         function showModal(title, message, icon = "📢") {
             document.getElementById('modalTitle').innerText = title;
             document.getElementById('modalMessage').innerText = message;
@@ -687,7 +728,7 @@
             return clean.replace(/[^a-z0-9]/gi, '_');
         }
 
-        // --- SISTEM FIREBASE CLOUD SYNC & AUTH (RULE 3 - Auth First) ---
+        // --- SISTEM FIREBASE CLOUD SYNC ---
         const initAuth = async () => {
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -703,7 +744,6 @@
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 console.log("Terhubung ke Firebase dengan UID:", user.uid);
-                // Jika sebelumnya ada kunci akses tersimpan di memori browser, langsung hubungkan otomatis
                 if (activeKodeAkses) {
                     document.getElementById('inputKodeAkses').value = activeKodeAkses;
                     hubungkanFirebase(true);
@@ -711,10 +751,8 @@
             }
         });
 
-        // Jalankan autentikasi saat aplikasi pertama dibuka
         initAuth();
 
-        // Hubungkan / Aktifkan Koneksi Online
         async function hubungkanFirebase(autoConnect = false) {
             const user = auth.currentUser;
             if (!user) {
@@ -731,14 +769,11 @@
             activeKodeAkses = kode;
             localStorage.setItem('si_printing_cloud_key', kode);
 
-            // Ganti tampilan UI Tombol & Status
             const btn = document.getElementById('btnHubungkan');
-            const status = document.getElementById('cloudStatus');
             btn.innerText = "Memproses...";
             btn.disabled = true;
 
             try {
-                // RULE 1: Sesuai SOP, path diletakkan di /artifacts/{appId}/public/data/{collectionName}/{docId}
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'toko_state', activeKodeAkses);
                 const snapshot = await getDoc(docRef);
 
@@ -747,14 +782,11 @@
                     tempCloudData = dataCloud;
 
                     if (autoConnect) {
-                        // Jika koneksi otomatis pada muat ulang halaman, langsung gunakan data cloud
                         pilihDataCloud(true);
                     } else {
-                        // Jika dihubungkan manual, tampilkan modal konfirmasi bentrok data
                         document.getElementById('modalConflict').classList.remove('hidden');
                     }
                 } else {
-                    // Jika database cloud belum ada, langsung unggah data lokal saat ini sebagai database awal
                     await uploadDataKeCloud();
                     aktifkanLiveSync();
                     showModal("Koneksi Sukses!", `Database cloud baru berhasil dibuat dengan Kode Akses: "${activeKodeAkses}". Semua perangkat Anda kini dapat menggunakan kode ini!`, "☁️");
@@ -798,7 +830,6 @@
             showModal("Cloud Diperbarui!", "Data dari komputer ini berhasil diunggah ke Cloud. Semua perangkat lain otomatis menggunakan data ini!", "✅");
         };
 
-        // Unggah Seluruh State Lokal ke Firestore
         async function uploadDataKeCloud() {
             const user = auth.currentUser;
             if (!user || !activeKodeAkses) return;
@@ -820,23 +851,20 @@
             }
         }
 
-        // Aktifkan Pengawasan Data Live Real-time (Sangat Magis!)
         function aktifkanLiveSync() {
             const user = auth.currentUser;
             if (!user || !activeKodeAkses) return;
 
             if (cloudUnsubscribe) {
-                cloudUnsubscribe(); // Cabut listener lama jika ada
+                cloudUnsubscribe();
             }
 
             const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'toko_state', activeKodeAkses);
             
-            // Listener Aktif Real-time
             cloudUnsubscribe = onSnapshot(docRef, (docSnap) => {
                 if (docSnap.exists() && !isSyncing) {
                     const data = docSnap.data();
                     
-                    // Update data lokal hanya jika data cloud lebih baru
                     database = data.database || [];
                     kasPerawatan = data.kasPerawatan || { pw: 0, ep: 0, xp: 0 };
                     stokInventori = data.stokInventori || { hvs: 2500, undangan: 200, spanduk: 50, stiker: 30 };
@@ -851,7 +879,6 @@
                 console.error("Kesalahan koneksi live sync: ", error);
             });
 
-            // Update Tampilan UI status terhubung
             const status = document.getElementById('cloudStatus');
             const btn = document.getElementById('btnHubungkan');
             status.innerText = "☁️ TERKONEKSI (ONLINE)";
@@ -862,7 +889,6 @@
             btn.disabled = false;
         }
 
-        // Putuskan Sambungan Cloud (Kembali ke mode lokal offline)
         function putuskanFirebase() {
             if (cloudUnsubscribe) {
                 cloudUnsubscribe();
@@ -887,7 +913,6 @@
 
         // --- LOGIKA UTAMA APRESIASI KARYA TOKO ---
 
-        // Buka / Tutup Modal Input Perawatan
         window.bukaModalPerawatan = function() {
             document.getElementById('maintKeterangan').value = '';
             document.getElementById('maintBiaya').value = '';
@@ -898,7 +923,6 @@
             document.getElementById('modalPerawatan').classList.add('hidden');
         };
 
-        // Buka / Tutup Modal Input Bahan Baku
         window.bukaModalBahanBaku = function() {
             document.getElementById('bahanJenisInput').value = '';
             document.getElementById('bahanSatuan').value = 'Lbr';
@@ -911,7 +935,6 @@
             document.getElementById('modalBahanBaku').classList.add('hidden');
         };
 
-        // Proses Pembelian Bahan Baku Baru
         window.prosesSimpanBahanBaku = async function() {
             const namaBahanInput = document.getElementById('bahanJenisInput').value.trim();
             const satuanBahan = document.getElementById('bahanSatuan').value;
@@ -933,7 +956,6 @@
 
             const key = getBahanKey(namaBahanInput);
 
-            // Tambahkan ke stok gudang
             if (stokInventori[key] === undefined) {
                 stokInventori[key] = 0;
             }
@@ -965,7 +987,6 @@
             database.push(itemBelanja);
             localStorage.setItem('si_printing_db', JSON.stringify(database));
 
-            // Sync ke Cloud if online
             if (database.length > 0 && typeof kasPerawatan !== "undefined") {
                 await syncCloudStorage();
             }
@@ -975,7 +996,6 @@
             showModal("Bahan Baku Bertambah", `Stok "${namaBahanInput}" berhasil ditambahkan sebanyak ${jumlah} ${satuanBahan}. Pengeluaran dicatat sebesar ${formatRupiah(biaya)}.`, "📦");
         };
 
-        // Simpan Biaya Perawatan & Potong Kas Mesin Terkait
         window.prosesSimpanPerawatan = async function() {
             const mesin = document.getElementById('maintMesin').value;
             const ket = document.getElementById('maintKeterangan').value;
@@ -1029,14 +1049,12 @@
             showModal("Servis Tercatat", `Pengeluaran servis dicatat. Saldo kas perawatan mesin tersebut berhasil dipotong sebesar ${formatRupiah(biaya)}.`, "🔧");
         };
 
-        // Sinkronisasi data cloud setelah ada manipulasi di lokal
         async function syncCloudStorage() {
             if (activeKodeAkses) {
                 await uploadDataKeCloud();
             }
         }
 
-        // Memperbarui rekomendasi auto-complete berdasarkan barang yang pernah Anda kulak
         function updateBahanDatalist() {
             const datalist = document.getElementById('daftarBahanBaku');
             if (!datalist) return;
@@ -1057,6 +1075,97 @@
                 datalist.appendChild(option);
             });
         }
+
+        // --- SISTEM PEMANTAUAN KAPASITAS HARIAN AKURAT DARI DATABASE ---
+        function hitungUlangKapasitas() {
+            const tglPilihan = document.getElementById('inputTanggal').value;
+            if (!tglPilihan) return;
+
+            // 1. Ambil data yang sudah tercatat/disimpan di database untuk tanggal terpilih
+            let sdhTercatatPW = 0;
+            let sdhTercatatEP = 0;
+            let sdhTercatatXP = 0;
+
+            database.forEach(item => {
+                if (item.tanggal === tglPilihan && !item.is_expense && !item.is_bahan_expense) {
+                    sdhTercatatPW += ((item.pw_fc || 0) + (item.pw_hp || 0) + (item.pw_warna || 0));
+                    sdhTercatatEP += ((item.ep_fc || 0) + (item.ep_hp || 0) + (item.ep_warna || 0));
+                    sdhTercatatXP += ((item.xp_spanduk || 0) + (item.xp_stiker || 0));
+                }
+            });
+
+            // Update UI Nilai Tercatat Hari Ini di masing-masing mesin
+            document.getElementById('recordedPW').innerText = sdhTercatatPW.toLocaleString('id-ID') + " Lbr";
+            document.getElementById('recordedEP').innerText = sdhTercatatEP.toLocaleString('id-ID') + " Lbr";
+            document.getElementById('recordedXP').innerText = sdhTercatatXP.toFixed(2) + " m";
+
+            // 2. Ambil nilai yang sedang diketikkan di form saat ini
+            const pw_fc = parseInt(document.getElementById('inputPW_FC').value) || 0;
+            const pw_hp = parseInt(document.getElementById('inputPW_HP').value) || 0;
+            const pw_warna = parseInt(document.getElementById('inputPW_Warna').value) || 0;
+            const sedangKetikPW = pw_fc + pw_hp + pw_warna;
+
+            const ep_fc = parseInt(document.getElementById('inputEP_FC').value) || 0;
+            const ep_hp = parseInt(document.getElementById('inputEP_HP').value) || 0;
+            const ep_warna = parseInt(document.getElementById('inputEP_Warna').value) || 0;
+            const sedangKetikEP = ep_fc + ep_hp + ep_warna;
+
+            const xp_spanduk = parseFloat(document.getElementById('inputXP_Spanduk').value) || 0;
+            const xp_stiker = parseFloat(document.getElementById('inputXP_Sticker').value) || 0;
+            const sedangKetikXP = xp_spanduk + xp_stiker;
+
+            // 3. Gabungkan: Tercatat di DB + Sedang Diketik saat ini
+            const akumulasiPW = sdhTercatatPW + sedangKetikPW;
+            const akumulasiEP = sdhTercatatEP + sedangKetikEP;
+            const akumulasiXP = sdhTercatatXP + sedangKetikXP;
+
+            // 4. Update Angka Akumulasi Gabungan di UI Monitor
+            document.getElementById('totalInputPW').innerText = akumulasiPW.toLocaleString('id-ID');
+            document.getElementById('totalInputEP').innerText = akumulasiEP.toLocaleString('id-ID');
+            document.getElementById('totalInputXP').innerText = akumulasiXP.toFixed(2);
+
+            // 5. Kontrol Muncul/Hilangnya Spanduk Peringatan Merah secara otomatis
+            const warnPW = document.getElementById('warnPW');
+            if (akumulasiPW > 1000) {
+                warnPW.classList.remove('hidden');
+            } else {
+                warnPW.classList.add('hidden');
+            }
+
+            const warnEP = document.getElementById('warnEP');
+            if (akumulasiEP > 200) {
+                warnEP.classList.remove('hidden');
+            } else {
+                warnEP.classList.add('hidden');
+            }
+
+            const warnXP = document.getElementById('warnXP');
+            if (akumulasiXP > 20) {
+                warnXP.classList.remove('hidden');
+            } else {
+                warnXP.classList.add('hidden');
+            }
+        }
+
+        // Jalankan Monitor Event Listener untuk Keyboard Input dan Kalender
+        function inisialisasiMonitorBatasMesin() {
+            const inputsPW = ['inputPW_FC', 'inputPW_HP', 'inputPW_Warna'];
+            const inputsEP = ['inputEP_FC', 'inputEP_HP', 'inputEP_Warna'];
+            const inputsXP = ['inputXP_Spanduk', 'inputXP_Sticker'];
+
+            // Daftarkan ke keyboard typing listener
+            inputsPW.forEach(id => document.getElementById(id).addEventListener('input', hitungUlangKapasitas));
+            inputsEP.forEach(id => document.getElementById(id).addEventListener('input', hitungUlangKapasitas));
+            inputsXP.forEach(id => document.getElementById(id).addEventListener('input', hitungUlangKapasitas));
+
+            // Jika tanggal diubah, hitung ulang kapasitas terpakai tanggal tersebut
+            document.getElementById('inputTanggal').addEventListener('change', hitungUlangKapasitas);
+
+            window.resetMonitorTampilanKapasitas = function() {
+                hitungUlangKapasitas();
+            }
+        }
+
 
         // Fungsi Render Halaman Utama, Hitung Akumulasi, Kas & Stok Gudang
         function renderHalaman() {
@@ -1199,7 +1308,7 @@
             document.getElementById('stokSpanduk').className = stokInventori.spanduk < 10 ? "font-mono font-black text-red-600 text-sm animate-pulse" : "font-mono font-bold text-purple-700 text-sm";
             document.getElementById('stokStiker').className = stokInventori.stiker < 5 ? "font-mono font-black text-red-600 text-sm animate-pulse" : "font-mono font-bold text-purple-700 text-sm";
 
-            // Render Stok Bahan Baku Lainnya (Custom) yang diinput manual oleh User
+            // Render Stok Bahan Baku Lainnya (Custom)
             const customStokContainer = document.getElementById('customStokContainer');
             if (customStokContainer) {
                 customStokContainer.innerHTML = '';
@@ -1233,7 +1342,6 @@
                 }
             }
 
-            // Perbarui rekomendasi datalist
             updateBahanDatalist();
 
             // Hitung sisa target tabungan & rata-rata harian
@@ -1259,6 +1367,9 @@
             document.getElementById('statEpson').innerText = totalKertasEP.toLocaleString('id-ID') + " Lbr";
             document.getElementById('statXPSpanduk').innerText = totalMtrSpanduk.toFixed(2) + " Mtr";
             document.getElementById('statXPStiker').innerText = totalMtrStiker.toFixed(2) + " Mtr";
+
+            // Hitung Ulang Kapasitas Terpakai untuk tanggal terpilih
+            hitungUlangKapasitas();
         }
 
         // Simpan Transaksi Baru & Kurangi Stok Otomatis
@@ -1352,9 +1463,11 @@
                 pw_fc: pw_fc,
                 pw_hp: pw_hp,
                 pw_warna: pw_warna,
+                pw_jenis_kertas: pw_jenis_kertas,
                 ep_fc: ep_fc,
                 ep_hp: ep_hp,
                 ep_warna: ep_warna,
+                ep_jenis_kertas: ep_jenis_kertas,
                 xp_spanduk: xp_spanduk,
                 xp_stiker: xp_stiker,
                 xp_a3: xp_a3,
@@ -1367,7 +1480,7 @@
 
             await syncCloudStorage();
 
-            // Bersihkan form input
+            // Bersihkan form input setelah sukses
             document.getElementById('inputPW_FC').value = '';
             document.getElementById('inputPW_HP').value = '';
             document.getElementById('inputPW_Warna').value = '';
@@ -1377,6 +1490,11 @@
             document.getElementById('inputXP_Spanduk').value = '';
             document.getElementById('inputXP_Sticker').value = '';
             document.getElementById('inputXP_A3').value = '';
+
+            // Reset tampilan counter & spanduk merah
+            if (typeof window.resetMonitorTampilanKapasitas === 'function') {
+                window.resetMonitorTampilanKapasitas();
+            }
 
             renderHalaman();
 
@@ -1423,7 +1541,6 @@
         };
 
         window.clearSemua = function() {
-            // Gunakan custom modal konfirmasi agar tidak menggunakan alert/confirm standar
             if (confirm("Perhatian Pak! Apakah Anda yakin ingin menghapus seluruh riwayat pembukuan harian? Harap download backup file terlebih dahulu agar data tidak hilang permanen.")) {
                 database = [];
                 kasPerawatan = { pw: 0, ep: 0, xp: 0 };
@@ -1476,37 +1593,7 @@
             fileReader.readAsText(fileInput.files[0]);
         };
 
-        // --- SINKRONISASI BENTROK DATA RESOLUTION ---
-        window.pilihDataCloud = function(silent = false) {
-            document.getElementById('modalConflict').classList.add('hidden');
-            if (!tempCloudData) return;
-
-            database = tempCloudData.database || [];
-            kasPerawatan = tempCloudData.kasPerawatan || { pw: 0, ep: 0, xp: 0 };
-            stokInventori = tempCloudData.stokInventori || { hvs: 2500, undangan: 200, spanduk: 50, stiker: 30 };
-
-            localStorage.setItem('si_printing_db', JSON.stringify(database));
-            localStorage.setItem('si_printing_maint_kas', JSON.stringify(kasPerawatan));
-            localStorage.setItem('si_printing_stok', JSON.stringify(stokInventori));
-
-            aktifkanLiveSync();
-            renderHalaman();
-
-            if (!silent) {
-                showModal("Data Sinkron!", "Data dari Cloud berhasil dimuat ke komputer ini. Mode sinkronisasi otomatis kini aktif!", "✅");
-            }
-        };
-
-        window.pilihDataLokal = async function() {
-            document.getElementById('modalConflict').classList.add('hidden');
-            await uploadDataKeCloud();
-            aktifkanLiveSync();
-            renderHalaman();
-            showModal("Cloud Diperbarui!", "Data dari komputer ini berhasil diunggah ke Cloud. Semua perangkat lain otomatis menggunakan data ini!", "✅");
-        };
-
-
-        // --- LOGIKA KALKULATOR TOKO TERINTEGRASI DI DEPAN ---
+        // --- LOGIKA KALKULATOR TOKO TERINTEGRASI ---
         let calcVal = "0";
 
         function updateCalcDisplay() {
@@ -1565,6 +1652,9 @@
             }
             updateCalcDisplay();
         };
+
+        // Jalankan inisialisasi monitor pelindung mesin
+        inisialisasiMonitorBatasMesin();
 
         // Render pertama kali
         renderHalaman();
