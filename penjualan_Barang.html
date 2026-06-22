@@ -3,806 +3,749 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aplikasi Kasir Percetakan</title>
-    <!-- Menggunakan Tailwind CSS untuk styling cepat dan modern -->
+    <title>Jinka YS360 A3 Layout Generator - Auto Contour</title>
+    <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Menggunakan Google Fonts untuk tipografi yang lebih baik -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Icon dari Lucide Icons -->
-    <script src="https://unpkg.com/lucide/dist/umd/lucide.min.js"></script>
-    <!-- Library untuk membaca dan menulis file Excel -->
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
-
+    <!-- Load jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f8fafc; /* bg-slate-50 */
-        }
-        /* Style untuk menyembunyikan elemen yang tidak perlu saat mencetak nota */
-        @media print {
-            body * {
-                visibility: hidden;
-            }
-            #nota-area, #nota-area * {
-                visibility: visible;
-            }
-            #nota-area {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-            }
-        }
-        .tab-button {
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease-in-out;
-            display: inline-flex;
-            align-items: center;
-        }
-        .tab-button.active {
-            background-color: #3b82f6; /* bg-blue-600 */
-            color: white;
-        }
-        .tab-button:not(.active) {
-            background-color: #e2e8f0; /* bg-slate-200 */
-            color: #475569; /* text-slate-600 */
-        }
-        .tab-button:not(.active):hover {
-            background-color: #cbd5e1; /* bg-slate-300 */
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .canvas-container {
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 20px 20px;
         }
     </style>
 </head>
-<body class="text-slate-800">
+<body class="text-gray-800 h-screen flex flex-col overflow-hidden">
 
-    <div class="container mx-auto p-4 md:p-6 lg:p-8">
-        <header class="mb-8 text-center">
-            <h1 class="text-3xl md:text-4xl font-bold text-slate-900">Kasir Percetakan Digital</h1>
-            <p class="text-slate-600 mt-2">Manajemen Transaksi, Stok, dan Laporan Penjualan</p>
-        </header>
+    <!-- Header -->
+    <header class="bg-blue-600 text-white p-4 shadow-md shrink-0 flex items-center justify-between z-10">
+        <div>
+            <h1 class="text-xl font-bold">Jinka YS360 Auto-Layout</h1>
+            <p class="text-sm text-blue-200">Generator Susunan Stiker A3 & Ekspor PDF Contour Cut (Bulat / Lekuk PNG)</p>
+        </div>
+        <div class="hidden sm:block text-xs bg-blue-700 px-3 py-1 rounded-full border border-blue-500">
+            A3 (297x420mm) | Jinka Area (280x420mm)
+        </div>
+    </header>
 
-        <!-- Navigasi Tab -->
-        <div class="mb-8 bg-white rounded-xl shadow-sm p-2 flex justify-center space-x-2 max-w-md mx-auto">
-            <button onclick="switchTab('kasir')" id="tab-kasir" class="tab-button active">
-                <i data-lucide="shopping-cart" class="w-4 h-4 mr-2"></i>Kasir
-            </button>
-            <button onclick="switchTab('stok')" id="tab-stok" class="tab-button">
-                <i data-lucide="archive" class="w-4 h-4 mr-2"></i>Manajemen Stok
-            </button>
-            <button onclick="switchTab('laporan')" id="tab-laporan" class="tab-button">
-                <i data-lucide="bar-chart-3" class="w-4 h-4 mr-2"></i>Laporan
+    <!-- Custom Modal/Notification (Replace Browser Alert) -->
+    <div id="notificationModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-lg p-6 max-w-sm w-full mx-4 shadow-2xl transform scale-95 transition-transform duration-300">
+            <h3 id="modalTitle" class="text-lg font-bold text-gray-900 mb-2">Notifikasi</h3>
+            <p id="modalMessage" class="text-gray-600 text-sm mb-4">Pesan di sini.</p>
+            <button onclick="closeNotification()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition">
+                Tutup
             </button>
         </div>
+    </div>
 
-        <!-- Konten Aplikasi -->
-        <main>
-            <!-- 1. Tampilan Kasir (Point of Sale) -->
-            <div id="view-kasir">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <!-- Kolom Kiri: Input Pesanan -->
-                    <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-lg">
-                        <h2 class="text-xl font-bold mb-4 border-b pb-2">Buat Pesanan Baru</h2>
-                        <div class="space-y-4">
-                            <div>
-                                <label for="nama-pelanggan-input" class="block text-sm font-medium text-slate-700 mb-1">Nama Pelanggan (Opsional)</label>
-                                <input type="text" id="nama-pelanggan-input" placeholder="Masukkan nama pelanggan" class="w-full p-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-                            <!-- Fitur Pencarian Produk -->
-                            <div class="relative">
-                                <label for="produk-search-input" class="block text-sm font-medium text-slate-700 mb-1">Pilih Produk/Jasa</label>
-                                <input type="text" id="produk-search-input" placeholder="Ketik untuk mencari produk..." class="w-full p-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
-                                <div id="produk-search-results" class="absolute z-10 w-full bg-white border rounded-md mt-1 hidden max-h-60 overflow-y-auto shadow-lg"></div>
-                            </div>
-                            <div>
-                                <label for="jumlah-input" class="block text-sm font-medium text-slate-700 mb-1">Jumlah</label>
-                                <input type="number" id="jumlah-input" value="1" min="1" class="w-full p-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-                            <button onclick="addToCart()" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition-transform transform hover:scale-105 flex items-center justify-center shadow-md">
-                                <i data-lucide="plus-circle" class="w-5 h-5 mr-2"></i>
-                                Tambah ke Keranjang
-                            </button>
-                        </div>
-                    </div>
+    <!-- Main Content -->
+    <main class="flex-1 overflow-hidden flex flex-col md:flex-row w-full h-full">
+        
+        <!-- Left Panel: Controls -->
+        <aside class="w-full md:w-1/3 lg:w-1/4 bg-white shadow-[4px_0_15px_-3px_rgba(0,0,0,0.1)] p-5 overflow-y-auto z-10 shrink-0">
+            
+            <!-- Image Input -->
+            <div class="mb-4">
+                <label class="block text-sm font-semibold mb-2 text-gray-700">1. Pilih Gambar (PNG/JPG)</label>
+                <input type="file" id="imageInput" accept="image/png, image/jpeg" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer border border-gray-300 rounded-md">
+                <p class="text-[11px] text-gray-500 mt-1">Gunakan format PNG transparan jika ingin mendeteksi lekuk gambar asli.</p>
+            </div>
 
-                    <!-- Kolom Kanan: Keranjang Belanja -->
-                    <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-lg">
-                        <h2 class="text-xl font-bold mb-4 border-b pb-2 flex justify-between items-center">
-                            <span>Keranjang Belanja</span>
-                            <span id="cart-count" class="text-sm bg-blue-100 text-blue-800 font-semibold px-2.5 py-0.5 rounded-full">0 Item</span>
-                        </h2>
-                        <div id="cart-items" class="overflow-y-auto space-y-2" style="max-height: 300px;">
-                           <!-- Item keranjang akan ditambahkan di sini oleh JavaScript -->
-                        </div>
-                        <div id="cart-empty" class="text-center py-10 text-slate-500">
-                            <i data-lucide="shopping-basket" class="w-16 h-16 mx-auto text-slate-300"></i>
-                            <p class="mt-2">Keranjang masih kosong.</p>
-                        </div>
-                        <div class="mt-6 border-t pt-4">
-                            <div class="flex justify-between items-center text-2xl font-bold">
-                                <span>Total:</span>
-                                <span id="cart-total">Rp 0</span>
-                            </div>
-                            <div class="grid grid-cols-2 gap-4 mt-4">
-                                <button onclick="clearCart()" class="w-full bg-red-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-red-600 transition-transform transform hover:scale-105 shadow-md">Batalkan</button>
-                                <button onclick="processTransaction()" class="w-full bg-green-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-600 transition-transform transform hover:scale-105 shadow-md">Bayar & Cetak</button>
-                            </div>
-                        </div>
+            <!-- Dimensions -->
+            <div class="mb-4 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                <label class="block text-sm font-semibold mb-3 text-gray-700">2. Ukuran Stiker (mm)</label>
+                <div class="flex gap-3 mb-3">
+                    <div class="flex-1">
+                        <label class="text-xs text-gray-500">Lebar (W)</label>
+                        <input type="number" id="stickerW" value="50" min="5" step="0.1" class="w-full mt-1 border border-gray-300 p-2 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
                     </div>
+                    <div class="flex-1">
+                        <label class="text-xs text-gray-500">Tinggi (H)</label>
+                        <input type="number" id="stickerH" value="50" min="5" step="0.1" class="w-full mt-1 border border-gray-300 p-2 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-xs text-gray-500">Jarak Antar Stiker / Gap (mm)</label>
+                    <input type="number" id="gap" value="3" min="0" step="0.1" class="w-full mt-1 border border-gray-300 p-2 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
                 </div>
             </div>
 
-            <!-- 2. Tampilan Manajemen Stok -->
-            <div id="view-stok" class="hidden">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <!-- Form Tambah Produk & Import/Export -->
-                    <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-lg space-y-8">
-                        <div>
-                            <h2 class="text-xl font-bold mb-4 border-b pb-2">Tambah Produk/Jasa</h2>
-                            <form id="add-product-form" class="space-y-4">
-                                <div>
-                                    <label for="kode-produk" class="block text-sm font-medium text-slate-700 mb-1">Kode Produk</label>
-                                    <input type="text" id="kode-produk" required class="w-full p-2 border border-slate-300 rounded-md">
-                                </div>
-                                <div>
-                                    <label for="nama-produk" class="block text-sm font-medium text-slate-700 mb-1">Nama Produk/Jasa</label>
-                                    <input type="text" id="nama-produk" required class="w-full p-2 border border-slate-300 rounded-md">
-                                </div>
-                                <div>
-                                    <label for="jenis-produk" class="block text-sm font-medium text-slate-700 mb-1">Jenis</label>
-                                    <select id="jenis-produk" class="w-full p-2 border border-slate-300 rounded-md">
-                                        <option value="Barang">Barang (Manajemen Stok)</option>
-                                        <option value="Jasa">Jasa</option>
-                                    </select>
-                                </div>
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label for="satuan-produk" class="block text-sm font-medium text-slate-700 mb-1">Satuan</label>
-                                        <input type="text" id="satuan-produk" placeholder="Pcs, Lembar, Rim" required class="w-full p-2 border border-slate-300 rounded-md">
-                                    </div>
-                                    <div>
-                                        <label for="harga-produk" class="block text-sm font-medium text-slate-700 mb-1">Harga Jual</label>
-                                        <input type="number" id="harga-produk" required class="w-full p-2 border border-slate-300 rounded-md">
-                                    </div>
-                                </div>
-                                <div>
-                                    <label for="stok-produk" class="block text-sm font-medium text-slate-700 mb-1">Stok Awal</label>
-                                    <input type="number" id="stok-produk" value="0" min="0" class="w-full p-2 border border-slate-300 rounded-md">
-                                    <small class="text-slate-500">Isi 0 jika jenisnya 'Jasa'.</small>
-                                </div>
-                                <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition-transform transform hover:scale-105 shadow-md">Simpan Produk</button>
-                            </form>
-                        </div>
-                        
-                        <div>
-                            <h2 class="text-xl font-bold mb-4 border-b pb-2">Database</h2>
-                            <div class="space-y-3">
-                                <label for="import-excel-input" class="w-full bg-teal-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-teal-600 transition-transform transform hover:scale-105 flex items-center justify-center shadow-md cursor-pointer">
-                                    <i data-lucide="upload" class="w-5 h-5 mr-2"></i> Import dari Excel
-                                </label>
-                                <input type="file" id="import-excel-input" onchange="importFromExcel(event)" accept=".xlsx, .xls" class="hidden">
-                                <button onclick="exportDatabase()" class="w-full bg-sky-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-sky-600 transition-transform transform hover:scale-105 flex items-center justify-center shadow-md">
-                                    <i data-lucide="download" class="w-5 h-5 mr-2"></i> Export Database (Backup)
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+            <!-- New Contour Type & Styling -->
+            <div class="mb-4 bg-blue-50/50 p-3 rounded-lg border border-blue-200">
+                <label class="block text-sm font-semibold mb-2 text-gray-700">3. Jenis Garis Potong (Contour)</label>
+                
+                <div class="space-y-2 mb-3">
+                    <label class="flex items-center space-x-2 text-sm cursor-pointer">
+                        <input type="radio" name="contourType" value="rect" class="text-blue-600 focus:ring-blue-500" checked>
+                        <span>Kotak (Rectangle)</span>
+                    </label>
+                    <label class="flex items-center space-x-2 text-sm cursor-pointer">
+                        <input type="radio" name="contourType" value="circle" class="text-blue-600 focus:ring-blue-500">
+                        <span>Bulat / Lingkaran (Circle)</span>
+                    </label>
+                    <label class="flex items-center space-x-2 text-sm cursor-pointer">
+                        <input type="radio" name="contourType" value="auto" class="text-blue-600 focus:ring-blue-500">
+                        <span class="font-medium text-blue-900">Ikuti Lekuk Gambar PNG (Auto-Contour)</span>
+                    </label>
+                </div>
 
-                    <!-- Kolom Kanan: Daftar Stok dan Belanja -->
-                    <div class="lg:col-span-2 space-y-8">
-                        <div class="bg-white p-6 rounded-xl shadow-lg">
-                             <div class="flex justify-between items-center mb-4 border-b pb-2">
-                                <h2 class="text-xl font-bold flex items-center text-orange-600">
-                                    <i data-lucide="shopping-bag" class="w-5 h-5 mr-2"></i> Barang Harus Dibelanjakan
-                                </h2>
-                                <button onclick="printShoppingList()" class="bg-orange-500 text-white px-3 py-1 rounded-md text-sm hover:bg-orange-600 flex items-center">
-                                    <i data-lucide="printer" class="w-4 h-4 mr-2"></i>Cetak
-                                </button>
-                            </div>
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-sm text-left text-slate-500">
-                                    <thead class="text-xs text-slate-700 uppercase bg-orange-100">
-                                        <tr>
-                                            <th scope="col" class="px-6 py-3 rounded-l-lg">Kode</th>
-                                            <th scope="col" class="px-6 py-3">Nama Produk</th>
-                                            <th scope="col" class="px-6 py-3 rounded-r-lg">Sisa Stok</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="shopping-list-table-body"></tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        <div class="bg-white p-6 rounded-xl shadow-lg">
-                            <h2 class="text-xl font-bold mb-4 border-b pb-2">Semua Produk & Stok</h2>
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-sm text-left text-slate-500">
-                                    <thead class="text-xs text-slate-700 uppercase bg-slate-100">
-                                        <tr>
-                                            <th scope="col" class="px-6 py-3 rounded-l-lg">Kode</th>
-                                            <th scope="col" class="px-6 py-3">Nama</th>
-                                            <th scope="col" class="px-6 py-3">Harga</th>
-                                            <th scope="col" class="px-6 py-3">Stok</th>
-                                            <th scope="col" class="px-6 py-3 rounded-r-lg">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="stock-table-body"></tbody>
-                                </table>
-                            </div>
-                        </div>
+                <!-- Offset / Bleed Spacing -->
+                <div class="border-t border-blue-100 pt-2 mt-2">
+                    <div class="flex justify-between text-xs text-gray-500 mb-1">
+                        <span>Jarak Spasi Garis Potong (Bleed)</span>
+                        <span id="offsetVal" class="font-bold text-blue-700">0.0 mm</span>
                     </div>
+                    <input type="range" id="contourOffset" min="-2" max="5" step="0.5" value="0" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                    <p class="text-[10px] text-gray-500 mt-1">Gunakan nilai positif (+1mm s/d +2mm) sebagai jarak aman potong agar gambar utama tidak gompal jika mesin potong sedikit melenceng.</p>
                 </div>
             </div>
 
-            <!-- 3. Tampilan Laporan Penjualan -->
-            <div id="view-laporan" class="hidden">
-                 <div class="bg-white p-6 rounded-xl shadow-lg">
-                    <h2 class="text-xl font-bold mb-4 border-b pb-2">Riwayat Transaksi</h2>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm text-left text-slate-500">
-                            <thead class="text-xs text-slate-700 uppercase bg-slate-100">
-                                <tr>
-                                    <th scope="col" class="px-6 py-3 rounded-l-lg">No. Nota</th>
-                                    <th scope="col" class="px-6 py-3">Tanggal</th>
-                                    <th scope="col" class="px-6 py-3">Jumlah Item</th>
-                                    <th scope="col" class="px-6 py-3">Total Transaksi</th>
-                                    <th scope="col" class="px-6 py-3 rounded-r-lg">Detail</th>
-                                </tr>
-                            </thead>
-                            <tbody id="report-table-body"></tbody>
-                        </table>
-                    </div>
-                 </div>
+            <!-- Export Options -->
+            <div class="mb-4 bg-white p-3 border border-gray-300 rounded-lg shadow-sm">
+                <label class="flex items-center space-x-2 cursor-pointer">
+                    <input type="checkbox" id="addCutLine" class="rounded text-blue-600 focus:ring-blue-500 h-4 w-4" checked>
+                    <span class="text-sm font-semibold text-gray-700">Garis Potong (Cut Line) di PDF</span>
+                </label>
+                <p class="text-xs text-gray-500 ml-6 mt-1">Otomatis membuat garis berwarna Magenta tipis (hairline) untuk dibaca mesin Jinka Anda di CorelDRAW.</p>
             </div>
-        </main>
-    </div>
 
-    <!-- Modal untuk Nota, Detail Laporan, dan Edit Stok -->
-    <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-lg shadow-2xl w-full max-w-md max-h-full overflow-y-auto transform transition-all duration-300 scale-95 opacity-0" id="modal-box">
-            <div id="modal-content"></div>
-            <div id="modal-footer" class="p-4 bg-slate-50 flex justify-end space-x-2 border-t"></div>
-        </div>
-    </div>
+            <!-- Actions -->
+            <button id="btnCalculate" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200 shadow-md mb-2">
+                Hitung & Pratinjau
+            </button>
+            <button id="btnExport" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200 shadow-md opacity-50 cursor-not-allowed flex justify-center items-center gap-2" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                Download PDF A3
+            </button>
+
+            <!-- Status / Result -->
+            <div id="statusBox" class="mt-4 p-3 rounded-lg bg-gray-100 text-sm border border-gray-200 hidden">
+                <h3 class="font-bold text-gray-800 mb-1">Hasil Susunan:</h3>
+                <div id="statusContent" class="text-gray-600 space-y-1"></div>
+            </div>
+        </aside>
+
+        <!-- Right Panel: Preview -->
+        <section class="flex-1 canvas-container relative overflow-auto flex justify-center items-center p-4">
+            <!-- Canvas Wrapper for visual scaling -->
+            <div id="canvasWrapper" class="relative bg-white shadow-2xl transition-transform duration-300" style="width: 594px; height: 840px;">
+                <canvas id="previewCanvas" class="absolute top-0 left-0 w-full h-full"></canvas>
+            </div>
+            
+            <!-- Notice if empty -->
+            <div id="emptyNotice" class="absolute inset-0 flex flex-col items-center justify-center text-gray-400 pointer-events-none">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mb-2 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                <p>Pratinjau Lembar A3</p>
+                <p class="text-xs text-gray-400 mt-1">Masukkan gambar di panel kiri untuk memulai.</p>
+            </div>
+        </section>
+
+    </main>
 
     <script>
-        const LOW_STOCK_THRESHOLD = 10;
+        // --- Constants & Variables ---
+        const A3_W_MM = 297;
+        const A3_H_MM = 420;
+        const JINKA_MAX_W = 280;
+        const JINKA_MAX_H = 420;
         
-        let products = [];
-        let cart = [];
-        let transactions = [];
-        let selectedProduct = null;
+        // Offset X to center Jinka area inside A3
+        const OFFSET_X_MM = (A3_W_MM - JINKA_MAX_W) / 2; // (297 - 280) / 2 = 8.5mm
 
-        const kasirView = document.getElementById('view-kasir');
-        const stokView = document.getElementById('view-stok');
-        const laporanView = document.getElementById('view-laporan');
-        const produkSearchInput = document.getElementById('produk-search-input');
-        const produkSearchResults = document.getElementById('produk-search-results');
-        const cartItemsContainer = document.getElementById('cart-items');
-        const cartTotalEl = document.getElementById('cart-total');
-        const cartCountEl = document.getElementById('cart-count');
-        const cartEmptyEl = document.getElementById('cart-empty');
-        const stockTableBody = document.getElementById('stock-table-body');
-        const shoppingListTableBody = document.getElementById('shopping-list-table-body');
-        const reportTableBody = document.getElementById('report-table-body');
-        const modal = document.getElementById('modal');
-        const modalBox = document.getElementById('modal-box');
-        const modalContent = document.getElementById('modal-content');
-        const modalFooter = document.getElementById('modal-footer');
+        let loadedImage = null;
+        let layoutData = {
+            cols: 0,
+            rows: 0,
+            total: 0,
+            rotated: false,
+            w_mm: 0,
+            h_mm: 0,
+            gap_mm: 0,
+            contourType: 'rect',
+            offset_mm: 0
+        };
 
-        const formatCurrency = (amount) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
+        // Cache of calculated/traced raw contour paths
+        let baseContourPath = []; // coordinates scaled 0.0 to 1.0 of sticker size
 
-        function loadData() {
-            products = JSON.parse(localStorage.getItem('products')) || [];
-            transactions = JSON.parse(localStorage.getItem('transactions')) || [];
-            if (products.length === 0) {
-                products = [
-                    { id: Date.now() + 1, kode: 'A3-AP260', nama: 'Cetak A3+ Art Paper 260gr', jenis: 'Jasa', satuan: 'Lembar', harga: 5000, stok: null },
-                    { id: Date.now() + 2, kode: 'PIN-44', nama: 'Pin Ganci 44mm', jenis: 'Barang', satuan: 'Pcs', harga: 3000, stok: 8 },
-                    { id: Date.now() + 3, kode: 'KOP-HVS', nama: 'Kertas HVS A4 70gr', jenis: 'Barang', satuan: 'Rim', harga: 50000, stok: 20 },
-                    { id: Date.now() + 4, kode: 'ID-CARD', nama: 'Cetak ID Card PVC', jenis: 'Barang', satuan: 'Pcs', harga: 7500, stok: 0 },
-                ];
-                saveProducts();
-            }
-        }
+        // --- DOM Elements ---
+        const imageInput = document.getElementById('imageInput');
+        const stickerWInput = document.getElementById('stickerW');
+        const stickerHInput = document.getElementById('stickerH');
+        const gapInput = document.getElementById('gap');
+        const contourOffsetInput = document.getElementById('contourOffset');
+        const offsetValLabel = document.getElementById('offsetVal');
+        const addCutLineInput = document.getElementById('addCutLine');
+        const btnCalculate = document.getElementById('btnCalculate');
+        const btnExport = document.getElementById('btnExport');
+        const statusBox = document.getElementById('statusBox');
+        const statusContent = document.getElementById('statusContent');
+        const canvas = document.getElementById('previewCanvas');
+        const canvasWrapper = document.getElementById('canvasWrapper');
+        const emptyNotice = document.getElementById('emptyNotice');
+        const ctx = canvas.getContext('2d');
 
-        const saveProducts = () => localStorage.setItem('products', JSON.stringify(products));
-        const saveTransactions = () => localStorage.setItem('transactions', JSON.stringify(transactions));
-
-        function renderAll() {
-            renderCart();
-            renderStockTable();
-            renderShoppingList();
-            renderReportTable();
-            lucide.createIcons();
-        }
-
-        function renderCart() {
-            cartItemsContainer.innerHTML = '';
-            if (cart.length === 0) {
-                cartEmptyEl.classList.remove('hidden');
-                cartItemsContainer.classList.add('hidden');
-            } else {
-                cartEmptyEl.classList.add('hidden');
-                cartItemsContainer.classList.remove('hidden');
-                cart.forEach((item, index) => {
-                    let warningHtml = '';
-                    const isLowStock = item.jenis === 'Barang' && item.stokSaatIni <= LOW_STOCK_THRESHOLD;
-                    if (isLowStock) {
-                        warningHtml = `<span class="ml-2 bg-yellow-100 text-yellow-800 text-xs font-medium px-2 py-0.5 rounded-full flex items-center"><i data-lucide="alert-triangle" class="w-3 h-3 mr-1"></i> Stok Terbatas</span>`;
-                    }
-                    cartItemsContainer.innerHTML += `
-                        <div class="flex justify-between items-center p-3 border-b hover:bg-gray-50 rounded-lg">
-                            <div>
-                                <p class="font-semibold flex items-center">${item.nama} ${warningHtml}</p>
-                                <p class="text-sm text-slate-500">${item.jumlah} x ${formatCurrency(item.harga)}</p>
-                            </div>
-                            <div class="flex items-center space-x-3">
-                                <span class="font-semibold">${formatCurrency(item.subtotal)}</span>
-                                <button onclick="removeFromCart(${index})" class="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-100">
-                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                </button>
-                            </div>
-                        </div>`;
-                });
-            }
-            const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
-            cartTotalEl.textContent = formatCurrency(total);
-            cartCountEl.textContent = `${cart.length} Item`;
-            lucide.createIcons();
-        }
-
-        function renderStockTable() {
-            stockTableBody.innerHTML = '';
-            if (products.length === 0) {
-                stockTableBody.innerHTML = `<tr><td colspan="5" class="text-center p-4">Belum ada produk.</td></tr>`;
-                return;
-            }
-            products.forEach(p => {
-                const isLowStock = p.jenis === 'Barang' && p.stok <= LOW_STOCK_THRESHOLD && p.stok > 0;
-                const isOutOfStock = p.jenis === 'Barang' && p.stok === 0;
-                let rowClass = 'bg-white border-b hover:bg-gray-50';
-                let stokDisplay = p.jenis === 'Barang' ? p.stok : '<span class="text-slate-400">N/A</span>';
-
-                if (isOutOfStock) {
-                    rowClass = 'bg-red-50 border-b hover:bg-red-100 text-red-700';
-                    stokDisplay = `<span class="font-bold">Habis</span>`;
-                } else if (isLowStock) {
-                    rowClass = 'bg-yellow-50 border-b hover:bg-yellow-100';
-                    stokDisplay = `<span class="font-bold text-yellow-700">${p.stok} (Hampir Habis)</span>`;
-                }
-                
-                const editButton = p.jenis === 'Barang' ? `<button onclick="openEditStockModal(${p.id})" class="text-blue-500 hover:text-blue-700 flex items-center mr-4"><i data-lucide="edit" class="w-4 h-4 mr-1"></i> Edit Stok</button>` : '';
-
-                stockTableBody.innerHTML += `
-                    <tr class="${rowClass}">
-                        <td class="px-6 py-4 font-medium">${p.kode}</td>
-                        <td class="px-6 py-4">${p.nama}</td>
-                        <td class="px-6 py-4">${formatCurrency(p.harga)}</td>
-                        <td class="px-6 py-4">${stokDisplay}</td>
-                        <td class="px-6 py-4 flex items-center">
-                            ${editButton}
-                            <button onclick="deleteProduct(${p.id})" class="text-red-500 hover:text-red-700 flex items-center">
-                                <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i> Hapus
-                            </button>
-                        </td>
-                    </tr>`;
-            });
-            lucide.createIcons();
-        }
-        
-        function renderShoppingList() {
-            shoppingListTableBody.innerHTML = '';
-            const itemsToBuy = products.filter(p => p.jenis === 'Barang' && p.stok <= LOW_STOCK_THRESHOLD);
-            if (itemsToBuy.length === 0) {
-                shoppingListTableBody.innerHTML = `<tr><td colspan="3" class="text-center p-4 text-slate-500">Tidak ada barang yang perlu dibeli saat ini.</td></tr>`;
-                return;
-            }
-            itemsToBuy.forEach(p => {
-                const rowClass = p.stok === 0 ? 'bg-red-50 hover:bg-red-100 text-red-700' : 'bg-yellow-50 hover:bg-yellow-100';
-                shoppingListTableBody.innerHTML += `
-                    <tr class="${rowClass} border-b">
-                        <td class="px-6 py-4 font-medium">${p.kode}</td>
-                        <td class="px-6 py-4">${p.nama}</td>
-                        <td class="px-6 py-4 font-bold">${p.stok}</td>
-                    </tr>`;
-            });
-        }
-
-        function renderReportTable() {
-            reportTableBody.innerHTML = '';
-             if (transactions.length === 0) {
-                reportTableBody.innerHTML = `<tr><td colspan="5" class="text-center p-4">Belum ada transaksi.</td></tr>`;
-                return;
-            }
-            transactions.slice().reverse().forEach(t => {
-                reportTableBody.innerHTML += `
-                    <tr class="bg-white border-b hover:bg-gray-50">
-                        <td class="px-6 py-4 font-medium text-slate-900">${t.nota}</td>
-                        <td class="px-6 py-4">${new Date(t.tanggal).toLocaleString('id-ID')}</td>
-                        <td class="px-6 py-4">${t.items.length}</td>
-                        <td class="px-6 py-4">${formatCurrency(t.total)}</td>
-                        <td class="px-6 py-4">
-                            <button onclick="showReportDetail('${t.nota}')" class="text-blue-600 hover:text-blue-800 font-semibold">
-                                Lihat Detail
-                            </button>
-                        </td>
-                    </tr>`;
-            });
-        }
-
-        function addToCart() {
-            const jumlah = parseInt(document.getElementById('jumlah-input').value);
-            if (!selectedProduct) {
-                alert('Silakan pilih produk dari daftar pencarian.');
-                return;
-            }
-            if (isNaN(jumlah) || jumlah < 1) {
-                alert('Silakan masukkan jumlah yang valid.');
-                return;
-            }
-            if (selectedProduct.jenis === 'Barang' && selectedProduct.stok < jumlah) {
-                alert(`Stok tidak mencukupi. Sisa stok ${selectedProduct.nama}: ${selectedProduct.stok}`);
-                return;
-            }
-            
-            const existingCartItem = cart.find(item => item.id === selectedProduct.id);
-            if(existingCartItem){
-                existingCartItem.jumlah += jumlah;
-                existingCartItem.subtotal = existingCartItem.jumlah * existingCartItem.harga;
-            } else {
-                cart.push({
-                    id: selectedProduct.id,
-                    nama: selectedProduct.nama,
-                    harga: selectedProduct.harga,
-                    jumlah: jumlah,
-                    subtotal: selectedProduct.harga * jumlah,
-                    jenis: selectedProduct.jenis,
-                    stokSaatIni: selectedProduct.stok
-                });
-            }
-
-            renderCart();
-            produkSearchInput.value = '';
-            selectedProduct = null;
-            document.getElementById('jumlah-input').value = 1;
-        }
-
-        function removeFromCart(index) {
-            cart.splice(index, 1);
-            renderCart();
-        }
-
-        function clearCart() {
-            if (confirm('Anda yakin ingin membatalkan transaksi ini?')) {
-                cart = [];
-                document.getElementById('nama-pelanggan-input').value = '';
-                renderCart();
-            }
-        }
-        
-        function processTransaction() {
-            if (cart.length === 0) {
-                alert('Keranjang belanja kosong.');
-                return;
-            }
-            
-            const namaPelanggan = document.getElementById('nama-pelanggan-input').value.trim();
-            const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
-            const now = new Date();
-            const transaction = {
-                nota: `INV/${now.getFullYear()}${String(now.getMonth()+1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}/${Date.now().toString().slice(-6)}`,
-                tanggal: now.toISOString(),
-                namaPelanggan: namaPelanggan,
-                items: cart,
-                total: total
-            };
-
-            transaction.items.forEach(item => {
-                if(item.jenis === 'Barang') {
-                    const product = products.find(p => p.id === item.id);
-                    if (product) {
-                        product.stok -= item.jumlah;
-                    }
-                }
-            });
-
-            transactions.push(transaction);
-            saveTransactions();
-            saveProducts();
-            showReceipt(transaction);
-            cart = [];
-            document.getElementById('nama-pelanggan-input').value = '';
-            renderAll();
-        }
-
-        document.getElementById('add-product-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const newProduct = {
-                id: Date.now(),
-                kode: document.getElementById('kode-produk').value,
-                nama: document.getElementById('nama-produk').value,
-                jenis: document.getElementById('jenis-produk').value,
-                satuan: document.getElementById('satuan-produk').value,
-                harga: parseInt(document.getElementById('harga-produk').value),
-                stok: document.getElementById('jenis-produk').value === 'Barang' ? parseInt(document.getElementById('stok-produk').value) : null,
-            };
-            if(!newProduct.kode || !newProduct.nama || !newProduct.satuan || isNaN(newProduct.harga)) {
-                alert('Harap isi semua field dengan benar.');
-                return;
-            }
-            products.push(newProduct);
-            saveProducts();
-            renderAll();
-            alert('Produk berhasil ditambahkan!');
-            this.reset();
-            switchTab('stok');
-        });
-
-        function deleteProduct(productId) {
-            if (confirm('Anda yakin ingin menghapus produk ini?')) {
-                products = products.filter(p => p.id !== productId);
-                saveProducts();
-                renderAll();
-            }
-        }
-        
-        function updateStock(productId) {
-            const newStockInput = document.getElementById('edit-stock-input');
-            const newStock = parseInt(newStockInput.value);
-            if(isNaN(newStock) || newStock < 0) {
-                alert('Masukkan jumlah stok yang valid.');
-                return;
-            }
-            const product = products.find(p => p.id === productId);
-            if(product) {
-                product.stok = newStock;
-                saveProducts();
-                renderAll();
-                closeModal();
-            }
-        }
-
-        function openModal() {
+        // --- Custom Notifications ---
+        function showNotification(title, message) {
+            const modal = document.getElementById('notificationModal');
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalMessage').innerText = message;
             modal.classList.remove('hidden');
-            setTimeout(() => { modalBox.classList.remove('scale-95', 'opacity-0'); }, 50);
-        }
-        function closeModal() {
-            modalBox.classList.add('scale-95', 'opacity-0');
-            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+            setTimeout(() => modal.classList.add('opacity-100'), 10);
         }
 
-        function showReceipt(transaction) {
-            const customerNameHtml = transaction.namaPelanggan ? `<p><strong>Pelanggan:</strong> ${transaction.namaPelanggan}</p>` : '';
-            modalContent.innerHTML = `
-                <div id="nota-area" class="p-6 text-sm">
-                    <h3 class="text-lg font-bold text-center">MUSADAD.COM</h3>
-                    <p class="text-center text-xs">Percetakan dan Service komputer</p>
-                    <p class="text-center text-xs text-slate-600">Jl. Kp. Cisema - garendong Des. Mekar Baru Kecamatan Petir</p>
-                    <p class="text-center text-xs text-slate-600 mb-3">WA: 083812352663</p>
-                    <hr class="my-2 border-dashed">
-                    <div class="text-xs">
-                        <p><strong>No. Nota:</strong> ${transaction.nota}</p>
-                        <p><strong>Tanggal:</strong> ${new Date(transaction.tanggal).toLocaleString('id-ID')}</p>
-                        ${customerNameHtml}
-                    </div>
-                    <hr class="my-2 border-dashed">
-                    <table class="w-full text-xs">
-                        <thead><tr><th class="text-left py-1">Item</th><th class="text-right py-1">Subtotal</th></tr></thead>
-                        <tbody></tbody>
-                    </table>
-                    <hr class="my-2 border-dashed">
-                    <div class="text-right font-semibold text-base mt-2"><p>Total: ${formatCurrency(transaction.total)}</p></div>
-                    <hr class="my-2 border-dashed">
-                    <div class="text-center text-xs mt-3">
-                         <p class="font-semibold">Terima kasih telah berbelanja di MUSADAD.COM</p>
-                         <p class="mt-1">Transaksi bisa menggunakan REK BCA 5410927839</p>
-                         <p>Atas nama Rohmatulloh Al Musadad</p>
-                    </div>
-                </div>`;
-            
-            const tbody = modalContent.querySelector('tbody');
-            transaction.items.forEach(item => {
-                const row = tbody.insertRow();
-                row.innerHTML = `
-                    <td class="py-1 align-top">${item.nama}<br><span class="text-slate-600">${item.jumlah} x ${formatCurrency(item.harga)}</span></td>
-                    <td class="text-right align-top py-1">${formatCurrency(item.subtotal)}</td>`;
-            });
-            
-            modalFooter.innerHTML = `
-                <button onclick="closeModal()" class="px-4 py-2 bg-slate-200 text-slate-800 rounded-md hover:bg-slate-300">Tutup</button>
-                <button id="print-button" onclick="printReceipt()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Cetak</button>`;
-            
-            openModal();
-        }
-        
-        function openEditStockModal(productId) {
-            const product = products.find(p => p.id === productId);
-            if (!product) return;
-            modalContent.innerHTML = `
-                <div class="p-6">
-                    <h3 class="text-lg font-bold mb-2">Update Stok</h3>
-                    <p class="mb-4">${product.nama}</p>
-                    <div>
-                        <label for="edit-stock-input" class="block text-sm font-medium text-slate-700 mb-1">Jumlah Stok Baru</label>
-                        <input type="number" id="edit-stock-input" value="${product.stok}" class="w-full p-2 border border-slate-300 rounded-md">
-                    </div>
-                </div>`;
-            modalFooter.innerHTML = `
-                <button onclick="closeModal()" class="px-4 py-2 bg-slate-200 text-slate-800 rounded-md hover:bg-slate-300">Batal</button>
-                <button onclick="updateStock(${productId})" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Simpan</button>`;
-            openModal();
+        function closeNotification() {
+            const modal = document.getElementById('notificationModal');
+            modal.classList.remove('opacity-100');
+            setTimeout(() => modal.classList.add('hidden'), 300);
         }
 
-        function showReportDetail(nota) {
-            const transaction = transactions.find(t => t.nota === nota);
-            if (!transaction) return;
-            showReceipt(transaction);
-            setTimeout(() => {
-                const printBtn = document.getElementById('print-button');
-                if(printBtn) printBtn.style.display = 'none';
-            }, 50);
-        }
-
-        function printReceipt() { window.print(); }
-        
-        function printShoppingList() {
-            const itemsToBuy = products.filter(p => p.jenis === 'Barang' && p.stok <= LOW_STOCK_THRESHOLD);
-            if (itemsToBuy.length === 0) {
-                alert('Tidak ada barang yang perlu dibeli.');
-                return;
-            }
-            const printWindow = window.open('', '', 'height=600,width=800');
-            printWindow.document.write('<html><head><title>Daftar Belanja</title>');
-            printWindow.document.write('<style>body{font-family:sans-serif}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:8px;text-align:left}th{background-color:#f2f2f2}</style>');
-            printWindow.document.write('</head><body>');
-            printWindow.document.write('<h1>Daftar Belanja Supplier</h1>');
-            printWindow.document.write(`<p>Tanggal Cetak: ${new Date().toLocaleDateString('id-ID')}</p>`);
-            printWindow.document.write('<table><thead><tr><th>Kode</th><th>Nama Produk</th><th>Sisa Stok</th></tr></thead><tbody>');
-            itemsToBuy.forEach(p => {
-                printWindow.document.write(`<tr><td>${p.kode}</td><td>${p.nama}</td><td>${p.stok}</td></tr>`);
-            });
-            printWindow.document.write('</tbody></table></body></html>');
-            printWindow.document.close();
-            printWindow.focus();
-            printWindow.print();
-        }
-        
-        function switchTab(tabName) {
-            kasirView.classList.add('hidden');
-            stokView.classList.add('hidden');
-            laporanView.classList.add('hidden');
-            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(`view-${tabName}`).classList.remove('hidden');
-            document.getElementById(`tab-${tabName}`).classList.add('active');
-        }
-
-        produkSearchInput.addEventListener('keyup', (e) => {
-            const searchTerm = e.target.value.toLowerCase();
-            if (searchTerm.length === 0) {
-                produkSearchResults.classList.add('hidden');
-                return;
-            }
-            const filteredProducts = products.filter(p => p.nama.toLowerCase().includes(searchTerm));
-            produkSearchResults.innerHTML = '';
-            if (filteredProducts.length > 0) {
-                filteredProducts.forEach(p => {
-                    const isDisabled = p.jenis === 'Barang' && p.stok === 0;
-                    produkSearchResults.innerHTML += `
-                        <a href="#" onclick="selectProductFromSearch(${p.id}, event)" class="block p-2 hover:bg-blue-100 ${isDisabled ? 'text-gray-400 cursor-not-allowed' : ''}">
-                            <p class="font-semibold">${p.nama}</p>
-                            <p class="text-sm text-slate-500">${formatCurrency(p.harga)} ${p.jenis === 'Barang' ? `| Stok: ${p.stok}` : ''}</p>
-                        </a>`;
-                });
-                produkSearchResults.classList.remove('hidden');
-            } else {
-                produkSearchResults.classList.add('hidden');
-            }
-        });
-
-        function selectProductFromSearch(productId, event) {
-            event.preventDefault();
-            const product = products.find(p => p.id === productId);
-            if (product.jenis === 'Barang' && product.stok === 0) {
-                return; // Do nothing if product is out of stock
-            }
-            selectedProduct = product;
-            produkSearchInput.value = product.nama;
-            produkSearchResults.classList.add('hidden');
-        }
-        
-        document.addEventListener('click', (e) => {
-            if (!produkSearchInput.contains(e.target)) {
-                produkSearchResults.classList.add('hidden');
-            }
-        });
-
-        function exportDatabase() {
-            const productsWorksheet = XLSX.utils.json_to_sheet(products);
-            const flatTransactions = [];
-            transactions.forEach(t => {
-                t.items.forEach(item => {
-                    const product = products.find(p => p.id === item.id);
-                    flatTransactions.push({
-                        'No Nota': t.nota,
-                        'Tanggal': new Date(t.tanggal).toLocaleString('id-ID'),
-                        'Pelanggan': t.namaPelanggan || '-',
-                        'Kode Produk': product ? product.kode : 'N/A',
-                        'Nama Produk': item.nama,
-                        'Jumlah': item.jumlah,
-                        'Harga Satuan': item.harga,
-                        'Subtotal': item.subtotal
-                    });
-                });
-            });
-            const transactionsWorksheet = XLSX.utils.json_to_sheet(flatTransactions);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, productsWorksheet, "Data Produk");
-            XLSX.utils.book_append_sheet(workbook, transactionsWorksheet, "Data Transaksi");
-            XLSX.writeFile(workbook, `Backup_MUSADAD_COM_${new Date().toISOString().slice(0,10)}.xlsx`);
-        }
-
-        function importFromExcel(event) {
-            const file = event.target.files[0];
+        // --- Event Listeners ---
+        imageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
             if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const sheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[sheetName];
-                    const json = XLSX.utils.sheet_to_json(worksheet);
 
-                    if (json.length === 0) {
-                        alert('File Excel kosong atau format tidak sesuai.');
-                        return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    loadedImage = img;
+                    calculateLayout(); // Auto-calculate on load
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        contourOffsetInput.addEventListener('input', (e) => {
+            offsetValLabel.innerText = parseFloat(e.target.value).toFixed(1) + " mm";
+        });
+
+        btnCalculate.addEventListener('click', calculateLayout);
+        btnExport.addEventListener('click', exportToPDF);
+        
+        // Listen to contour type changes to trigger live update
+        document.querySelectorAll('input[name="contourType"]').forEach(radio => {
+            radio.addEventListener('change', () => {
+                if (loadedImage) calculateLayout();
+            });
+        });
+        contourOffsetInput.addEventListener('change', () => {
+            if (loadedImage) calculateLayout();
+        });
+
+        // Scale preview based on window size
+        window.addEventListener('resize', scalePreviewCanvas);
+
+        // --- Logic Functions ---
+        function calculateLayout() {
+            if (!loadedImage) {
+                showNotification("Pemberitahuan", "Harap pilih file gambar terlebih dahulu.");
+                return;
+            }
+
+            let w = parseFloat(stickerWInput.value);
+            let h = parseFloat(stickerHInput.value);
+            let gap = parseFloat(gapInput.value);
+            let contourType = document.querySelector('input[name="contourType"]:checked').value;
+            let offset_mm = parseFloat(contourOffsetInput.value);
+
+            if (isNaN(w) || isNaN(h) || isNaN(gap) || w <= 0 || h <= 0 || gap < 0) {
+                showNotification("Error Input", "Ukuran tidak valid. Pastikan semua angka lebih dari 0.");
+                return;
+            }
+
+            // Scenario 1: Normal Orientation
+            let cols1 = Math.floor((JINKA_MAX_W + gap) / (w + gap));
+            let rows1 = Math.floor((JINKA_MAX_H + gap) / (h + gap));
+            let total1 = cols1 * rows1;
+
+            // Scenario 2: Rotated 90 degrees
+            let cols2 = Math.floor((JINKA_MAX_W + gap) / (h + gap));
+            let rows2 = Math.floor((JINKA_MAX_H + gap) / (w + gap));
+            let total2 = cols2 * rows2;
+
+            // Decide best layout (maximize quantity)
+            if (total2 > total1 && total2 > 0) {
+                layoutData = { 
+                    cols: cols2, 
+                    rows: rows2, 
+                    total: total2, 
+                    rotated: true, 
+                    w_mm: h, 
+                    h_mm: w, 
+                    gap_mm: gap,
+                    contourType: contourType,
+                    offset_mm: offset_mm
+                };
+            } else {
+                layoutData = { 
+                    cols: cols1, 
+                    rows: rows1, 
+                    total: total1, 
+                    rotated: false, 
+                    w_mm: w, 
+                    h_mm: h, 
+                    gap_mm: gap,
+                    contourType: contourType,
+                    offset_mm: offset_mm
+                };
+            }
+
+            // Calculate Base Contour Path if 'auto' (detect non-transparent shape)
+            if (contourType === 'auto') {
+                traceImageContour();
+            }
+
+            updateUI();
+            drawPreview();
+        }
+
+        // Boundary Tracing Algorithm (Moore-Neighbor/Alpha threshold)
+        function traceImageContour() {
+            // Render to small offscreen canvas to compute fast
+            const traceCanvas = document.createElement('canvas');
+            const traceCtx = traceCanvas.getContext('2d');
+            
+            // Set resolution for tracing (keep it moderate for performance & smoothness)
+            const TRACE_SIZE = 150;
+            traceCanvas.width = TRACE_SIZE;
+            traceCanvas.height = TRACE_SIZE;
+            
+            // Draw image scaled
+            traceCtx.drawImage(loadedImage, 0, 0, TRACE_SIZE, TRACE_SIZE);
+            
+            const imgData = traceCtx.getImageData(0, 0, TRACE_SIZE, TRACE_SIZE);
+            const data = imgData.data;
+            const w = TRACE_SIZE;
+            const h = TRACE_SIZE;
+            
+            // 1. Create solid binary mask (alpha threshold > 15)
+            const mask = new Uint8Array(w * h);
+            for (let i = 0; i < data.length; i += 4) {
+                const alpha = data[i + 3];
+                mask[i / 4] = (alpha > 15) ? 1 : 0;
+            }
+
+            // 2. Apply Dilation/Erosion to simulate offset (if offset is set)
+            // Scale offset_mm to relative pixels in our trace canvas
+            const stickerDiagonal = Math.sqrt(parseFloat(stickerWInput.value)**2 + parseFloat(stickerHInput.value)**2);
+            const mmToTracePixels = TRACE_SIZE / stickerDiagonal;
+            let offsetRadius = Math.round(layoutData.offset_mm * mmToTracePixels);
+            
+            let processedMask = mask;
+            if (offsetRadius > 0) {
+                // Dilation
+                processedMask = new Uint8Array(w * h);
+                for (let y = 0; y < h; y++) {
+                    for (let x = 0; x < w; x++) {
+                        if (mask[y * w + x] === 1) {
+                            // Draw circle on processed mask
+                            for (let dy = -offsetRadius; dy <= offsetRadius; dy++) {
+                                for (let dx = -offsetRadius; dx <= offsetRadius; dx++) {
+                                    if (dx*dx + dy*dy <= offsetRadius*offsetRadius) {
+                                        const nx = x + dx;
+                                        const ny = y + dy;
+                                        if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
+                                            processedMask[ny * w + nx] = 1;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } else if (offsetRadius < 0) {
+                // Erosion
+                processedMask = new Uint8Array(w * h);
+                const r = Math.abs(offsetRadius);
+                for (let y = 0; y < h; y++) {
+                    for (let x = 0; x < w; x++) {
+                        if (mask[y * w + x] === 1) {
+                            let keep = true;
+                            for (let dy = -r; dy <= r; dy++) {
+                                for (let dx = -r; dx <= r; dx++) {
+                                    if (dx*dx + dy*dy <= r*r) {
+                                        const nx = x + dx;
+                                        const ny = y + dy;
+                                        if (nx < 0 || nx >= w || ny < 0 || ny >= h || mask[ny * w + nx] === 0) {
+                                            keep = false;
+                                            break;
+                                        }
+                                    }
+                                }
+                                if (!keep) break;
+                            }
+                            if (keep) processedMask[y * w + x] = 1;
+                        }
+                    }
+                }
+            }
+
+            // 3. Find starting point for Moore-Neighbor tracing
+            let startX = -1, startY = -1;
+            for (let y = 0; y < h; y++) {
+                for (let x = 0; x < w; x++) {
+                    if (processedMask[y * w + x] === 1) {
+                        startX = x;
+                        startY = y;
+                        break;
+                    }
+                }
+                if (startX !== -1) break;
+            }
+
+            if (startX === -1) {
+                // Empty Image/No non-transparent pixels, fallback to rect
+                baseContourPath = [{x: 0, y: 0}, {x: 1, y: 0}, {x: 1, y: 1}, {x: 0, y: 1}];
+                return;
+            }
+
+            // Moore-Neighbor Tracing Algorithm
+            const path = [];
+            let cx = startX;
+            let cy = startY;
+            let px = startX;
+            let py = startY - 1; // Previous pixel in the trace
+            
+            const directions = [
+                {x: 0, y: -1}, {x: 1, y: -1}, {x: 1, y: 0}, {x: 1, y: 1},
+                {x: 0, y: 1}, {x: -1, y: 1}, {x: -1, y: 0}, {x: -1, y: -1}
+            ];
+
+            function getDirIndex(dx, dy) {
+                for (let i = 0; i < 8; i++) {
+                    if (directions[i].x === dx && directions[i].y === dy) return i;
+                }
+                return 0;
+            }
+
+            let firstIteration = true;
+            let maxSteps = w * h * 2; // Prevent infinite loop on bad shape
+            let step = 0;
+
+            while ((cx !== startX || cy !== startY || firstIteration) && step < maxSteps) {
+                firstIteration = false;
+                step++;
+                
+                // Find index of previous pixel to start search clockwise
+                const dx = px - cx;
+                const dy = py - cy;
+                let startDir = (getDirIndex(dx, dy) + 1) % 8;
+                
+                let found = false;
+                for (let i = 0; i < 8; i++) {
+                    const dirIdx = (startDir + i) % 8;
+                    const nx = cx + directions[dirIdx].x;
+                    const ny = cy + directions[dirIdx].y;
+                    
+                    if (nx >= 0 && nx < w && ny >= 0 && ny < h && processedMask[ny * w + nx] === 1) {
+                        px = cx;
+                        py = cy;
+                        cx = nx;
+                        cy = ny;
+                        path.push({x: cx / w, y: cy / h});
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) break; // Isolate single pixel
+            }
+
+            // 4. Smooth & simplify path slightly
+            if (path.length > 5) {
+                const smoothed = [];
+                const windowSize = 3; // Moving average to smooth the step contours
+                for (let i = 0; i < path.length; i++) {
+                    let sumX = 0, sumY = 0, count = 0;
+                    for (let wIdx = -windowSize; wIdx <= windowSize; wIdx++) {
+                        let pIdx = (i + wIdx + path.length) % path.length;
+                        sumX += path[pIdx].x;
+                        sumY += path[pIdx].y;
+                        count++;
+                    }
+                    smoothed.push({ x: sumX / count, y: sumY / count });
+                }
+                baseContourPath = smoothed;
+            } else {
+                baseContourPath = path;
+            }
+        }
+
+        function updateUI() {
+            statusBox.classList.remove('hidden');
+            if (layoutData.total === 0) {
+                statusContent.innerHTML = `<span class="text-red-600 font-bold">Ukuran stiker terlalu besar untuk area Jinka (280x420mm).</span>`;
+                btnExport.disabled = true;
+                btnExport.classList.add('opacity-50', 'cursor-not-allowed');
+                btnExport.classList.remove('hover:bg-emerald-700');
+            } else {
+                let contourText = "Kotak";
+                if (layoutData.contourType === 'circle') contourText = "Lingkaran";
+                if (layoutData.contourType === 'auto') contourText = "Auto-Lekuk PNG";
+
+                statusContent.innerHTML = `
+                    <p>Total Stiker: <strong class="text-blue-600 text-lg">${layoutData.total} pcs</strong></p>
+                    <p>Formasi: ${layoutData.cols} kolom x ${layoutData.rows} baris</p>
+                    <p>Tipe Potong: <strong>${contourText}</strong> (Offset: ${layoutData.offset_mm}mm)</p>
+                    <p>Orientasi: ${layoutData.rotated ? 'Diputar 90° (Otomatis Maximize)' : 'Tegak (Normal)'}</p>
+                `;
+                btnExport.disabled = false;
+                btnExport.classList.remove('opacity-50', 'cursor-not-allowed');
+                btnExport.classList.add('hover:bg-emerald-700');
+                emptyNotice.classList.add('hidden');
+            }
+        }
+
+        function drawPreview() {
+            if (layoutData.total === 0) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                return;
+            }
+
+            // Set canvas internal resolution to match A3 scale (2 px per mm for crispness)
+            const SCALE = 2; 
+            canvas.width = A3_W_MM * SCALE;
+            canvas.height = A3_H_MM * SCALE;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Safe Area (Jinka Max Cut Width)
+            ctx.strokeStyle = '#ef4444'; // Red-500
+            ctx.lineWidth = 2;
+            ctx.setLineDash([10, 10]);
+            ctx.strokeRect(OFFSET_X_MM * SCALE, 0, JINKA_MAX_W * SCALE, JINKA_MAX_H * SCALE);
+            ctx.setLineDash([]); // Reset dash
+
+            // Prepare image to draw (rotate if necessary)
+            let drawCanvas = document.createElement('canvas');
+            let drawCtx = drawCanvas.getContext('2d');
+            
+            if (layoutData.rotated) {
+                drawCanvas.width = loadedImage.height;
+                drawCanvas.height = loadedImage.width;
+                drawCtx.translate(drawCanvas.width / 2, drawCanvas.height / 2);
+                drawCtx.rotate(90 * Math.PI / 180);
+                drawCtx.drawImage(loadedImage, -loadedImage.width / 2, -loadedImage.height / 2);
+            } else {
+                drawCanvas.width = loadedImage.width;
+                drawCanvas.height = loadedImage.height;
+                drawCtx.drawImage(loadedImage, 0, 0);
+            }
+
+            const w = layoutData.w_mm * SCALE;
+            const h = layoutData.h_mm * SCALE;
+            const gap = layoutData.gap_mm * SCALE;
+            const startX = OFFSET_X_MM * SCALE;
+
+            // Draw Stickers and Contours
+            for (let r = 0; r < layoutData.rows; r++) {
+                for (let c = 0; c < layoutData.cols; c++) {
+                    const x = startX + (c * (w + gap));
+                    const y = r * (h + gap);
+                    
+                    // Draw Image
+                    ctx.drawImage(drawCanvas, x, y, w, h);
+                    
+                    // Draw Contour Line (Preview)
+                    ctx.strokeStyle = '#ff00ff'; // Magenta (like the PDF output)
+                    ctx.lineWidth = 1.5;
+
+                    const offsetPx = layoutData.offset_mm * SCALE;
+
+                    if (layoutData.contourType === 'rect') {
+                        // Rect with offset
+                        ctx.strokeRect(x - offsetPx, y - offsetPx, w + (offsetPx * 2), h + (offsetPx * 2));
+                    } else if (layoutData.contourType === 'circle') {
+                        // Circle fit inside the sticker space
+                        const radius = Math.min(w, h) / 2 + offsetPx;
+                        const centerX = x + (w / 2);
+                        const centerY = y + (h / 2);
+                        ctx.beginPath();
+                        ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+                        ctx.stroke();
+                    } else if (layoutData.contourType === 'auto' && baseContourPath.length > 0) {
+                        // Custom vector contour path
+                        ctx.beginPath();
+                        
+                        // Rotated logic for path calculation
+                        let pathPoints = [];
+                        if (layoutData.rotated) {
+                            // Translate base contour path which is 0-1 range to fitting box
+                            // Since path was traced from non-rotated image, we apply 90deg rotation to path points
+                            pathPoints = baseContourPath.map(pt => {
+                                // Rotate 90 around center (0.5, 0.5) and adjust ratio
+                                const rx = 1.0 - pt.y;
+                                const ry = pt.x;
+                                return {
+                                    x: x + (rx * w),
+                                    y: y + (ry * h)
+                                };
+                            });
+                        } else {
+                            pathPoints = baseContourPath.map(pt => ({
+                                x: x + (pt.x * w),
+                                y: y + (pt.y * h)
+                            }));
+                        }
+
+                        if (pathPoints.length > 0) {
+                            ctx.moveTo(pathPoints[0].x, pathPoints[0].y);
+                            for (let i = 1; i < pathPoints.length; i++) {
+                                ctx.lineTo(pathPoints[i].x, pathPoints[i].y);
+                            }
+                            ctx.closePath();
+                            ctx.stroke();
+                        }
+                    }
+                }
+            }
+
+            scalePreviewCanvas();
+        }
+
+        // Make canvas visually fit the screen without altering internal resolution
+        function scalePreviewCanvas() {
+            const container = document.querySelector('.canvas-container');
+            const cw = container.clientWidth - 40; // 40px padding
+            const ch = container.clientHeight - 40;
+            
+            const scaleX = cw / (A3_W_MM * 2); // Assuming wrapper native is ~ 594x840
+            const scaleY = ch / (A3_H_MM * 2);
+            const scale = Math.min(scaleX, scaleY, 1); // Cap scale at 1
+
+            // Set the visual size of the wrapper
+            canvasWrapper.style.width = `${A3_W_MM * 2 * scale}px`;
+            canvasWrapper.style.height = `${A3_H_MM * 2 * scale}px`;
+        }
+
+        // --- PDF Export Logic ---
+        function exportToPDF() {
+            if (!loadedImage || layoutData.total === 0) return;
+
+            // Change button state
+            const originalText = btnExport.innerHTML;
+            btnExport.innerHTML = `Memproses PDF...`;
+            btnExport.disabled = true;
+
+            setTimeout(() => {
+                try {
+                    const { jsPDF } = window.jspdf;
+                    // Create A3 PDF (Portrait, mm)
+                    const doc = new jsPDF({
+                        orientation: 'portrait',
+                        unit: 'mm',
+                        format: 'a3'
+                    });
+
+                    // Prepare image data for drawing in PDF
+                    const offCanvas = document.createElement('canvas');
+                    const offCtx = offCanvas.getContext('2d');
+                    
+                    if (layoutData.rotated) {
+                        offCanvas.width = loadedImage.height;
+                        offCanvas.height = loadedImage.width;
+                        offCtx.translate(offCanvas.width / 2, offCanvas.height / 2);
+                        offCtx.rotate(90 * Math.PI / 180);
+                        offCtx.drawImage(loadedImage, -loadedImage.width / 2, -loadedImage.height / 2);
+                    } else {
+                        offCanvas.width = loadedImage.width;
+                        offCanvas.height = loadedImage.height;
+                        offCtx.drawImage(loadedImage, 0, 0);
                     }
                     
-                    const newProducts = json.map(row => ({
-                        id: Date.now() + Math.random(),
-                        kode: row.kode || '',
-                        nama: row.nama || '',
-                        jenis: row.jenis || 'Barang',
-                        satuan: row.satuan || 'Pcs',
-                        harga: parseInt(row.harga) || 0,
-                        stok: row.jenis === 'Jasa' ? null : parseInt(row.stok) || 0
-                    })).filter(p => p.kode && p.nama);
+                    // Compress slightly for better PDF generation speed
+                    const imgData = offCanvas.toDataURL('image/jpeg', 0.95);
+                    const drawCutLine = addCutLineInput.checked;
 
-                    if (confirm(`Ditemukan ${newProducts.length} produk. Apakah Anda ingin menambahkannya ke database? Produk dengan kode yang sama akan diupdate.`)) {
-                        newProducts.forEach(newP => {
-                            const existingProductIndex = products.findIndex(p => p.kode === newP.kode);
-                            if (existingProductIndex > -1) {
-                                // Update produk yang sudah ada
-                                products[existingProductIndex] = { ...products[existingProductIndex], ...newP, id: products[existingProductIndex].id };
-                            } else {
-                                // Tambah produk baru
-                                products.push(newP);
+                    const w = layoutData.w_mm;
+                    const h = layoutData.h_mm;
+                    const gap = layoutData.gap_mm;
+
+                    // Loop to add images & cut lines
+                    for (let r = 0; r < layoutData.rows; r++) {
+                        for (let c = 0; c < layoutData.cols; c++) {
+                            const x_mm = OFFSET_X_MM + (c * (w + gap));
+                            const y_mm = r * (h + gap);
+                            
+                            // Add Image
+                            doc.addImage(imgData, 'JPEG', x_mm, y_mm, w, h);
+                            
+                            // Add Cut Line (Magenta Hairline) if checked
+                            if (drawCutLine) {
+                                doc.setDrawColor(255, 0, 255); // Magenta CMYK (0,100,0,0) / RGB (255, 0, 255)
+                                doc.setLineWidth(0.1); // Extremely thin (hairline)
+
+                                const offset_mm = layoutData.offset_mm;
+
+                                if (layoutData.contourType === 'rect') {
+                                    // Rectangle
+                                    doc.rect(x_mm - offset_mm, y_mm - offset_mm, w + (offset_mm * 2), h + (offset_mm * 2));
+                                } else if (layoutData.contourType === 'circle') {
+                                    // Circle (Fits in center)
+                                    const radius = Math.min(w, h) / 2 + offset_mm;
+                                    const centerX = x_mm + (w / 2);
+                                    const centerY = y_mm + (h / 2);
+                                    doc.ellipse(centerX, centerY, radius, radius, 'S');
+                                } else if (layoutData.contourType === 'auto' && baseContourPath.length > 0) {
+                                    // Custom traced boundary path
+                                    let pathPoints = [];
+                                    if (layoutData.rotated) {
+                                        pathPoints = baseContourPath.map(pt => {
+                                            const rx = 1.0 - pt.y;
+                                            const ry = pt.x;
+                                            return {
+                                                x: x_mm + (rx * w),
+                                                y: y_mm + (ry * h)
+                                            };
+                                        });
+                                    } else {
+                                        pathPoints = baseContourPath.map(pt => ({
+                                            x: x_mm + (pt.x * w),
+                                            y: y_mm + (pt.y * h)
+                                        }));
+                                    }
+
+                                    if (pathPoints.length > 1) {
+                                        // Draw vector lines connecting the points
+                                        for (let i = 0; i < pathPoints.length - 1; i++) {
+                                            doc.line(pathPoints[i].x, pathPoints[i].y, pathPoints[i + 1].x, pathPoints[i + 1].y);
+                                        }
+                                        // Close path
+                                        doc.line(pathPoints[pathPoints.length - 1].x, pathPoints[pathPoints.length - 1].y, pathPoints[0].x, pathPoints[0].y);
+                                    }
+                                }
                             }
-                        });
-                        saveProducts();
-                        renderAll();
-                        alert('Import berhasil!');
+                        }
                     }
-                } catch (error) {
-                    console.error("Error importing from Excel:", error);
-                    alert("Gagal mengimpor file. Pastikan format file benar. Kolom yang dibutuhkan: kode, nama, jenis, satuan, harga, stok.");
-                } finally {
-                    event.target.value = ''; // Reset input file
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            loadData();
-            renderAll();
-            switchTab('kasir');
-        });
+                    // Save PDF
+                    doc.save('Jinka_AutoContour_Layout_A3.pdf');
+                    
+                    // Restore button
+                    btnExport.innerHTML = originalText;
+                    btnExport.disabled = false;
+
+                } catch (error) {
+                    console.error("PDF Export Error:", error);
+                    showNotification("Export Gagal", "Terjadi kesalahan saat membuat PDF. Pastikan gambar Anda valid.");
+                    btnExport.innerHTML = originalText;
+                    btnExport.disabled = false;
+                }
+            }, 100); // Small delay to allow UI to update "Memproses..." text
+        }
+        
+        // Initial setup
+        scalePreviewCanvas();
+
     </script>
 </body>
 </html>
-
