@@ -708,7 +708,7 @@
             pw_fc: 150, pw_hp: 700,
             ep_fc: 150, ep_hp: 700,
             xp_spanduk: 12000, // Rp25.000 jual - Rp13.000 modal spanduk
-            xp_stiker: 25000   // Rp35.000 jual - Rp10.000 modal stiker
+            xp_stiker: 25000   // Rp35.000 jual - Rp10.000 modal sticker
         };
 
         // Estimasi biaya tinta & penyusutan mesin per lembar (diluar harga kertas)
@@ -804,9 +804,10 @@
                 }
             });
 
-            datalist.innerHTML = '';
-            uniqueSuggestions(uniqueSuggestionsSet = uniqueKertas, datalistKertas);
-            uniqueSuggestions(uniqueSuggestionsSet = uniqueXP, datalistXP);
+            datalistKertas.innerHTML = '';
+            datalistXP.innerHTML = '';
+            uniqueSuggestions(uniqueKertas, datalistKertas);
+            uniqueSuggestions(uniqueXP, datalistXP);
         }
 
         function uniqueSuggestions(uniqueSuggestionsSet, datalistElement) {
@@ -1172,7 +1173,7 @@
                 }
             });
 
-            // Update UI Nilai Tercatat Hari Ini di masing-masing mesin
+            // Update UI Nilai Tercatat Hari Ini di masing-masing mesin (Telah diperbaiki typo id-ID-nya)
             document.getElementById('recordedPW').innerText = sdhTercatatPW.toLocaleString('id-ID') + " Lbr";
             document.getElementById('recordedEP').innerText = sdhTercatatEP.toLocaleString('id-ID') + " Lbr";
             document.getElementById('recordedXP').innerText = sdhTercatatXP.toFixed(2) + " m";
@@ -1468,7 +1469,7 @@
             
             const elemTotalHari = document.getElementById('totalHari');
             if (elemTotalHari) {
-                elemTotalHari.innerText = transaksiHarianCount + " Transaksi";
+                elemTotalHari.innerText = transaksiHarianCount + " Hari";
             }
             
             document.getElementById('rataHarian').innerText = formatRupiah(rataAn);
@@ -1748,6 +1749,7 @@
         }
         window.panggilModalHapusBahanBaku = panggilModalHapusBahanBaku;
 
+        // --- SISTEM MANAGEMENT DATA (RESET, BACKUP & RESTORE) ---
         function panggilModalClear() {
             panggilModalKonfirmasi(
                 "Kosongkan Pembukuan?",
@@ -1765,7 +1767,6 @@
                 }
             );
         }
-        window.panggilModalClear = panggilModalClear;
 
         function eksporData() {
             if (database.length === 0) return showModal("Gagal Ekspor", "Belum ada data transaksi yang bisa di-backup.", "⚠️");
@@ -1777,10 +1778,10 @@
             dlAnchor.click();
             dlAnchor.remove();
         }
-        window.eksporData = eksporData;
 
         function imporData(event) {
             const fileInput = event.target;
+            if (!fileInput.files || fileInput.files.length === 0) return;
             const fileReader = new FileReader();
             fileReader.onload = function() {
                 try {
@@ -1798,61 +1799,6 @@
                 }
             };
             fileReader.readAsText(fileInput.files[0]);
-        }
-        window.imporData = imporData;
-
-        // --- LOGIKA KALKULATOR TOKO TERINTEGRASI ---
-        let calcVal = "0";
-
-        function updateCalcDisplay() {
-            document.getElementById('calcDisplay').value = calcVal;
-        }
-
-        function inputCalc(char) {
-            if (calcVal === "0" && !isNaN(char)) {
-                calcVal = char;
-            } else if (calcVal === "Error") {
-                calcVal = char;
-            } else {
-                const ops = ['+', '-', '*', '/', '%', '.'];
-                const lastChar = calcVal.slice(-1);
-                if (ops.includes(lastChar) && ops.includes(char)) return; 
-                calcVal += char;
-            }
-            updateCalcDisplay();
-        }
-
-        function clearCalc() {
-            calcVal = "0";
-            updateCalcDisplay();
-        }
-
-        function backspaceCalc() {
-            if (calcVal === "Error") {
-                calcVal = "0";
-            } else if (calcVal.length > 1) {
-                calcVal = calcVal.slice(0, -1);
-            } else {
-                calcVal = "0";
-            }
-            updateCalcDisplay();
-        }
-
-        function calculateCalc() {
-            try {
-                let expression = calcVal;
-                expression = expression.replace(/%/g, '/100');
-                let result = new Function(`return ${expression}`)();
-                if (result === undefined || isNaN(result)) {
-                    calcVal = "Error";
-                } else {
-                    if (result % 1 !== 0) result = parseFloat(result.toFixed(4));
-                    calcVal = result.toString();
-                }
-            } catch (e) {
-                calcVal = "Error";
-            }
-            updateCalcDisplay();
         }
 
         // Ikat fungsi modul agar selalu dapat dipanggil secara global
