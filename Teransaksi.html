@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SI-PRINTING v7.2 - Edisi Online Cloud Firebase & Safety Limit</title>
+    <title>SI-PRINTING v7.6 - Edisi Pilihan Sumber Dana Belanja & Bebas Bug</title>
     <!-- Tailwind CSS CDN untuk Tampilan Premium & Modern -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -27,8 +27,8 @@
     <header class="bg-gradient-to-r from-slate-950 via-indigo-950 to-slate-950 text-white shadow-lg">
         <div class="max-w-[1600px] mx-auto px-4 py-6 flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="text-center md:text-left">
-                <span class="bg-emerald-500/30 text-emerald-300 text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-wider">Misi 6 Bulan & Online Cloud Sync</span>
-                <h1 class="text-3xl font-extrabold tracking-tight mt-1">SI-PRINTING <span class="text-yellow-400">v7.2</span></h1>
+                <span class="bg-emerald-500/30 text-emerald-300 text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-wider">Misi 6 Bulan & Sumber Dana Fleksibel</span>
+                <h1 class="text-3xl font-extrabold tracking-tight mt-1">SI-PRINTING <span class="text-yellow-400">v7.6</span></h1>
                 <p class="text-xs text-slate-300 mt-1">Sistem Terpadu Pembukuan, Tabungan Utama, Kas Penyelenggaraan Mesin & Inventori Stok</p>
             </div>
             <div class="bg-white/10 backdrop-blur-md px-5 py-3 rounded-xl border border-white/10 text-center md:text-right">
@@ -43,14 +43,14 @@
         <!-- 1. DASHBOARD PROGRESS TARGET UTAMA, KAS PENYELENGGARAAN & STOK INVENTORI -->
         <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
             
-            <!-- PROGRESS TARGET UTAMA -->
+            <!-- PROGRESS TARGET UTAMA (RP 13.000.000) -->
             <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col justify-between">
                 <div>
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
                         <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
                             🎯 Tabungan Utama (Bebas Cicilan & Balik Modal)
                         </h2>
-                        <span class="bg-blue-100 text-blue-800 text-[11px] font-bold px-2.5 py-0.5 rounded-full">Target: Rp13.300.000</span>
+                        <span class="bg-blue-100 text-blue-800 text-[11px] font-bold px-2.5 py-0.5 rounded-full">Target: Rp13.000.000</span>
                     </div>
                     
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
@@ -60,7 +60,7 @@
                         </div>
                         <div class="bg-amber-50 p-3 rounded-xl border border-amber-100 text-center">
                             <span class="text-[10px] text-slate-500 block font-medium">Sisa Target</span>
-                            <span id="sisaTarget" class="text-sm sm:text-base font-black text-amber-600 font-mono">Rp13,3jt</span>
+                            <span id="sisaTarget" class="text-sm sm:text-base font-black text-amber-600 font-mono">Rp13jt</span>
                         </div>
                         <div class="bg-indigo-50 p-3 rounded-xl border border-indigo-100 text-center">
                             <span class="text-[10px] text-slate-500 block font-medium">Rerata/Hari</span>
@@ -68,7 +68,7 @@
                         </div>
                         <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-center">
                             <span class="text-[10px] text-slate-500 block font-medium font-semibold">Tercatat</span>
-                            <span id="totalHari" class="text-sm sm:text-base font-black text-slate-700 font-mono">0 Data</span>
+                            <span id="totalHari" class="text-sm sm:text-base font-black text-slate-700 font-mono">0 Hari</span>
                         </div>
                     </div>
                 </div>
@@ -77,7 +77,7 @@
                 <div>
                     <div class="mb-1 flex justify-between text-[10px] font-bold text-slate-500">
                         <span id="persentaseProgress" class="text-blue-600 font-extrabold text-xs">0% Sukses</span>
-                        <span>Sasaran: Rp13.300.000</span>
+                        <span>Sasaran Bersih: Rp13.000.000</span>
                     </div>
                     <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden p-0.5 border border-slate-200">
                         <div id="progressBar" class="bg-gradient-to-r from-emerald-400 to-green-600 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
@@ -85,43 +85,30 @@
                 </div>
             </div>
 
-            <!-- KAS PENYELENGGARAAN & KONEKSI CLOUD SINKRONISASI -->
-            <div class="grid grid-cols-1 gap-6">
-                <!-- PANEL FIREBASE CLOUD SYNC -->
-                <div class="bg-slate-900 text-white rounded-2xl p-5 shadow-sm border border-slate-800 flex flex-col justify-between">
-                    <div>
-                        <div class="flex justify-between items-center mb-2">
-                            <h2 class="text-sm font-bold text-slate-200 flex items-center gap-2">
-                                ☁️ Firebase Cloud Sync (Online)
-                            </h2>
-                            <span id="cloudStatus" class="bg-red-500/20 text-red-400 border border-red-500/30 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">Lokal (Offline)</span>
-                        </div>
-                        <p class="text-[10px] text-slate-400 mb-3">Ketik Nama Bahan/Kunci khusus toko Anda untuk sinkronisasi otomatis antar perangkat:</p>
-                        
-                        <div class="flex gap-2">
-                            <input type="text" id="inputKodeAkses" placeholder="Contoh: tokoproguru" class="bg-slate-950 border border-slate-800 p-2 rounded-lg text-xs font-mono font-bold text-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-500 flex-1">
-                            <button id="btnHubungkan" onclick="hubungkanFirebase()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3 py-2 rounded-lg transition">Hubungkan</button>
-                        </div>
+            <!-- DOMPET KHUSUS PERAWATAN MESIN (MAINTENANCE FUNDS) -->
+            <div class="bg-slate-900 text-white rounded-2xl p-6 shadow-sm border border-slate-800 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-3">
+                        <h2 class="text-base font-bold text-slate-200 flex items-center gap-2">
+                            🛠️ Kas Perawatan Mesin (Otomatis)
+                        </h2>
+                        <button onclick="bukaModalPerawatan()" class="bg-indigo-600 hover:bg-indigo-700 text-[10px] font-bold py-1 px-2.5 rounded shadow transition">
+                            🔧 Catat Servis
+                        </button>
                     </div>
-                </div>
-
-                <!-- DOMPET PERAWATAN MESIN -->
-                <div class="bg-slate-900 text-white rounded-2xl p-5 shadow-sm border border-slate-800 flex flex-col justify-between">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-xs font-bold text-slate-200">🛠️ Dompet Perawatan Mesin</span>
-                        <button onclick="bukaModalPerawatan()" class="bg-indigo-600 hover:bg-indigo-700 text-[10px] font-bold py-1 px-2.5 rounded shadow transition">Catat Servis</button>
-                    </div>
-                    <div class="grid grid-cols-3 gap-2 text-[10px]">
-                        <div class="p-2 bg-slate-950 rounded border border-blue-900/40 text-center">
-                            <span class="text-slate-500 block text-[9px]">PageWide (10%)</span>
+                    <p class="text-[10px] text-slate-400 mb-3">Dana disisihkan langsung dari porsi keuntungan mesin sebelum masuk ke tabungan bersih utama Bapak:</p>
+                    
+                    <div class="space-y-2 text-xs">
+                        <div class="flex justify-between items-center p-2 bg-slate-950 rounded border border-blue-900/40">
+                            <span class="text-slate-400">Kas HP PageWide (Porsi 10%)</span>
                             <span id="kasPW" class="font-mono font-bold text-blue-400">Rp0</span>
                         </div>
-                        <div class="p-2 bg-slate-950 rounded border border-teal-900/40 text-center">
-                            <span class="text-slate-500 block text-[9px]">Epson (5%)</span>
+                        <div class="flex justify-between items-center p-2 bg-slate-950 rounded border border-teal-900/40">
+                            <span class="text-slate-400">Kas Epson L14150 (Porsi 5%)</span>
                             <span id="kasEP" class="font-mono font-bold text-teal-400">Rp0</span>
                         </div>
-                        <div class="p-2 bg-slate-950 rounded border border-purple-900/40 text-center">
-                            <span class="text-slate-500 block text-[9px]">XP600 (15%)</span>
+                        <div class="flex justify-between items-center p-2 bg-slate-950 rounded border border-purple-900/40">
+                            <span class="text-slate-400">Kas XP600 Eco-Solvent (Porsi 15%)</span>
                             <span id="kasXP" class="font-mono font-bold text-purple-400">Rp0</span>
                         </div>
                     </div>
@@ -135,14 +122,9 @@
                         <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
                             📦 Stok Bahan Baku Gudang
                         </h2>
-                        <div class="flex gap-1.5">
-                            <button onclick="bukaModalEditStok()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold py-1 px-2.5 rounded shadow-sm border border-slate-200 transition">
-                                ✏️ Koreksi Stok
-                            </button>
-                            <button onclick="bukaModalBahanBaku()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold py-1 px-2.5 rounded shadow transition">
-                                🛒 Belanja Bahan
-                            </button>
-                        </div>
+                        <button onclick="bukaModalEditStok()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold py-1 px-2.5 rounded shadow-sm border border-slate-200 transition">
+                            ✏️ Koreksi Stok
+                        </button>
                     </div>
                     
                     <div class="grid grid-cols-2 gap-2 text-xs">
@@ -169,8 +151,18 @@
                         </div>
                     </div>
 
+                    <!-- Wadah Belanja Terpisah -->
+                    <div class="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-slate-100">
+                        <button onclick="bukaModalBahanKertas()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-[10px] py-1.5 px-2 rounded-lg text-center transition animate-pulse">
+                            📄 Belanja Kertas
+                        </button>
+                        <button onclick="bukaModalBahanXP()" class="bg-purple-600 hover:bg-purple-700 text-white font-bold text-[10px] py-1.5 px-2 rounded-lg text-center transition animate-pulse">
+                            🎨 Belanja XP600
+                        </button>
+                    </div>
+
                     <!-- Wadah Stok Bahan Baku Custom Lainnya -->
-                    <div id="customStokContainer" class="mt-3 pt-3 border-t border-slate-100 grid grid-cols-2 gap-2 text-xs hidden animate-fade-in">
+                    <div id="customStokContainer" class="mt-3 pt-3 border-t border-slate-100 grid grid-cols-2 gap-2 text-xs hidden">
                         <!-- Disisipkan otomatis via JS -->
                     </div>
                 </div>
@@ -187,14 +179,15 @@
                     <div class="flex items-center gap-2 pb-3 mb-4 border-b border-blue-50">
                         <span class="text-2xl">⚡</span>
                         <div>
-                            <h3 class="font-bold text-blue-900 leading-tight">HP PageWide 476/477dw</h3>
-                            <span class="text-[10px] text-blue-600 uppercase tracking-wider font-semibold font-mono">HVS / Undangan (Batas: 1k Lbr)</span>
+                            <h3 class="font-bold text-blue-900 leading-tight">HP PageWide 477dw</h3>
+                            <span class="text-[10px] text-blue-600 uppercase tracking-wider font-semibold font-mono">Batas Aman: 2.000 Lbr / Hari</span>
                         </div>
                     </div>
 
-                    <div id="warnPW" class="mb-3 p-2.5 bg-red-100 text-red-800 text-xs rounded-lg border border-red-300 hidden font-bold animate-pulse">
+                    <div id="warnPW" class="mb-3 p-2.5 bg-red-100 text-red-800 text-[11px] rounded-lg border border-red-300 hidden font-bold animate-pulse">
                         ⚠️ LIMIT HARIAN TERLAMPAUI! Istirahatkan mesin sejenak agar fuser tidak overheat.
                     </div>
+                    
                     <div class="text-[11px] text-slate-500 mb-3 bg-slate-50 p-1.5 rounded border border-slate-100 flex flex-col gap-1">
                         <div class="flex justify-between items-center">
                             <span>Sdh Dicatat Hari Ini:</span>
@@ -202,7 +195,7 @@
                         </div>
                         <div class="flex justify-between items-center border-t border-slate-200/60 pt-1">
                             <span>Total Akumulasi:</span>
-                            <span class="font-mono font-bold text-blue-800 text-xs"><span id="totalInputPW">0</span> / 1.000 Lbr</span>
+                            <span class="font-mono font-bold text-blue-800 text-xs"><span id="totalInputPW">0</span> / 2.000 Lbr</span>
                         </div>
                     </div>
 
@@ -228,9 +221,9 @@
                         <!-- Print Warna -->
                         <div>
                             <div class="flex justify-between text-xs mb-1">
-                                <label class="font-bold text-slate-600">Print Warna / Undangan (Rp2k)</label>
+                                <label class="font-bold text-slate-600">Print Warna (Rp2.000/lbr)</label>
                             </div>
-                            <!-- Pilihan Kertas Dinamis berdasarkan Input Belanja -->
+                            <!-- Pilihan Kertas Warna Dinamis -->
                             <select id="inputPW_JenisKertas" onchange="hitungUlangKapasitas()" class="w-full mb-2 p-2 border border-slate-300 font-semibold rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
                                 <option value="hvs">Kertas HVS Toko</option>
                                 <option value="undangan">Kertas Undangan Toko</option>
@@ -248,13 +241,14 @@
                         <span class="text-2xl">🌱</span>
                         <div>
                             <h3 class="font-bold text-teal-900 leading-tight">Epson L14150 (A3+)</h3>
-                            <span class="text-[10px] text-teal-600 uppercase tracking-wider font-semibold font-mono">EcoTank (Batas: 200 Lbr)</span>
+                            <span class="text-[10px] text-teal-600 uppercase tracking-wider font-semibold font-mono">Batas Aman: 300 Lbr / Hari</span>
                         </div>
                     </div>
 
-                    <div id="warnEP" class="mb-3 p-2.5 bg-red-100 text-red-800 text-xs rounded-lg border border-red-300 hidden font-bold animate-pulse">
-                        ⚠️ LIMIT HARIAN TERLAMPAUI! Istirahatkan mesin sejenak agar dinamo motor dingin.
+                    <div id="warnEP" class="mb-3 p-2.5 bg-red-100 text-red-800 text-[11px] rounded-lg border border-red-300 hidden font-bold animate-pulse">
+                        ⚠️ LIMIT HARIAN TERLAMPAUI! Istirahatkan mesin sejenak agar motor dinamo dingin.
                     </div>
+                    
                     <div class="text-[11px] text-slate-500 mb-3 bg-slate-50 p-1.5 rounded border border-slate-100 flex flex-col gap-1">
                         <div class="flex justify-between items-center">
                             <span>Sdh Dicatat Hari Ini:</span>
@@ -262,7 +256,7 @@
                         </div>
                         <div class="flex justify-between items-center border-t border-slate-200/60 pt-1">
                             <span>Total Akumulasi:</span>
-                            <span class="font-mono font-bold text-teal-800 text-xs"><span id="totalInputEP">0</span> / 200 Lbr</span>
+                            <span class="font-mono font-bold text-teal-800 text-xs"><span id="totalInputEP">0</span> / 300 Lbr</span>
                         </div>
                     </div>
 
@@ -288,9 +282,9 @@
                         <!-- Print Warna -->
                         <div>
                             <div class="flex justify-between text-xs mb-1">
-                                <label class="font-bold text-slate-600">Print Warna / Undangan (Rp2k)</label>
+                                <label class="font-bold text-slate-600">Print Warna (Rp2.000/lbr)</label>
                             </div>
-                            <!-- Pilihan Kertas Dinamis berdasarkan Input Belanja -->
+                            <!-- Pilihan Kertas Warna Dinamis -->
                             <select id="inputEP_JenisKertas" onchange="hitungUlangKapasitas()" class="w-full mb-2 p-2 border border-slate-300 font-semibold rounded-lg text-xs focus:ring-2 focus:ring-teal-500 focus:outline-none">
                                 <option value="hvs">Kertas HVS Toko</option>
                                 <option value="undangan">Kertas Undangan Toko</option>
@@ -307,14 +301,15 @@
                     <div class="flex items-center gap-2 pb-3 mb-4 border-b border-purple-50">
                         <span class="text-2xl">🎨</span>
                         <div>
-                            <h3 class="font-bold text-purple-900 leading-tight">Mesin XP600</h3>
-                            <span class="text-[10px] text-purple-600 uppercase tracking-wider font-semibold font-mono">Spanduk / Stiker (Batas: 20m)</span>
+                            <h3 class="font-bold text-purple-900 leading-tight">Epson XP600 1.6</h3>
+                            <span class="text-[10px] text-purple-600 uppercase tracking-wider font-semibold font-mono">Batas Aman: 20 m / Hari</span>
                         </div>
                     </div>
 
-                    <div id="warnXP" class="mb-3 p-2.5 bg-red-100 text-red-800 text-xs rounded-lg border border-red-300 hidden font-bold animate-pulse">
+                    <div id="warnXP" class="mb-3 p-2.5 bg-red-100 text-red-800 text-[11px] rounded-lg border border-red-300 hidden font-bold animate-pulse">
                         ⚠️ LIMIT HARIAN TERLAMPAUI! Istirahatkan mesin sejenak agar sirkulasi tinta stabil.
                     </div>
+                    
                     <div class="text-[11px] text-slate-500 mb-3 bg-slate-50 p-1.5 rounded border border-slate-100 flex flex-col gap-1">
                         <div class="flex justify-between items-center">
                             <span>Sdh Dicatat Hari Ini (Meteran):</span>
@@ -345,14 +340,14 @@
                             <input type="number" id="inputXP_Sticker" placeholder="0" min="0" step="any" class="w-full p-2 border border-slate-300 rounded-lg text-right font-bold text-slate-700 focus:ring-2 focus:ring-purple-500 focus:outline-none">
                         </div>
 
-                        <!-- Cetak Bahan Meteran Custom -->
+                        <!-- Cetak Custom Meteran -->
                         <div>
                             <div class="flex justify-between text-xs mb-1">
-                                <label class="font-bold text-slate-600">Cetak Bahan Custom (Rp40k/m)</label>
+                                <label class="font-bold text-slate-600">Bahan Custom (Rp40k/m)</label>
                             </div>
                             <!-- Dropdown Bahan Custom Meteran -->
                             <select id="inputXP_CustomJenis" onchange="hitungUlangKapasitas()" class="w-full mb-2 p-2 border border-slate-300 font-semibold rounded-lg text-xs focus:ring-2 focus:ring-purple-500 focus:outline-none">
-                                <!-- Disisipkan otomatis via JS -->
+                                <option value="">-- Pilih Bahan Custom --</option>
                             </select>
                             <input type="number" id="inputXP_CustomQty" placeholder="0" min="0" step="any" class="w-full p-2 border border-slate-300 rounded-lg text-right font-bold text-slate-700 focus:ring-2 focus:ring-purple-500 focus:outline-none">
                         </div>
@@ -367,7 +362,7 @@
                         <span class="text-2xl">📅</span>
                         <div>
                             <h3 class="font-bold text-slate-800 leading-tight">Tanggal & Info</h3>
-                            <span class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold font-mono">Sistem Kalender</span>
+                            <span class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold font-mono">Kalender Pembukuan</span>
                         </div>
                     </div>
 
@@ -377,13 +372,13 @@
 
                     <!-- Ringkasan Singkat Counter Akumulasi -->
                     <div class="bg-slate-50 p-3 rounded-xl border border-slate-150 space-y-1 text-xs">
-                        <span class="font-bold text-slate-600 block mb-1">📊 Keseluruhan Produksi:</span>
+                        <span class="font-bold text-slate-600 block mb-1">📊 Produksi Terpilih:</span>
                         <div class="flex justify-between text-slate-600">
                             <span>Total PageWide:</span>
                             <span id="statPageWide" class="font-bold text-blue-950">0 Lbr</span>
                         </div>
                         <div class="flex justify-between text-slate-600">
-                            <span>Total Epson:</span>
+                            <span>Total Epson L14150:</span>
                             <span id="statEpson" class="font-bold text-teal-800">0 Lbr</span>
                         </div>
                         <div class="flex justify-between text-slate-600">
@@ -398,7 +393,7 @@
                 </div>
 
                 <div class="mt-4">
-                    <button onclick="simpanTransaksi()" class="w-full bg-gradient-to-r from-blue-700 via-indigo-800 to-purple-800 hover:from-blue-800 hover:to-purple-900 text-white font-extrabold py-3 px-4 rounded-xl shadow-md transition duration-200 uppercase tracking-wide text-xs">
+                    <button onclick="simpanTransaksi()" class="w-full bg-gradient-to-r from-blue-700 via-indigo-800 to-purple-800 hover:from-blue-800 hover:to-purple-900 text-white font-extrabold py-3.5 px-4 rounded-xl shadow-md transition duration-200 uppercase tracking-wide text-xs">
                         💾 Simpan Cetakan Hari Ini
                     </button>
                 </div>
@@ -425,7 +420,7 @@
                         <button onclick="inputCalc('/')" class="p-2.5 bg-indigo-750 hover:bg-indigo-600 rounded-lg transition">÷</button>
                         <button onclick="inputCalc('*')" class="p-2.5 bg-indigo-750 hover:bg-indigo-600 rounded-lg transition">×</button>
                         
-                        <button onclick="inputCalc('7')" class="p-2.5 bg-slate-855 hover:bg-slate-750 rounded-lg transition">7</button>
+                        <button onclick="inputCalc('7')" class="p-2.5 bg-slate-850 hover:bg-slate-750 rounded-lg transition">7</button>
                         <button onclick="inputCalc('8')" class="p-2.5 bg-slate-855 hover:bg-slate-750 rounded-lg transition">8</button>
                         <button onclick="inputCalc('9')" class="p-2.5 bg-slate-855 hover:bg-slate-750 rounded-lg transition">9</button>
                         <button onclick="inputCalc('-')" class="p-2.5 bg-indigo-750 hover:bg-indigo-600 rounded-lg transition">-</button>
@@ -474,11 +469,11 @@
                     <thead>
                         <tr class="bg-slate-50 text-xs font-bold text-slate-500 uppercase border-b border-slate-100">
                             <th class="p-4">Tanggal (Waktu)</th>
-                            <th class="p-4">HP PageWide / Info Belanja</th>
+                            <th class="p-4">HP PageWide 477dw</th>
                             <th class="p-4">Epson L14150</th>
-                            <th class="p-4">XP600 (Bahan Custom)</th>
+                            <th class="p-4">XP600 1.6 (Bahan Custom)</th>
                             <th class="p-4 text-right">Omset Kotor</th>
-                            <th class="p-4 text-right text-emerald-700 font-bold bg-green-50/50">Masuk Tabungan Utama</th>
+                            <th class="p-4 text-right text-emerald-700 font-bold bg-green-50/50">Masuk Tabungan Bersih</th>
                             <th class="p-4 text-center">Aksi</th>
                         </tr>
                     </thead>
@@ -513,31 +508,6 @@
             <div class="flex gap-2">
                 <button id="btnConfirmBatal" class="w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl transition">Batal</button>
                 <button id="btnConfirmYa" class="w-1/2 bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-xl shadow-lg transition">Ya, Lanjutkan</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- POPUP MODAL KONFIRMASI CLOUD CONFLICT -->
-    <div id="modalConflict" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center hidden z-40 p-4">
-        <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl border border-slate-100">
-            <div class="text-center">
-                <div class="text-5xl mb-4">☁️</div>
-                <h3 class="text-xl font-extrabold text-slate-950 mb-2">Sinkronisasi Cloud Firebase</h3>
-                <p class="text-sm text-slate-600 mb-6">Ditemukan data yang berbeda antara database Cloud dan memori lokal Komputer Anda.</p>
-                
-                <div class="space-y-3">
-                    <button onclick="pilihDataCloud()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 rounded-xl shadow transition">
-                        📥 Gunakan Data dari Cloud (HP/Luar)
-                    </button>
-                    <p class="text-[11px] text-slate-400 italic">Mengambil data cloud dan menimpa data di komputer ini.</p>
-                    
-                    <div class="border-t border-slate-100 my-2 pt-2"></div>
-                    
-                    <button onclick="pilihDataLokal()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl shadow transition">
-                        📤 Unggah Data Lokal Komputer ke Cloud
-                    </button>
-                    <p class="text-[11px] text-slate-400 italic">Mengirim data di komputer ini ke Cloud untuk menimpa data di HP/perangkat luar.</p>
-                </div>
             </div>
         </div>
     </div>
@@ -578,56 +548,109 @@
         </div>
     </div>
 
-    <!-- POPUP MODAL BELANJA BAHAN BAKU (INVENTORY EXPENSE) -->
-    <div id="modalBahanBaku" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center hidden z-40 p-4">
+    <!-- POPUP MODAL BELANJA KERTAS (PAGEWIDE & EPSON) -->
+    <div id="modalBahanKertas" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center hidden z-40 p-4">
         <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl border border-slate-100">
             <div class="flex justify-between items-center pb-3 mb-4 border-b border-slate-150">
                 <h3 class="text-lg font-bold text-slate-900 flex items-center gap-1.5">
-                    🛒 Belanja Bahan Baku Toko (Kulakan)
+                    📄 Belanja Kertas Toko (PageWide & Epson)
                 </h3>
-                <button onclick="tutupModalBahanBaku()" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+                <button onclick="tutupModalBahanKertas()" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
             </div>
             
             <div class="space-y-4">
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Nama Bahan Baku</label>
-                    <input type="text" id="bahanJenisInput" list="daftarBahanBaku" placeholder="Ketik nama bahan (misal: Kertas Art Paper, Kertas Karton)" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                    <datalist id="daftarBahanBaku">
-                        <option value="Kertas HVS (A4)"></option>
-                        <option value="Kertas Undangan"></option>
-                        <option value="Bahan Spanduk Flexi"></option>
-                        <option value="Bahan Stiker Vinyl"></option>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Nama Kertas / Bahan</label>
+                    <input type="text" id="kertasBeliInput" list="daftarKertasBaku" placeholder="Ketik jenis kertas (misal: Kertas Karton, Art Paper)" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <datalist id="daftarKertasBaku">
+                        <!-- Diisi otomatis oleh JS -->
                     </datalist>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Satuan Bahan</label>
-                    <select id="bahanSatuan" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Satuan</label>
+                    <select id="kertasSatuan" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none">
                         <option value="Lbr">Lembar (Lbr)</option>
-                        <option value="Meter">Meter (m)</option>
-                        <option value="Pcs">Pcs / Buah</option>
-                        <option value="Roll">Roll</option>
-                        <option value="Botol">Botol</option>
-                        <option value="Rim">Rim (500 Lembar)</option>
+                        <option value="Rim">Rim (1 Rim = 500 Lembar)</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Jumlah Bahan yang Dibeli</label>
-                    <input type="number" id="bahanJumlah" placeholder="Masukkan angka" min="0.1" step="any" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm font-bold focus:ring-2 focus:ring-emerald-500 focus:outline-none text-right">
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Tipe Transaksi (Sumber Dana)</label>
+                    <select id="kertasTipeInput" class="w-full p-2.5 border border-amber-300 bg-amber-50 rounded-lg text-sm font-bold focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                        <option value="stok">Stok Baru (Modal Luar/Awal - Tidak Potong Target Tabungan)</option>
+                        <option value="belanja">Belanja Operasional (Potong Target Tabungan Rp13jt)</option>
+                    </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Total Biaya Kulakan (Rupiah)</label>
-                    <input type="number" id="bahanBiaya" placeholder="Rp 0" min="0" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm font-bold focus:ring-2 focus:ring-emerald-500 focus:outline-none text-right">
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Jumlah Yang Dibeli</label>
+                    <input type="number" id="kertasJumlah" placeholder="Masukkan kuantitas" min="0.1" step="any" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm font-bold focus:ring-2 focus:ring-blue-500 focus:outline-none text-right">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Total Biaya Belanja (Rupiah)</label>
+                    <input type="number" id="kertasBiaya" placeholder="Rp 0" min="0" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm font-bold focus:ring-2 focus:ring-blue-500 focus:outline-none text-right">
                 </div>
             </div>
             
             <div class="mt-6 flex gap-2">
-                <button onclick="tutupModalBahanBaku()" class="w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-lg transition">Batal</button>
-                <button onclick="prosesSimpanBahanBaku()" class="w-1/2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-lg shadow-md transition">Simpan Belanja</button>
+                <button onclick="tutupModalBahanKertas()" class="w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-lg transition">Batal</button>
+                <button onclick="prosesSimpanBahanKertas()" class="w-1/2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg shadow-md transition">Simpan Belanja</button>
             </div>
         </div>
     </div>
 
-    <!-- POPUP MODAL KOREKSI / EDIT STOK GUDANG (PREMIUM & DINAMIS) -->
+    <!-- POPUP MODAL BELANJA BAHAN XP600 (METERAN) -->
+    <div id="modalBahanXP" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center hidden z-40 p-4">
+        <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl border border-slate-100">
+            <div class="flex justify-between items-center pb-3 mb-4 border-b border-slate-150">
+                <h3 class="text-lg font-bold text-slate-900 flex items-center gap-1.5">
+                    🎨 Belanja Bahan Meteran XP600 1.6
+                </h3>
+                <button onclick="tutupModalBahanXP()" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Nama Bahan XP600</label>
+                    <input type="text" id="xpBeliInput" list="daftarXPBaku" placeholder="Ketik jenis bahan (misal: Canvas Polyester, Kain DTF)" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm font-semibold focus:ring-2 focus:ring-purple-500 focus:outline-none">
+                    <datalist id="daftarXPBaku">
+                        <!-- Diisi otomatis oleh JS -->
+                    </datalist>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Satuan Bahan</label>
+                    <select id="xpSatuan" onchange="togglePanjangRoll()" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm font-semibold focus:ring-2 focus:ring-purple-500 focus:outline-none">
+                        <option value="Meter">Meter (m)</option>
+                        <option value="Roll">Roll</option>
+                    </select>
+                </div>
+                <div id="wrapperPanjangRoll" class="hidden">
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Panjang Per Roll (Meter)</label>
+                    <input type="number" id="xpPanjangRoll" value="50" min="1" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none text-right">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Tipe Transaksi (Sumber Dana)</label>
+                    <select id="xpTipeInput" class="w-full p-2.5 border border-amber-300 bg-amber-50 rounded-lg text-sm font-bold focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                        <option value="stok">Stok Baru (Modal Luar/Awal - Tidak Potong Target Tabungan)</option>
+                        <option value="belanja">Belanja Operasional (Potong Target Tabungan Rp13jt)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Kuantitas Yang Dibeli</label>
+                    <input type="number" id="xpJumlah" placeholder="Masukkan kuantitas" min="0.1" step="any" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm font-bold focus:ring-2 focus:ring-purple-500 focus:outline-none text-right">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Total Biaya Belanja (Rupiah)</label>
+                    <input type="number" id="xpBiaya" placeholder="Rp 0" min="0" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm font-bold focus:ring-2 focus:ring-purple-500 focus:outline-none text-right">
+                </div>
+            </div>
+            
+            <div class="mt-6 flex gap-2">
+                <button onclick="tutupModalBahanXP()" class="w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-lg transition">Batal</button>
+                <button onclick="prosesSimpanBahanXP()" class="w-1/2 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 rounded-lg shadow-md transition">Simpan Belanja</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- POPUP MODAL KOREKSI / EDIT STOK GUDANG -->
     <div id="modalEditStok" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center hidden z-40 p-4 animate-fade-in">
         <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl border border-slate-100 flex flex-col max-h-[85vh]">
             <div class="flex justify-between items-center pb-3 mb-4 border-b border-slate-150">
@@ -639,7 +662,6 @@
             
             <p class="text-xs text-slate-500 mb-4">Gunakan panel ini untuk mengedit jumlah stok yang tersimpan secara manual apabila terjadi salah catat atau selisih fisik harian.</p>
             
-            <!-- Wadah Input Stok Dinamis -->
             <div id="editStokListContainer" class="space-y-3 overflow-y-auto flex-1 pr-1">
                 <!-- Disisipkan dinamis via JS -->
             </div>
@@ -651,53 +673,25 @@
         </div>
     </div>
 
-    <!-- CODE LOGICAL CONTROLLER (FIREBASE SCRIPT MODULE) -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // Konfigurasi Firebase bawaan user
-        const localFirebaseConfig = {
-            apiKey: "AIzaSyAXOHHI9ytfcjK1sc4ZoErSheJ3zPyM3u4",
-            authDomain: "x-casing-482715-v7.firebaseapp.com",
-            projectId: "x-casing-482715-v7",
-            storageBucket: "x-casing-482715-v7.firebasestorage.app",
-            messagingSenderId: "752575391484",
-            appId: "1:752575391484:web:15111344c032cd6ad4d979",
-            measurementId: "G-VP8Q3DSHMD"
-        };
-
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : localFirebaseConfig;
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-
-        // Inisialisasi Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        // State global aplikasi
+    <!-- CODE LOGICAL CONTROLLER (PURE JAVASCRIPT, AMAN & OFFLINE FIRST) -->
+    <script>
+        // --- DATABASE LOCAL STORAGE INITIALIZATION ---
         let database = JSON.parse(localStorage.getItem('si_printing_db')) || [];
         let kasPerawatan = JSON.parse(localStorage.getItem('si_printing_maint_kas')) || { pw: 0, ep: 0, xp: 0 };
         let stokInventori = JSON.parse(localStorage.getItem('si_printing_stok')) || {
-            hvs: 2500,
-            undangan: 200,
-            spanduk: 50,
-            stiker: 30
+            hvs: 2500,       // Default awal 5 Rim
+            undangan: 200,   // Default awal 200 lembar
+            spanduk: 50,     // Default awal 50 meter
+            stiker: 30       // Default awal 30 meter
         };
 
         // Database dinamis Harga Modal Bahan baku per unit (Lembar / Meter)
         let hargaModalBahan = JSON.parse(localStorage.getItem('si_printing_modal_bahan')) || {
             hvs: 100,       // Default Rp100 / lembar
             undangan: 200,  // Default Rp200 / lembar
-            spanduk: 13000, // Default Rp13.000 / meter
-            stiker: 10000   // Default Rp10.000 / meter
+            spanduk: 13000, // Default Rp13.000 / meter (Modal flexi)
+            stiker: 10000   // Default Rp10.000 / meter (Modal sticker)
         };
-
-        let activeKodeAkses = localStorage.getItem('si_printing_cloud_key') || "";
-        let cloudUnsubscribe = null;
-        let isSyncing = false; 
-        let tempCloudData = null; 
 
         // Set tanggal input kalender otomatis ke hari ini
         document.getElementById('inputTanggal').valueAsDate = new Date();
@@ -709,12 +703,12 @@
             xp_spanduk: 25000, xp_stiker: 35000, xp_custom: 40000
         };
 
-        // Konfigurasi Keuntungan Bersih Dasar
+        // Konfigurasi Keuntungan Bersih Dasar (Di Luar Kertas)
         const UNTUNG = {
             pw_fc: 150, pw_hp: 700,
             ep_fc: 150, ep_hp: 700,
-            xp_spanduk: 12000,
-            xp_stiker: 25000
+            xp_spanduk: 12000, // Rp25.000 jual - Rp13.000 modal spanduk
+            xp_stiker: 25000   // Rp35.000 jual - Rp10.000 modal stiker
         };
 
         // Estimasi biaya tinta & penyusutan mesin per lembar (diluar harga kertas)
@@ -722,46 +716,14 @@
 
         // PORSI PENYISIHAN PERAWATAN DARI KEUNTUNGAN BERSIH
         const PORSI_RAWAT = { pw: 0.10, ep: 0.05, xp: 0.15 };
-        const TARGET_AKHIR = 13300000;
-
-        // Auto-Migrasi data lama ke struktur modern
-        function lakukanMigrasiData() {
-            let termigrasi = false;
-            database = database.map(item => {
-                if (item.fc !== undefined || item.dtf !== undefined) {
-                    termigrasi = true;
-                    return {
-                        id: item.id || Date.now(),
-                        tanggal: item.tanggal,
-                        waktu: item.waktu || "12:00",
-                        pw_fc: item.fc || 0,
-                        pw_hp: item.hp || 0,
-                        pw_warna: item.warna || 0,
-                        ep_fc: 0, ep_hp: 0, ep_warna: 0,
-                        xp_spanduk: item.dtf || 0, 
-                        xp_stiker: item.sticker_met || 0,
-                        xp_custom: 0,
-                        xp_custom_jenis: "",
-                        revenue: item.revenue || 0,
-                        savings: item.savings || 0,
-                        is_expense: false,
-                        is_bahan_expense: false
-                    };
-                }
-                return item;
-            });
-            if (termigrasi) {
-                localStorage.setItem('si_printing_db', JSON.stringify(database));
-            }
-        }
-        lakukanMigrasiData();
+        const TARGET_AKHIR = 13000000; // Rp 13.000.000
 
         // Format Rupiah Indonesia
         function formatRupiah(angka) {
             return "Rp " + angka.toLocaleString('id-ID');
         }
 
-        // Tampilkan Modal Peringatan Khusus
+        // Tampilkan Modal Peringatan Khusus (Pengganti alert)
         function showModal(title, message, icon = "📢") {
             document.getElementById('modalTitle').innerText = title;
             document.getElementById('modalMessage').innerText = message;
@@ -769,11 +731,11 @@
             document.getElementById('customModal').classList.remove('hidden');
         }
 
-        window.tutupModal = function() {
+        function tutupModal() {
             document.getElementById('customModal').classList.add('hidden');
-        };
+        }
 
-        // MODAL KONFIRMASI CUSTOM (Pengganti confirm() bawaan browser agar aman)
+        // MODAL KONFIRMASI CUSTOM
         function panggilModalKonfirmasi(title, message, icon, onOk) {
             const modal = document.getElementById('confirmModal');
             const btnBatal = document.getElementById('btnConfirmBatal');
@@ -802,200 +764,193 @@
             btnYa.addEventListener('click', aksiYa);
         }
 
-        // --- SISTEM FIREBASE CLOUD SINKRONISASI ---
-        const initAuth = async () => {
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            } catch (err) {
-                console.error("Gagal melakukan login Firebase: ", err);
-            }
-        };
-
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                console.log("Terhubung ke Firebase dengan UID:", user.uid);
-                if (activeKodeAkses) {
-                    document.getElementById('inputKodeAkses').value = activeKodeAkses;
-                    hubungkanFirebase(true);
-                }
-            }
-        });
-
-        initAuth();
-
-        async function hubungkanFirebase(autoConnect = false) {
-            const user = auth.currentUser;
-            if (!user) {
-                showModal("Gagal", "Sistem gagal login ke Firebase secara aman. Silakan periksa koneksi internet Anda.", "❌");
-                return;
-            }
-
-            const kode = document.getElementById('inputKodeAkses').value.trim();
-            if (!kode) {
-                showModal("Peringatan", "Silakan ketik Kode Akses Toko Anda terlebih dahulu!", "⚠️");
-                return;
-            }
-
-            activeKodeAkses = kode;
-            localStorage.setItem('si_printing_cloud_key', kode);
-
-            const btn = document.getElementById('btnHubungkan');
-            btn.innerText = "Memproses...";
-            btn.disabled = true;
-
-            try {
-                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'toko_state', activeKodeAkses);
-                const snapshot = await getDoc(docRef);
-
-                if (snapshot.exists()) {
-                    const dataCloud = snapshot.data();
-                    tempCloudData = dataCloud;
-
-                    if (autoConnect) {
-                        pilihDataCloud(true);
-                    } else {
-                        document.getElementById('modalConflict').classList.remove('hidden');
-                    }
-                } else {
-                    await uploadDataKeCloud();
-                    aktifkanLiveSync();
-                    showModal("Koneksi Sukses!", `Database cloud baru berhasil dibuat dengan Kode Akses: "${activeKodeAkses}". Semua perangkat Anda kini dapat menggunakan kode ini!`, "☁️");
-                }
-            } catch (err) {
-                console.error(err);
-                showModal("Eror Sinkronisasi", "Gagal menghubungi database Firebase. Harap periksa koneksi internet.", "❌");
-                btn.innerText = "Hubungkan";
-                btn.disabled = false;
-            }
-        }
-        window.hubungkanFirebase = hubungkanFirebase;
-
-        // Pilih Gunakan Data Cloud (Overwriting Lokal)
-        window.pilihDataCloud = function(silent = false) {
-            document.getElementById('modalConflict').classList.add('hidden');
-            if (!tempCloudData) return;
-
-            database = tempCloudData.database || [];
-            kasPerawatan = tempCloudData.kasPerawatan || { pw: 0, ep: 0, xp: 0 };
-            stokInventori = tempCloudData.stokInventori || { hvs: 2500, undangan: 200, spanduk: 50, stiker: 30 };
-            hargaModalBahan = tempCloudData.hargaModalBahan || { hvs: 100, undangan: 200, spanduk: 13000, stiker: 10000 };
-
+        // Simpan State Ke LocalStorage
+        function simpanKeLocalStorage() {
             localStorage.setItem('si_printing_db', JSON.stringify(database));
             localStorage.setItem('si_printing_maint_kas', JSON.stringify(kasPerawatan));
             localStorage.setItem('si_printing_stok', JSON.stringify(stokInventori));
             localStorage.setItem('si_printing_modal_bahan', JSON.stringify(hargaModalBahan));
-
-            aktifkanLiveSync();
-            renderHalaman();
-
-            if (!silent) {
-                showModal("Data Sinkron!", "Data dari Cloud berhasil dimuat ke komputer ini. Mode sinkronisasi otomatis kini aktif!", "✅");
-            }
-        };
-
-        // Pilih Gunakan Data Lokal (Overwriting Cloud)
-        window.pilihDataLokal = async function() {
-            document.getElementById('modalConflict').classList.add('hidden');
-            await uploadDataKeCloud();
-            aktifkanLiveSync();
-            renderHalaman();
-            showModal("Cloud Diperbarui!", "Data dari komputer ini berhasil diunggah ke Cloud. Semua perangkat lain otomatis menggunakan data ini!", "✅");
-        };
-
-        async function uploadDataKeCloud() {
-            const user = auth.currentUser;
-            if (!user || !activeKodeAkses) return;
-
-            isSyncing = true;
-            try {
-                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'toko_state', activeKodeAkses);
-                await setDoc(docRef, {
-                    database: database,
-                    kasPerawatan: kasPerawatan,
-                    stokInventori: stokInventori,
-                    hargaModalBahan: hargaModalBahan,
-                    lastUpdated: Date.now(),
-                    deviceUid: user.uid
-                });
-            } catch (err) {
-                console.error("Gagal mengunggah data ke Cloud: ", err);
-            } finally {
-                isSyncing = false;
-            }
         }
 
-        async function syncCloudStorage() {
-            await uploadDataKeCloud();
+        // Mengubah nama input bebas agar bisa dipetakan ke 4 stok utama (HVS, Undangan, Spanduk, Stiker)
+        function getBahanKey(name) {
+            const clean = name.toLowerCase().trim();
+            if (clean.includes("hvs")) return "hvs";
+            if (clean.includes("undangan")) return "undangan";
+            if (clean.includes("spanduk") || clean.includes("flexi")) return "spanduk";
+            if (clean.includes("stiker") || clean.includes("sticker") || clean.includes("vinyl")) return "stiker";
+            return clean.replace(/[^a-z0-9]/gi, '_');
         }
 
-        function aktifkanLiveSync() {
-            const user = auth.currentUser;
-            if (!user || !activeKodeAkses) return;
+        // --- REKOMENDASI AUTO-COMPLETE DROPDOWN UNTUK DATALIST ---
+        function updateBahanDatalist() {
+            const datalistKertas = document.getElementById('daftarKertasBaku');
+            const datalistXP = document.getElementById('daftarXPBaku');
+            if (!datalistKertas || !datalistXP) return;
 
-            if (cloudUnsubscribe) {
-                cloudUnsubscribe();
-            }
+            const defaultKertas = ["Kertas HVS (A4)", "Kertas Undangan", "Kertas Karton", "Art Paper"];
+            const defaultXP = ["Bahan Spanduk Flexi", "Bahan Stiker Vinyl", "Canvas Polyester", "Kain DTF"];
 
-            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'toko_state', activeKodeAkses);
-            
-            cloudUnsubscribe = onSnapshot(docRef, (docSnap) => {
-                if (docSnap.exists() && !isSyncing) {
-                    const data = docSnap.data();
-                    
-                    database = data.database || [];
-                    kasPerawatan = data.kasPerawatan || { pw: 0, ep: 0, xp: 0 };
-                    stokInventori = data.stokInventori || { hvs: 2500, undangan: 200, spanduk: 50, stiker: 30 };
-                    hargaModalBahan = data.hargaModalBahan || { hvs: 100, undangan: 200, spanduk: 13000, stiker: 10000 };
+            const uniqueKertas = new Set(defaultKertas);
+            const uniqueXP = new Set(defaultXP);
 
-                    localStorage.setItem('si_printing_db', JSON.stringify(database));
-                    localStorage.setItem('si_printing_maint_kas', JSON.stringify(kasPerawatan));
-                    localStorage.setItem('si_printing_stok', JSON.stringify(stokInventori));
-                    localStorage.setItem('si_printing_modal_bahan', JSON.stringify(hargaModalBahan));
-
-                    renderHalaman();
+            database.forEach(item => {
+                if (item.is_bahan_expense && item.nama_bahan) {
+                    if (item.tipe_bahan === 'kertas') {
+                        uniqueKertas.add(item.nama_bahan);
+                    } else if (item.tipe_bahan === 'xp600') {
+                        uniqueXP.add(item.nama_bahan);
+                    }
                 }
-            }, (error) => {
-                console.error("Kesalahan koneksi live sync: ", error);
             });
 
-            const status = document.getElementById('cloudStatus');
-            const btn = document.getElementById('btnHubungkan');
-            status.innerText = "☁️ TERKONEKSI (ONLINE)";
-            status.className = "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase animate-pulse";
-            btn.innerText = "Terputus";
-            btn.className = "bg-red-600 hover:bg-red-700 text-white font-bold text-xs px-3 py-2 rounded-lg transition";
-            btn.onclick = putuskanFirebase;
-            btn.disabled = false;
+            datalist.innerHTML = '';
+            uniqueSuggestions(uniqueSuggestionsSet = uniqueKertas, datalistKertas);
+            uniqueSuggestions(uniqueSuggestionsSet = uniqueXP, datalistXP);
         }
 
-        function putuskanFirebase() {
-            if (cloudUnsubscribe) {
-                cloudUnsubscribe();
-                cloudUnsubscribe = null;
+        function uniqueSuggestions(uniqueSuggestionsSet, datalistElement) {
+            uniqueSuggestionsSet.forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                datalistElement.appendChild(option);
+            });
+        }
+
+        // --- SISTEM MODAL KULAKAN BAHAN ---
+        function bukaModalBahanKertas() {
+            document.getElementById('kertasBeliInput').value = '';
+            document.getElementById('kertasSatuan').value = 'Lbr';
+            document.getElementById('kertasTipeInput').value = 'stok'; // Default ke Input Stok Saja
+            document.getElementById('kertasJumlah').value = '';
+            document.getElementById('kertasBiaya').value = '';
+            document.getElementById('modalBahanKertas').classList.remove('hidden');
+        }
+
+        function tutupModalBahanKertas() {
+            document.getElementById('modalBahanKertas').classList.add('hidden');
+        }
+
+        function prosesSimpanBahanKertas() {
+            const nama = document.getElementById('kertasBeliInput').value.trim();
+            const satuan = document.getElementById('kertasSatuan').value;
+            const tipeInput = document.getElementById('kertasTipeInput').value; // 'stok' atau 'belanja'
+            const jumlah = parseFloat(document.getElementById('kertasJumlah').value) || 0;
+            const biaya = parseInt(document.getElementById('kertasBiaya').value) || 0;
+
+            if (!nama) return showModal("Eror", "Silakan masukkan nama kertas!", "❌");
+            if (jumlah <= 0 || biaya <= 0) return showModal("Eror", "Masukkan kuantitas dan biaya belanja yang valid!", "❌");
+
+            const key = getBahanKey(nama);
+
+            // Konversi Rim ke Lembar otomatis
+            let jumlahDitambah = jumlah;
+            if (satuan === 'Rim') {
+                jumlahDitambah = jumlah * 500;
             }
-            activeKodeAkses = "";
-            localStorage.removeItem('si_printing_cloud_key');
-            document.getElementById('inputKodeAkses').value = "";
 
-            const status = document.getElementById('cloudStatus');
-            const btn = document.getElementById('btnHubungkan');
-            status.innerText = "Lokal (Offline)";
-            status.className = "bg-red-500/20 text-red-400 border border-red-500/30 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase";
-            btn.innerText = "Hubungkan";
-            btn.className = "bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3 py-2 rounded-lg transition";
-            btn.onclick = () => hubungkanFirebase(false);
+            if (stokInventori[key] === undefined) stokInventori[key] = 0;
+            stokInventori[key] += jumlahDitambah;
 
-            showModal("Koneksi Diputus", "Sistem pembukuan kembali ke mode offline lokal secara mandiri.", "⚠️");
+            // Hitung Modal Per Unit (Per Lembar)
+            hargaModalBahan[key] = Math.round(biaya / jumlahDitambah);
+
+            const tglSistem = document.getElementById('inputTanggal').value;
+            const itemBelanja = {
+                id: Date.now(),
+                tanggal: tglSistem,
+                waktu: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+                is_expense: false,
+                is_bahan_expense: true,
+                tipe_bahan: 'kertas',
+                nama_bahan: nama,
+                key_bahan: key,
+                jumlah_bahan: jumlah,
+                satuan_bahan: satuan,
+                biaya_expense: biaya,
+                savings: tipeInput === 'belanja' ? -biaya : 0 // Sesuai pilihan Bapak!
+            };
+
+            database.push(itemBelanja);
+            simpanKeLocalStorage();
+            tutupModalBahanKertas();
+            renderHalaman();
+            showModal("Berhasil Tercatat", `Kertas "${nama}" berhasil dimasukkan ke gudang sebanyak ${jumlah} ${satuan}.\nTipe: ${tipeInput === 'belanja' ? 'Belanja (Memotong Tabungan)' : 'Stok Baru (Tanpa Potong Tabungan)'}`, "📦");
         }
-        window.putuskanFirebase = putuskanFirebase;
 
+        function bukaModalBahanXP() {
+            document.getElementById('xpBeliInput').value = '';
+            document.getElementById('xpSatuan').value = 'Meter';
+            document.getElementById('xpTipeInput').value = 'stok'; // Default ke Input Stok Saja
+            document.getElementById('xpPanjangRoll').value = '50';
+            document.getElementById('xpJumlah').value = '';
+            document.getElementById('xpBiaya').value = '';
+            document.getElementById('wrapperPanjangRoll').classList.add('hidden');
+            document.getElementById('modalBahanXP').classList.remove('hidden');
+        }
 
-        // --- LOGIKA UTAMA APRESIASI KARYA TOKO ---
+        function tutupModalBahanXP() {
+            document.getElementById('modalBahanXP').classList.add('hidden');
+        }
 
+        function togglePanjangRoll() {
+            const sat = document.getElementById('xpSatuan').value;
+            if (sat === 'Roll') {
+                document.getElementById('wrapperPanjangRoll').classList.remove('hidden');
+            } else {
+                document.getElementById('wrapperPanjangRoll').classList.add('hidden');
+            }
+        }
+
+        function prosesSimpanBahanXP() {
+            const nama = document.getElementById('xpBeliInput').value.trim();
+            const satuan = document.getElementById('xpSatuan').value;
+            const tipeInput = document.getElementById('xpTipeInput').value; // 'stok' atau 'belanja'
+            const jumlah = parseFloat(document.getElementById('xpJumlah').value) || 0;
+            const biaya = parseInt(document.getElementById('xpBiaya').value) || 0;
+
+            if (!nama) return showModal("Eror", "Silakan masukkan nama bahan XP600!", "❌");
+            if (jumlah <= 0 || biaya <= 0) return showModal("Eror", "Masukkan kuantitas dan biaya belanja yang valid!", "❌");
+
+            const key = getBahanKey(nama);
+
+            // Konversi Roll ke Meter otomatis
+            let jumlahDitambah = jumlah;
+            if (satuan === 'Roll') {
+                const pjgRoll = parseFloat(document.getElementById('xpPanjangRoll').value) || 50;
+                jumlahDitambah = jumlah * pjgRoll;
+            }
+
+            if (stokInventori[key] === undefined) stokInventori[key] = 0;
+            stokInventori[key] += jumlahDitambah;
+
+            // Hitung Modal Per Unit (Per Meter)
+            hargaModalBahan[key] = Math.round(biaya / jumlahDitambah);
+
+            const tglSistem = document.getElementById('inputTanggal').value;
+            const itemBelanja = {
+                id: Date.now(),
+                tanggal: tglSistem,
+                waktu: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+                is_expense: false,
+                is_bahan_expense: true,
+                tipe_bahan: 'xp600',
+                nama_bahan: nama,
+                key_bahan: key,
+                jumlah_bahan: jumlah,
+                satuan_bahan: satuan,
+                biaya_expense: biaya,
+                savings: tipeInput === 'belanja' ? -biaya : 0 // Sesuai pilihan Bapak!
+            };
+
+            database.push(itemBelanja);
+            simpanKeLocalStorage();
+            tutupModalBahanXP();
+            renderHalaman();
+            showModal("Berhasil Tercatat", `Bahan XP600 "${nama}" berhasil dimasukkan ke gudang sebanyak ${jumlah} ${satuan}.\nTipe: ${tipeInput === 'belanja' ? 'Belanja (Memotong Tabungan)' : 'Stok Baru (Tanpa Potong Tabungan)'}`, "📦");
+        }
+
+        // --- SISTEM KOREKSI / EDIT STOK GUDANG ---
         function bukaModalEditStok() {
             const container = document.getElementById('editStokListContainer');
             container.innerHTML = '';
@@ -1029,12 +984,10 @@
             
             document.getElementById('modalEditStok').classList.remove('hidden');
         }
-        window.bukaModalEditStok = bukaModalEditStok;
 
         function tutupModalEditStok() {
             document.getElementById('modalEditStok').classList.add('hidden');
         }
-        window.tutupModalEditStok = tutupModalEditStok;
 
         function createEditStokRow(key, label, value) {
             const div = document.createElement('div');
@@ -1046,7 +999,7 @@
             return div;
         }
 
-        async function prosesSimpanKoreksiStok() {
+        function prosesSimpanKoreksiStok() {
             Object.keys(stokInventori).forEach(key => {
                 const input = document.getElementById(`editStok_${key}`);
                 if (input) {
@@ -1054,183 +1007,44 @@
                 }
             });
             
-            localStorage.setItem('si_printing_stok', JSON.stringify(stokInventori));
-            await syncCloudStorage();
-            
+            simpanKeLocalStorage();
             tutupModalEditStok();
             renderHalaman();
             showModal("Koreksi Berhasil", "Seluruh baki stok gudang berhasil disesuaikan dengan data terbaru Anda!", "✏️");
         }
-        window.prosesSimpanKoreksiStok = prosesSimpanKoreksiStok;
 
+        // --- SISTEM PERAWATAN ---
         function bukaModalPerawatan() {
             document.getElementById('maintKeterangan').value = '';
             document.getElementById('maintBiaya').value = '';
             document.getElementById('modalPerawatan').classList.remove('hidden');
         }
-        window.bukaModalPerawatan = bukaModalPerawatan;
 
         function tutupModalPerawatan() {
             document.getElementById('modalPerawatan').classList.add('hidden');
         }
-        window.tutupModalPerawatan = tutupModalPerawatan;
 
-        function bukaModalBahanBaku() {
-            document.getElementById('bahanJenisInput').value = '';
-            document.getElementById('bahanSatuan').value = 'Lbr';
-            document.getElementById('bahanJumlah').value = '';
-            document.getElementById('bahanBiaya').value = '';
-            document.getElementById('modalBahanBaku').classList.remove('hidden');
-        }
-        window.bukaModalBahanBaku = bukaModalBahanBaku;
-
-        function tutupModalBahanBaku() {
-            document.getElementById('modalBahanBaku').classList.add('hidden');
-        }
-        window.tutupModalBahanBaku = tutupModalBahanBaku;
-
-        // Menentukan key bahan baku untuk pemetaan otomatis
-        function getBahanKey(name) {
-            const clean = name.toLowerCase().trim();
-            if (clean.includes("hvs")) return "hvs";
-            if (clean.includes("undangan")) return "undangan";
-            if (clean.includes("spanduk") || clean.includes("flexi")) return "spanduk";
-            if (clean.includes("stiker") || clean.includes("sticker") || clean.includes("vinyl")) return "stiker";
-            return clean.replace(/[^a-z0-9]/gi, '_');
-        }
-
-        // Memperbarui rekomendasi auto-complete berdasarkan barang yang pernah Anda kulak
-        function updateBahanDatalist() {
-            const datalist = document.getElementById('daftarBahanBaku');
-            if (!datalist) return;
-            
-            const defaults = ["Kertas HVS (A4)", "Kertas Undangan", "Bahan Spanduk Flexi", "Bahan Stiker Vinyl", "Kertas Karton", "Kertas Art Paper", "Tinta Epson Cyan", "Tinta XP600 Black", "Laminasi Cold Glossy"];
-            const uniqueSuggestions = new Set(defaults);
-
-            database.forEach(item => {
-                if (item.is_bahan_expense && item.nama_bahan) {
-                    uniqueSuggestions.add(item.nama_bahan);
-                }
-            });
-
-            datalist.innerHTML = '';
-            uniqueSuggestions.forEach(name => {
-                const option = document.createElement('option');
-                option.value = name;
-                datalist.appendChild(option);
-            });
-        }
-
-        // Proses Pembelian Bahan Baku Baru & Hitung Modal Otomatis
-        async function prosesSimpanBahanBaku() {
-            const namaBahanInput = document.getElementById('bahanJenisInput').value.trim();
-            const satuanBahan = document.getElementById('bahanSatuan').value;
-            const jumlah = parseFloat(document.getElementById('bahanJumlah').value) || 0;
-            const biaya = parseInt(document.getElementById('bahanBiaya').value) || 0;
-
-            if (!namaBahanInput) {
-                showModal("Eror", "Silakan masukkan nama bahan baku!", "❌");
-                return;
-            }
-            if (jumlah <= 0) {
-                showModal("Eror", "Masukkan jumlah bahan baku yang valid!", "❌");
-                return;
-            }
-            if (biaya <= 0) {
-                showModal("Eror", "Masukkan biaya kulakan yang valid!", "❌");
-                return;
-            }
-
-            const key = getBahanKey(namaBahanInput);
-
-            // 1. TAMBAH STOK SECARA RIIL
-            let jumlahDitambah = jumlah;
-            if (satuanBahan === 'Rim') {
-                jumlahDitambah = jumlah * 500; // Konversi ke lembar
-            }
-
-            if (stokInventori[key] === undefined) {
-                stokInventori[key] = 0;
-            }
-            stokInventori[key] += jumlahDitambah;
-            localStorage.setItem('si_printing_stok', JSON.stringify(stokInventori));
-
-            // 2. HITUNG & UPDATE HARGA MODAL DINAMIS PER UNIT
-            const modalPerUnit = biaya / jumlahDitambah;
-            hargaModalBahan[key] = Math.round(modalPerUnit);
-            localStorage.setItem('si_printing_modal_bahan', JSON.stringify(hargaModalBahan));
-
-            const tglSistem = document.getElementById('inputTanggal').value;
-            const sekarang = new Date();
-            const jamFormat = CulinaryTimeFormat(sekarang);
-
-            const itemBelanja = {
-                id: Date.now(),
-                tanggal: tglSistem,
-                waktu: jamFormat,
-                is_expense: false,
-                is_bahan_expense: true,
-                nama_bahan: namaBahanInput,
-                key_bahan: key,
-                jumlah_bahan: jumlah,
-                satuan_bahan: satuanBahan,
-                biaya_expense: biaya,
-                pw_fc: 0, pw_hp: 0, pw_warna: 0,
-                ep_fc: 0, ep_hp: 0, ep_warna: 0,
-                xp_spanduk: 0, xp_stiker: 0, xp_custom: 0,
-                xp_custom_jenis: "",
-                revenue: 0,
-                savings: -biaya
-            };
-
-            database.push(itemBelanja);
-            localStorage.setItem('si_printing_db', JSON.stringify(database));
-
-            if (database.length > 0 && typeof kasPerawatan !== "undefined") {
-                await syncCloudStorage();
-            }
-
-            tutupModalBahanBaku();
-            renderHalaman();
-            showModal("Bahan Baku Bertambah", `Stok "${namaBahanInput}" berhasil ditambahkan sebanyak ${jumlah} ${satuanBahan}.\nHarga Modal Baru terhitung: ${formatRupiah(hargaModalBahan[key])} per ${satuanBahan === 'Rim' ? 'Lembar' : satuanBahan}.`, "📦");
-        }
-        window.prosesSimpanBahanBaku = prosesSimpanBahanBaku;
-
-        function CulinaryTimeFormat(date) {
-            return date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-        }
-
-        async function prosesSimpanPerawatan() {
+        function prosesSimpanPerawatan() {
             const mesin = document.getElementById('maintMesin').value;
             const ket = document.getElementById('maintKeterangan').value;
             const biaya = parseInt(document.getElementById('maintBiaya').value) || 0;
 
-            if (!ket) {
-                showModal("Eror", "Silakan ketik keterangan perbaikannya!", "❌");
-                return;
-            }
-            if (biaya <= 0) {
-                showModal("Eror", "Masukkan biaya perawatan yang valid!", "❌");
-                return;
-            }
+            if (!ket) return showModal("Eror", "Silakan ketik keterangan perbaikannya!", "❌");
+            if (biaya <= 0) return showModal("Eror", "Masukkan biaya perawatan yang valid!", "❌");
 
             if (kasPerawatan[mesin] < biaya) {
                 const namaMesin = mesin === 'pw' ? 'HP PageWide' : (mesin === 'ep' ? 'Epson L14150' : 'XP600');
-                showModal("Kas Tidak Cukup", `Kas perawatan ${namaMesin} Anda saat ini adalah ${formatRupiah(kasPerawatan[mesin])}. Saldo kurang ${formatRupiah(biaya - kasPerawatan[mesin])} untuk membiayai servis ini.`, "⚠️");
-                return;
+                return showModal("Kas Tidak Cukup", `Kas perawatan ${namaMesin} Anda saat ini adalah ${formatRupiah(kasPerawatan[mesin])}. Saldo kurang ${formatRupiah(biaya - kasPerawatan[mesin])} untuk membiayai servis ini.`, "⚠️");
             }
 
+            // Potong Kas Perawatan Terkait
             kasPerawatan[mesin] -= biaya;
-            localStorage.setItem('si_printing_maint_kas', JSON.stringify(kasPerawatan));
 
             const tglSistem = document.getElementById('inputTanggal').value;
-            const sekarang = new Date();
-            const jamFormat = CulinaryTimeFormat(sekarang);
-
             const itemPengeluaran = {
                 id: Date.now(),
                 tanggal: tglSistem,
-                waktu: jamFormat,
+                waktu: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
                 is_expense: true,
                 is_bahan_expense: false,
                 mesin_expense: mesin,
@@ -1241,24 +1055,21 @@
                 xp_spanduk: 0, xp_stiker: 0, xp_custom: 0,
                 xp_custom_jenis: "",
                 revenue: 0,
-                savings: 0
+                savings: 0 // Diambil dari kas perawatan mesin, tidak memotong target Rp13jt
             };
 
             database.push(itemPengeluaran);
-            localStorage.setItem('si_printing_db', JSON.stringify(database));
-
-            await syncCloudStorage();
-
+            simpanKeLocalStorage();
             tutupModalPerawatan();
             renderHalaman();
             showModal("Servis Tercatat", `Pengeluaran servis dicatat. Saldo kas perawatan mesin tersebut berhasil dipotong sebesar ${formatRupiah(biaya)}.`, "🔧");
         }
-        window.prosesSimpanPerawatan = prosesSimpanPerawatan;
 
+        // --- SISTEM PEMBARUAN DROPDOWN DINAMIS ---
         function updateDropdownKertasDinamis() {
             const dropdowns = [
-                { select: document.getElementById('inputPW_JenisKertas'), type: 'pw' },
-                { select: document.getElementById('inputEP_JenisKertas'), type: 'ep' }
+                { select: document.getElementById('inputPW_JenisKertas') },
+                { select: document.getElementById('inputEP_JenisKertas') }
             ];
 
             dropdowns.forEach(dpObj => {
@@ -1275,7 +1086,7 @@
                 ];
 
                 basicPapers.forEach(paper => {
-                    const modalKertas = hargaModalBahan[paper.key] || 200;
+                    const modalKertas = hargaModalBahan[paper.key] || 100;
                     const untungBersihVal = TARIF.pw_warna - modalKertas - BIAYA_PRODUKSI_TINTA;
                     
                     const opt = document.createElement('option');
@@ -1287,17 +1098,13 @@
                 // Kertas kustom lainnya dari database belanja bahan
                 Object.keys(stokInventori).forEach(key => {
                     if (key !== 'hvs' && key !== 'undangan' && key !== 'spanduk' && key !== 'stiker') {
-                        const purchaseInfo = database.find(item => item.is_bahan_expense && item.key_bahan === key);
-                        const satuan = purchaseInfo ? purchaseInfo.satuan_bahan : 'Lbr';
-
-                        if (satuan === 'Lbr' || satuan === 'Rim' || satuan === 'Pcs') {
+                        const purchaseInfo = database.find(item => item.is_bahan_expense && item.key_bahan === key && item.tipe_bahan === 'kertas');
+                        if (purchaseInfo) {
                             const modalKertas = hargaModalBahan[key] || 200;
                             const untungBersihVal = TARIF.pw_warna - modalKertas - BIAYA_PRODUKSI_TINTA;
-                            const namaKertas = purchaseInfo ? purchaseInfo.nama_bahan : key.replace(/_/g, ' ');
-
                             const opt = document.createElement('option');
                             opt.value = key;
-                            opt.innerText = `${namaKertas} [Untung: +${formatRupiah(untungBersihVal)}/lbr]`;
+                            opt.innerText = `${purchaseInfo.nama_bahan} [Untung: +${formatRupiah(untungBersihVal)}/lbr]`;
                             dp.appendChild(opt);
                         }
                     }
@@ -1309,7 +1116,6 @@
             });
         }
 
-        // --- SISTEM PEMBARUAN DROPDOWN BAHAN CUSTOM METERAN (XP600) ---
         function updateDropdownXPCustomDinamis() {
             const dp = document.getElementById('inputXP_CustomJenis');
             if (!dp) return;
@@ -1320,23 +1126,20 @@
             // Pilihan Default Kosong
             const defaultOpt = document.createElement('option');
             defaultOpt.value = "";
-            defaultOpt.innerText = "-- Pilih Kertas Custom Meteran --";
+            defaultOpt.innerText = "-- Pilih Bahan Custom --";
             dp.appendChild(defaultOpt);
 
-            // Cari baki stok gudang yang satuannya "Meter" atau "Roll" selain Spanduk & Stiker Rol utama
+            // Cari baki stok gudang yang satuannya "Meter" atau "Roll" dari belanja XP600
             Object.keys(stokInventori).forEach(key => {
                 if (key !== 'hvs' && key !== 'undangan' && key !== 'spanduk' && key !== 'stiker') {
-                    const purchaseInfo = database.find(item => item.is_bahan_expense && item.key_bahan === key);
-                    const satuan = purchaseInfo ? purchaseInfo.satuan_bahan : 'Meter';
-
-                    if (satuan === 'Meter' || satuan === 'Roll') {
+                    const purchaseInfo = database.find(item => item.is_bahan_expense && item.key_bahan === key && item.tipe_bahan === 'xp600');
+                    if (purchaseInfo) {
                         const modalBahan = hargaModalBahan[key] || 15000;
                         const untungBersihVal = TARIF.xp_custom - modalBahan;
-                        const namaBahan = purchaseInfo ? purchaseInfo.nama_bahan : key.replace(/_/g, ' ');
-
+                        
                         const opt = document.createElement('option');
                         opt.value = key;
-                        opt.innerText = `${namaBahan} [Untung: +${formatRupiah(untungBersihVal)}/m]`;
+                        opt.innerText = `${purchaseInfo.nama_bahan} [Untung: +${formatRupiah(untungBersihVal)}/m]`;
                         dp.appendChild(opt);
                     }
                 }
@@ -1352,11 +1155,11 @@
             const tglPilihan = document.getElementById('inputTanggal').value;
             if (!tglPilihan) return;
 
-            // Perbarui seluruh dropdown dinamis
+            // Perbarui dropdown dinamis
             updateDropdownKertasDinamis();
             updateDropdownXPCustomDinamis();
 
-            // 1. Ambil data yang sudah tercatat/disimpan di database untuk tanggal terpilih
+            // 1. Ambil data yang sudah disimpan di database untuk tanggal terpilih
             let sdhTercatatPW = 0;
             let sdhTercatatEP = 0;
             let sdhTercatatXP = 0;
@@ -1403,13 +1206,13 @@
             // 5. Kontrol Muncul/Hilangnya Spanduk Peringatan Merah secara otomatis
             const warnPW = document.getElementById('warnPW');
             if (warnPW) {
-                if (akumulasiPW > 1000) warnPW.classList.remove('hidden');
+                if (akumulasiPW > 2000) warnPW.classList.remove('hidden');
                 else warnPW.classList.add('hidden');
             }
 
             const warnEP = document.getElementById('warnEP');
             if (warnEP) {
-                if (akumulasiEP > 200) warnEP.classList.remove('hidden');
+                if (akumulasiEP > 300) warnEP.classList.remove('hidden');
                 else warnEP.classList.add('hidden');
             }
 
@@ -1419,7 +1222,6 @@
                 else warnXP.classList.add('hidden');
             }
         }
-        window.hitungUlangKapasitas = hitungUlangKapasitas;
 
         // Jalankan Monitor Event Listener untuk Keyboard Input dan Kalender
         function inisialisasiMonitorBatasMesin() {
@@ -1442,13 +1244,9 @@
 
             const tglEl = document.getElementById('inputTanggal');
             if (tglEl) tglEl.addEventListener('change', hitungUlangKapasitas);
-
-            window.resetMonitorTampilanKapasitas = function() {
-                hitungUlangKapasitas();
-            };
         }
 
-        // Fungsi Render Halaman Utama, Hitung Akumulasi, Kas & Stok Gudang
+        // --- SISTEM RENDER HALAMAN UTAMA ---
         function renderHalaman() {
             let totalTabungan = 0;
             let totalKertasPW = 0;
@@ -1501,17 +1299,20 @@
                         tbody.appendChild(tr);
 
                     } else if (item.is_bahan_expense) {
-                        totalTabungan += item.savings;
+                        totalTabungan += item.savings; // Mengurangi tabungan utama (jika belanja), atau 0 (jika stok baru)
+                        const isStokBaru = (item.savings === 0);
 
                         const tr = document.createElement('tr');
                         tr.className = "bg-amber-50/50 hover:bg-amber-50/85 transition-colors border-l-4 border-amber-500";
                         tr.innerHTML = `
                             <td class="p-4 font-bold text-amber-900">${tglID}${jamSistem}</td>
                             <td colspan="3" class="p-4 text-xs font-semibold text-amber-800">
-                                📦 [KULAKAN] Beli ${item.nama_bahan} sebanyak ${item.jumlah_bahan} ${item.satuan_bahan}
+                                📦 [${isStokBaru ? 'STOK BARU' : 'KULAKAN'}] Beli ${item.nama_bahan} sebanyak ${item.jumlah_bahan} ${item.satuan_bahan}
                             </td>
                             <td class="p-4 text-right font-bold text-amber-600">${formatRupiah(item.biaya_expense)}</td>
-                            <td class="p-4 text-right font-black text-red-600 bg-amber-50/20">-${formatRupiah(item.biaya_expense)} (Modal Toko)</td>
+                            <td class="p-4 text-right font-black bg-amber-50/20">
+                                ${isStokBaru ? '<span class="text-slate-400 font-medium">Rp 0 (Modal Terpisah)</span>' : `<span class="text-red-600">-${formatRupiah(item.biaya_expense)} (Potong Target)</span>`}
+                            </td>
                             <td class="p-4 text-center">
                                 <button onclick="panggilModalHapusBahanBaku(${item.id}, '${item.nama_bahan}', ${item.jumlah_bahan})" class="text-xs text-red-500 hover:text-red-700 font-extrabold">Hapus</button>
                             </td>
@@ -1527,8 +1328,8 @@
                         totalMtrXPCustom += (item.xp_custom || 0);
 
                         // Modal Kertas PW & EP
-                        const modalPW_kertas = hargaModalBahan[item.pw_jenis_kertas || 'hvs'] || 200;
-                        const modalEP_kertas = hargaModalBahan[item.ep_jenis_kertas || 'hvs'] || 200;
+                        const modalPW_kertas = hargaModalBahan[item.pw_jenis_kertas || 'hvs'] || 100;
+                        const modalEP_kertas = hargaModalBahan[item.ep_jenis_kertas || 'hvs'] || 100;
 
                         // Modal XP600 (Spanduk, Stiker, Custom)
                         const modalXP_spanduk = hargaModalBahan['spanduk'] || 13000;
@@ -1536,18 +1337,26 @@
                         const modalXP_custom = hargaModalBahan[item.xp_custom_jenis] || 15000;
 
                         // Untung Bersih Dinamis
+                        const untungPW_warna_dinamis = TARIF.pw_warna - modalPW_kertas - BIAYA_PRODUKSI_TINTA;
+                        const untungEP_warna_dinamis = TARIF.ep_warna - modalEP_kertas - BIAYA_PRODUKSI_TINTA;
+
+                        const untungXP_spanduk_dinamis = TARIF.xp_spanduk - modalXP_spanduk;
+                        const untungXP_stiker_dinamis = TARIF.xp_stiker - modalXP_stiker;
+                        const untungXP_custom_dinamis = TARIF.xp_custom - modalXP_custom;
+
                         const untungPW = ((item.pw_fc || 0) * UNTUNG.pw_fc) + 
                                          ((item.pw_hp || 0) * UNTUNG.pw_hp) + 
-                                         ((item.pw_warna || 0) * (TARIF.pw_warna - modalPW_kertas - BIAYA_PRODUKSI_TINTA));
+                                         ((item.pw_warna || 0) * untungPW_warna_dinamis);
 
                         const untungEP = ((item.ep_fc || 0) * UNTUNG.ep_fc) + 
                                          ((item.ep_hp || 0) * UNTUNG.ep_hp) + 
-                                         ((item.ep_warna || 0) * (TARIF.ep_warna - modalEP_kertas - BIAYA_PRODUKSI_TINTA));
+                                         ((item.ep_warna || 0) * untungEP_warna_dinamis);
 
-                        const untungXP = ((item.xp_spanduk || 0) * (TARIF.xp_spanduk - modalXP_spanduk)) + 
-                                         ((item.xp_stiker || 0) * (TARIF.xp_stiker - modalXP_stiker)) + 
-                                         ((item.xp_custom || 0) * (TARIF.xp_custom - modalXP_custom));
+                        const untungXP = ((item.xp_spanduk || 0) * untungXP_spanduk_dinamis) + 
+                                         ((item.xp_stiker || 0) * untungXP_stiker_dinamis) + 
+                                         ((item.xp_custom || 0) * untungXP_custom_dinamis);
 
+                        // Hitung Kas Perawatan otomatis sesuai porsi mesin
                         hitungKasPW += (untungPW * PORSI_RAWAT.pw);
                         hitungKasEP += (untungEP * PORSI_RAWAT.ep);
                         hitungKasXP += (untungXP * PORSI_RAWAT.xp);
@@ -1592,7 +1401,7 @@
                 });
             }
 
-            // Update Saldo Kas Perawatan di Dompet Atas
+            // Sync Kas Perawatan harian ke variabel atas
             kasPerawatan.pw = Math.max(0, hitungKasPW);
             kasPerawatan.ep = Math.max(0, hitungKasEP);
             kasPerawatan.xp = Math.max(0, hitungKasXP);
@@ -1643,45 +1452,44 @@
                     }
                 });
 
-                if (hasCustom) {
-                    customStokContainer.classList.remove('hidden');
-                } else {
-                    customStokContainer.classList.add('hidden');
-                }
+                if (hasCustom) customStokContainer.classList.remove('hidden');
+                else customStokContainer.classList.add('hidden');
             }
 
             updateBahanDatalist();
 
             // Hitung sisa target tabungan & rata-rata harian
             const sisa = TARGET_AKHIR - totalTabungan;
-            const rataAn = database.length > 0 ? Math.round(totalTabungan / database.length) : 0;
+            const transaksiHarianCount = database.filter(i => !i.is_expense && !i.is_bahan_expense).length;
+            const rataAn = transaksiHarianCount > 0 ? Math.round(totalTabungan / transaksiHarianCount) : 0;
 
             document.getElementById('totalTerkumpul').innerText = formatRupiah(totalTabungan);
-            document.getElementById('sisaTarget').innerText = sisa <= 0 ? "LUNAS TOTAL! 🎉" : formatRupiah(sisa);
+            document.getElementById('sisaTarget').innerText = sisa <= 0 ? "TARGET TEMBUS! 🎉" : formatRupiah(sisa);
             
             const elemTotalHari = document.getElementById('totalHari');
             if (elemTotalHari) {
-                elemTotalHari.innerText = database.filter(i => !i.is_expense && !i.is_bahan_expense).length + " Transaksi";
+                elemTotalHari.innerText = transaksiHarianCount + " Transaksi";
             }
             
             document.getElementById('rataHarian').innerText = formatRupiah(rataAn);
 
             let persentase = (totalTabungan / TARGET_AKHIR) * 100;
             if (persentase > 100) persentase = 100;
+            if (persentase < 0) persentase = 0;
             document.getElementById('persentaseProgress').innerText = persentase.toFixed(1) + "% Sukses";
             document.getElementById('progressBar').style.width = persentase + "%";
 
             document.getElementById('statPageWide').innerText = totalKertasPW.toLocaleString('id-ID') + " Lbr";
             document.getElementById('statEpson').innerText = totalKertasEP.toLocaleString('id-ID') + " Lbr";
-            document.getElementById('statXPSpanduk').innerText = totalMtrSpanduk.toFixed(2) + " Mtr";
-            document.getElementById('statXPStiker').innerText = totalMtrStiker.toFixed(2) + " Mtr";
+            document.getElementById('statXPSpanduk').innerText = totalMtrSpanduk.toFixed(2) + " m";
+            document.getElementById('statXPStiker').innerText = totalMtrStiker.toFixed(2) + " m";
 
             // Hitung Ulang Kapasitas Terpakai untuk tanggal terpilih
             hitungUlangKapasitas();
         }
 
         // Simpan Transaksi Baru & Kurangi Stok Otomatis
-        async function simpanTransaksi() {
+        function simpanTransaksi() {
             const tgl = document.getElementById('inputTanggal').value;
             
             const pw_fc = parseInt(document.getElementById('inputPW_FC').value) || 0;
@@ -1699,21 +1507,16 @@
             const xp_custom = parseFloat(document.getElementById('inputXP_CustomQty').value) || 0;
             const xp_custom_jenis = document.getElementById('inputXP_CustomJenis').value;
 
-            if (!tgl) {
-                showModal("Eror", "Silakan pilih tanggal pencatatan!", "❌");
-                return;
-            }
+            if (!tgl) return showModal("Eror", "Silakan pilih tanggal pencatatan!", "❌");
 
             if (pw_fc === 0 && pw_hp === 0 && pw_warna === 0 && 
                 ep_fc === 0 && ep_hp === 0 && ep_warna === 0 && 
                 xp_spanduk === 0 && xp_stiker === 0 && xp_custom === 0) {
-                showModal("Eror", "Masukkan hasil produksi minimal di salah satu mesin!", "⚠️");
-                return;
+                return showModal("Eror", "Masukkan hasil produksi minimal di salah satu mesin!", "⚠️");
             }
 
             if (xp_custom > 0 && !xp_custom_jenis) {
-                showModal("Bahan Belum Dipilih", "Silakan pilih Jenis Kertas Custom Meteran di kolom Mesin XP600!", "⚠️");
-                return;
+                return showModal("Bahan Belum Dipilih", "Silakan pilih Jenis Kertas Custom Meteran di kolom Mesin XP600!", "⚠️");
             }
 
             // --- VALIDASI & PENGURANGAN STOK GUDANG ---
@@ -1736,22 +1539,10 @@
             const butuhStiker = xp_stiker;
 
             // Validasi Ketersediaan Stok (Utama)
-            if (stokInventori.hvs < butuhHVS) {
-                showModal("Stok HVS Habis!", `Stok HVS tersisa ${stokInventori.hvs} lembar, sedangkan Anda membutuhkan ${butuhHVS} lembar. Silakan kulakan HVS dulu!`, "❌");
-                return;
-            }
-            if (stokInventori.undangan < butuhUndangan) {
-                showModal("Stok Undangan Habis!", `Stok Kertas Undangan tersisa ${stokInventori.undangan} lembar, sedangkan Anda membutuhkan ${butuhUndangan} lembar.`, "❌");
-                return;
-            }
-            if (stokInventori.spanduk < butuhSpanduk) {
-                showModal("Stok Spanduk Habis!", `Stok Bahan Spanduk tersisa ${stokInventori.spanduk.toFixed(1)} meter, sedangkan pesanan adalah ${butuhSpanduk} meter.`, "❌");
-                return;
-            }
-            if (stokInventori.stiker < butuhStiker) {
-                showModal("Stok Stiker Habis!", `Stok Bahan Stiker tersisa ${stokInventori.stiker.toFixed(1)} meter, sedangkan pesanan membutuhkan ${butuhStiker.toFixed(1)} meter.`, "❌");
-                return;
-            }
+            if (stokInventori.hvs < butuhHVS) return showModal("Stok HVS Habis!", `Stok HVS tersisa ${stokInventori.hvs} lembar, sedangkan Anda membutuhkan ${butuhHVS} lembar. Silakan kulakan HVS dulu!`, "❌");
+            if (stokInventori.undangan < butuhUndangan) return showModal("Stok Undangan Habis!", `Stok Kertas Undangan tersisa ${stokInventori.undangan} lembar, sedangkan Anda membutuhkan ${butuhUndangan} lembar.`, "❌");
+            if (stokInventori.spanduk < butuhSpanduk) return showModal("Stok Spanduk Habis!", `Stok Bahan Spanduk tersisa ${stokInventori.spanduk.toFixed(1)} meter, sedangkan pesanan adalah ${butuhSpanduk} meter.`, "❌");
+            if (stokInventori.stiker < butuhStiker) return showModal("Stok Stiker Habis!", `Stok Bahan Stiker tersisa ${stokInventori.stiker.toFixed(1)} meter, sedangkan pesanan membutuhkan ${butuhStiker.toFixed(1)} meter.`, "❌");
 
             // Validasi Ketersediaan Stok Kustom PW/EP
             let ketersediaanKustomAman = true;
@@ -1771,8 +1562,7 @@
                 const stokCustomAda = stokInventori[xp_custom_jenis] || 0;
                 if (stokCustomAda < xp_custom) {
                     const nameBahan = (database.find(item => item.is_bahan_expense && item.key_bahan === xp_custom_jenis) || {}).nama_bahan || xp_custom_jenis;
-                    showModal("Stok Bahan Custom Habis!", `Stok "${nameBahan}" tersisa ${stokCustomAda.toFixed(1)} meter, sedangkan Anda membutuhkan ${xp_custom} meter.`, "❌");
-                    return;
+                    return showModal("Stok Bahan Custom Habis!", `Stok "${nameBahan}" tersisa ${stokCustomAda.toFixed(1)} meter, sedangkan Anda membutuhkan ${xp_custom} meter.`, "❌");
                 }
             }
 
@@ -1799,8 +1589,8 @@
                           (ep_fc * TARIF.ep_fc) + (ep_hp * TARIF.ep_hp) + (ep_warna * TARIF.ep_warna) + 
                           (xp_spanduk * TARIF.xp_spanduk) + (xp_stiker * TARIF.xp_stiker) + (xp_custom * TARIF.xp_custom);
 
-            const modalPW_kertas = hargaModalBahan[pw_jenis_kertas] || 200;
-            const modalEP_kertas = hargaModalBahan[ep_jenis_kertas] || 200;
+            const modalPW_kertas = hargaModalBahan[pw_jenis_kertas] || 100;
+            const modalEP_kertas = hargaModalBahan[ep_jenis_kertas] || 100;
 
             const untungPW_warna_dinamis = TARIF.pw_warna - modalPW_kertas - BIAYA_PRODUKSI_TINTA;
             const untungEP_warna_dinamis = TARIF.ep_warna - modalEP_kertas - BIAYA_PRODUKSI_TINTA;
@@ -1817,6 +1607,7 @@
             const untungEP = (ep_fc * UNTUNG.ep_fc) + (ep_hp * UNTUNG.ep_hp) + (ep_warna * untungEP_warna_dinamis);
             const untungXP = (xp_spanduk * untungXP_spanduk_dinamis) + (xp_stiker * untungXP_stiker_dinamis) + (xp_custom * untungXP_custom_dinamis);
 
+            // Potong Kas Perawatan
             const potongPW = untungPW * PORSI_RAWAT.pw;
             const potongEP = untungEP * PORSI_RAWAT.ep;
             const potongXP = untungXP * PORSI_RAWAT.xp;
@@ -1824,7 +1615,7 @@
             const setorTabunganUtama = (untungPW - potongPW) + (untungEP - potongEP) + (untungXP - potongXP);
 
             const sekarang = new Date();
-            const jamFormat = CulinaryTimeFormat(sekarang);
+            const jamFormat = sekarang.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
 
             const dataHariIni = {
                 id: Date.now(),
@@ -1849,9 +1640,7 @@
             };
 
             database.push(dataHariIni);
-            localStorage.setItem('si_printing_db', JSON.stringify(database));
-
-            await syncCloudStorage();
+            simpanKeLocalStorage();
 
             // Bersihkan form input setelah sukses
             document.getElementById('inputPW_FC').value = '';
@@ -1865,16 +1654,13 @@
             document.getElementById('inputXP_CustomQty').value = '';
 
             // Reset tampilan counter & spanduk merah
-            if (typeof window.resetMonitorTampilanKapasitas === 'function') {
-                window.resetMonitorTampilanKapasitas();
-            }
-
+            hitungUlangKapasitas();
             renderHalaman();
 
-            if (setorTabunganUtama >= 74000) {
-                showModal("Target Tembus & Stok Berkurang!", `Luar biasa Pak! Tabungan utama bertambah ${formatRupiah(setorTabunganUtama)} (Melewati target harian Rp74.000). Stok bahan baku juga telah disesuaikan secara otomatis.`, "🎉");
+            if (setorTabunganUtama >= 72000) {
+                showModal("Target Tembus & Stok Berkurang!", `Luar biasa Pak! Tabungan utama bertambah ${formatRupiah(setorTabunganUtama)} (Melewati target harian Rp72.000). Kas perawatan juga terisi otomatis!`, "🎉");
             } else {
-                showModal("Catatan Disimpan", `Data dicatat. Setor tabungan utama: ${formatRupiah(setorTabunganUtama)}. Stok bahan baku gudang otomatis dikurangi.`, "✅");
+                showModal("Catatan Disimpan", `Data dicatat. Setor tabungan bersih utama: ${formatRupiah(setorTabunganUtama)}. Kas perawatan otomatis disisihkan.`, "✅");
             }
         }
         window.simpanTransaksi = simpanTransaksi;
@@ -1885,7 +1671,7 @@
                 "Hapus Catatan?",
                 "Apakah Bapak yakin ingin menghapus transaksi ini? Stok bahan baku yang telah terpotong sebelumnya akan dikembalikan otomatis.",
                 "🗑️",
-                async () => {
+                () => {
                     const index = database.findIndex(item => item.id === id);
                     if (index !== -1) {
                         const item = database[index];
@@ -1897,7 +1683,6 @@
                                 qtyKembali = qtyKembali * 500;
                             }
                             stokInventori[keyBahan] = Math.max(0, (stokInventori[keyBahan] || 0) - qtyKembali);
-                            localStorage.setItem('si_printing_stok', JSON.stringify(stokInventori));
                         } else if (!item.is_expense) {
                             const butuhHVS = (item.pw_fc || 0) + (item.pw_hp || 0) + ((item.pw_jenis_kertas || 'hvs') === 'hvs' ? (item.pw_warna || 0) : 0) +
                                              (item.ep_fc || 0) + (item.ep_hp || 0) + ((item.ep_jenis_kertas || 'hvs') === 'hvs' ? (item.ep_warna || 0) : 0);
@@ -1906,12 +1691,12 @@
                                                   ((item.ep_jenis_kertas || 'hvs') === 'undangan' ? (item.ep_warna || 0) : 0);
 
                             const butuhSpanduk = item.xp_spanduk || 0;
-                            const butuhStiker = item.xp_stiker || 0;
+                            const pStiker = item.xp_stiker || 0;
 
                             stokInventori.hvs += butuhHVS;
                             stokInventori.undangan += butuhUndangan;
                             stokInventori.spanduk += butuhSpanduk;
-                            stokInventori.stiker += butuhStiker;
+                            stokInventori.stiker += pStiker;
 
                             // Kembalikan stok kustom PW/EP
                             if ((item.pw_warna || 0) > 0 && item.pw_jenis_kertas !== 'hvs' && item.pw_jenis_kertas !== 'undangan') {
@@ -1925,14 +1710,10 @@
                             if ((item.xp_custom || 0) > 0 && item.xp_custom_jenis) {
                                 stokInventori[item.xp_custom_jenis] += item.xp_custom;
                             }
-
-                            localStorage.setItem('si_printing_stok', JSON.stringify(stokInventori));
                         }
 
                         database.splice(index, 1);
-                        localStorage.setItem('si_printing_db', JSON.stringify(database));
-                        
-                        await syncCloudStorage();
+                        simpanKeLocalStorage();
                         renderHalaman();
                         showModal("Dihapus", "Catatan berhasil dihapus dan jumlah stok gudang telah dikembalikan.", "✅");
                     }
@@ -1946,7 +1727,7 @@
                 "Hapus Kulakan?",
                 `Apakah Bapak yakin ingin membatalkan kulakan "${namaBahan}" ini? Stok gudang akan dikurangi kembali sebanyak ${jumlahBahan}.`,
                 "📦",
-                async () => {
+                () => {
                     const index = database.findIndex(item => item.id === id);
                     if (index !== -1) {
                         const item = database[index];
@@ -1956,12 +1737,9 @@
                             qtyKembali = qtyKembali * 500;
                         }
                         stokInventori[keyBahan] = Math.max(0, (stokInventori[keyBahan] || 0) - qtyKembali);
-                        localStorage.setItem('si_printing_stok', JSON.stringify(stokInventori));
 
                         database.splice(index, 1);
-                        localStorage.setItem('si_printing_db', JSON.stringify(database));
-                        
-                        await syncCloudStorage();
+                        simpanKeLocalStorage();
                         renderHalaman();
                         showModal("Dihapus", "Pembelian bahan baku telah dibatalkan dan stok dikurangi.", "✅");
                     }
@@ -1973,20 +1751,15 @@
         function panggilModalClear() {
             panggilModalKonfirmasi(
                 "Kosongkan Pembukuan?",
-                "Perhatian Pak! Tindakan ini akan menghapus SELURUH riwayat pembukuan harian, baki stok gudang, dan saldo dompet secara permanen. Pastikan Anda sudah mem-backup data.",
+                "Perhatian Pak! Tindakan ini akan menghapus SELURUH riwayat pembukuan harian, baki stok gudang, dan saldo dompet kas perawatan secara permanen. Pastikan Anda sudah mem-backup data.",
                 "🗑️",
-                async () => {
+                () => {
                     database = [];
                     kasPerawatan = { pw: 0, ep: 0, xp: 0 };
                     stokInventori = { hvs: 2500, undangan: 200, spanduk: 50, stiker: 30 };
                     hargaModalBahan = { hvs: 100, undangan: 200, spanduk: 13000, stiker: 10000 };
                     
-                    localStorage.removeItem('si_printing_db');
-                    localStorage.removeItem('si_printing_maint_kas');
-                    localStorage.removeItem('si_printing_stok');
-                    localStorage.removeItem('si_printing_modal_bahan');
-                    
-                    await syncCloudStorage();
+                    simpanKeLocalStorage();
                     renderHalaman();
                     showModal("Data Dikosongkan", "Seluruh riwayat pembukuan, baki stok, dan saldo dompet kas perawatan telah dibersihkan secara permanen.", "🗑️");
                 }
@@ -1995,10 +1768,7 @@
         window.panggilModalClear = panggilModalClear;
 
         function eksporData() {
-            if (database.length === 0) {
-                showModal("Gagal Ekspor", "Belum ada data transaksi yang bisa di-backup.", "⚠️");
-                return;
-            }
+            if (database.length === 0) return showModal("Gagal Ekspor", "Belum ada data transaksi yang bisa di-backup.", "⚠️");
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(database));
             const dlAnchor = document.createElement('a');
             dlAnchor.setAttribute("href", dataStr);
@@ -2009,18 +1779,15 @@
         }
         window.eksporData = eksporData;
 
-        async function imporData(event) {
+        function imporData(event) {
             const fileInput = event.target;
             const fileReader = new FileReader();
-            fileReader.onload = async function() {
+            fileReader.onload = function() {
                 try {
                     const dataImpor = JSON.parse(fileReader.result);
                     if (Array.isArray(dataImpor)) {
                         database = dataImpor;
-                        lakukanMigrasiData(); 
-                        localStorage.setItem('si_printing_db', JSON.stringify(database));
-                        
-                        await syncCloudStorage();
+                        simpanKeLocalStorage();
                         renderHalaman();
                         showModal("Pemulihan Berhasil", "Seluruh data riwayat pembukuan berhasil dipulihkan dari file backup!", "📥");
                     } else {
@@ -2034,7 +1801,6 @@
         }
         window.imporData = imporData;
 
-
         // --- LOGIKA KALKULATOR TOKO TERINTEGRASI ---
         let calcVal = "0";
 
@@ -2042,7 +1808,7 @@
             document.getElementById('calcDisplay').value = calcVal;
         }
 
-        window.inputCalc = function(char) {
+        function inputCalc(char) {
             if (calcVal === "0" && !isNaN(char)) {
                 calcVal = char;
             } else if (calcVal === "Error") {
@@ -2050,20 +1816,18 @@
             } else {
                 const ops = ['+', '-', '*', '/', '%', '.'];
                 const lastChar = calcVal.slice(-1);
-                if (ops.includes(lastChar) && ops.includes(char)) {
-                    return; 
-                }
+                if (ops.includes(lastChar) && ops.includes(char)) return; 
                 calcVal += char;
             }
             updateCalcDisplay();
-        };
+        }
 
-        window.clearCalc = function() {
+        function clearCalc() {
             calcVal = "0";
             updateCalcDisplay();
-        };
+        }
 
-        window.backspaceCalc = function() {
+        function backspaceCalc() {
             if (calcVal === "Error") {
                 calcVal = "0";
             } else if (calcVal.length > 1) {
@@ -2072,33 +1836,53 @@
                 calcVal = "0";
             }
             updateCalcDisplay();
-        };
+        }
 
-        window.calculateCalc = function() {
+        function calculateCalc() {
             try {
                 let expression = calcVal;
                 expression = expression.replace(/%/g, '/100');
-                
                 let result = new Function(`return ${expression}`)();
-                
                 if (result === undefined || isNaN(result)) {
                     calcVal = "Error";
                 } else {
-                    if (result % 1 !== 0) {
-                        result = parseFloat(result.toFixed(4));
-                    }
+                    if (result % 1 !== 0) result = parseFloat(result.toFixed(4));
                     calcVal = result.toString();
                 }
             } catch (e) {
                 calcVal = "Error";
             }
             updateCalcDisplay();
-        };
+        }
 
-        // Jalankan inisialisasi monitor pelindung mesin
+        // Ikat fungsi modul agar selalu dapat dipanggil secara global
+        window.bukaModalBahanKertas = bukaModalBahanKertas;
+        window.tutupModalBahanKertas = tutupModalBahanKertas;
+        window.prosesSimpanBahanKertas = prosesSimpanBahanKertas;
+        window.bukaModalBahanXP = bukaModalBahanXP;
+        window.tutupModalBahanXP = tutupModalBahanXP;
+        window.togglePanjangRoll = togglePanjangRoll;
+        window.prosesSimpanBahanXP = prosesSimpanBahanXP;
+        window.bukaModalEditStok = bukaModalEditStok;
+        window.tutupModalEditStok = tutupModalEditStok;
+        window.prosesSimpanKoreksiStok = prosesSimpanKoreksiStok;
+        window.bukaModalPerawatan = bukaModalPerawatan;
+        window.tutupModalPerawatan = tutupModalPerawatan;
+        window.prosesSimpanPerawatan = prosesSimpanPerawatan;
+        window.simpanTransaksi = simpanTransaksi;
+        window.hapusBarisByID = hapusBarisByID;
+        window.panggilModalHapusBahanBaku = panggilModalHapusBahanBaku;
+        window.panggilModalClear = panggilModalClear;
+        window.eksporData = eksporData;
+        window.imporData = imporData;
+        window.inputCalc = inputCalc;
+        window.clearCalc = clearCalc;
+        window.backspaceCalc = backspaceCalc;
+        window.calculateCalc = calculateCalc;
+        window.hitungUlangKapasitas = hitungUlangKapasitas;
+
+        // --- INITIAL RUN ON LOAD ---
         inisialisasiMonitorBatasMesin();
-
-        // Render pertama kali saat load aplikasi
         renderHalaman();
     </script>
 </body>
