@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SI-PRINTING v7.6 - Edisi Pilihan Sumber Dana Belanja & Bebas Bug</title>
+    <title>SI-PRINTING v7.7 - Edisi Pilihan Sumber Dana Belanja & Bebas Bug</title>
     <!-- Tailwind CSS CDN untuk Tampilan Premium & Modern -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -28,7 +28,7 @@
         <div class="max-w-[1600px] mx-auto px-4 py-6 flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="text-center md:text-left">
                 <span class="bg-emerald-500/30 text-emerald-300 text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-wider">Misi 6 Bulan & Sumber Dana Fleksibel</span>
-                <h1 class="text-3xl font-extrabold tracking-tight mt-1">SI-PRINTING <span class="text-yellow-400">v7.6</span></h1>
+                <h1 class="text-3xl font-extrabold tracking-tight mt-1">SI-PRINTING <span class="text-yellow-400">v7.7</span></h1>
                 <p class="text-xs text-slate-300 mt-1">Sistem Terpadu Pembukuan, Tabungan Utama, Kas Penyelenggaraan Mesin & Inventori Stok</p>
             </div>
             <div class="bg-white/10 backdrop-blur-md px-5 py-3 rounded-xl border border-white/10 text-center md:text-right">
@@ -54,21 +54,32 @@
                     </div>
                     
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+                        <div class="bg-blue-50 p-3 rounded-xl border border-blue-100 text-center">
+                            <span class="text-[10px] text-slate-500 block font-medium">Omset Laci</span>
+                            <span id="totalOmsetKotor" class="text-xs sm:text-sm font-black text-blue-800">Rp0</span>
+                        </div>
                         <div class="bg-green-50 p-3 rounded-xl border border-green-100 text-center">
-                            <span class="text-[10px] text-slate-500 block font-medium">Terkumpul</span>
-                            <span id="totalTerkumpul" class="text-sm sm:text-base font-black text-green-600">Rp0</span>
+                            <span class="text-[10px] text-slate-500 block font-medium">Tabungan A</span>
+                            <span id="totalTerkumpul" class="text-xs sm:text-sm font-black text-green-600">Rp0</span>
                         </div>
                         <div class="bg-amber-50 p-3 rounded-xl border border-amber-100 text-center">
+                            <span class="text-[10px] text-slate-500 block font-medium">Tabungan B</span>
+                            <span id="totalTabungan47k" class="text-xs sm:text-sm font-black text-amber-600">Rp0</span>
+                        </div>
+                        <div class="bg-red-50 p-3 rounded-xl border border-red-100 text-center">
                             <span class="text-[10px] text-slate-500 block font-medium">Sisa Target</span>
-                            <span id="sisaTarget" class="text-sm sm:text-base font-black text-amber-600 font-mono">Rp13jt</span>
+                            <span id="sisaTarget" class="text-xs sm:text-sm font-black text-red-600 font-mono">Rp13jt</span>
                         </div>
-                        <div class="bg-indigo-50 p-3 rounded-xl border border-indigo-100 text-center">
-                            <span class="text-[10px] text-slate-500 block font-medium">Rerata/Hari</span>
-                            <span id="rataHarian" class="text-sm sm:text-base font-black text-indigo-600">Rp0</span>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-2 mb-4">
+                        <div class="bg-indigo-50 p-2 rounded-xl border border-indigo-100 text-center text-xs">
+                            <span class="text-[10px] text-slate-500 block">Rerata/Hari (Tabungan A)</span>
+                            <span id="rataHarian" class="font-bold text-indigo-600">Rp0</span>
                         </div>
-                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-center">
-                            <span class="text-[10px] text-slate-500 block font-medium font-semibold">Tercatat</span>
-                            <span id="totalHari" class="text-sm sm:text-base font-black text-slate-700 font-mono">0 Hari</span>
+                        <div class="bg-slate-50 p-2 rounded-xl border border-slate-200 text-center text-xs">
+                            <span class="text-[10px] text-slate-500 block">Tercatat Produksi</span>
+                            <span id="totalHari" class="font-bold text-slate-700 font-mono">0 Transaksi</span>
                         </div>
                     </div>
                 </div>
@@ -77,7 +88,7 @@
                 <div>
                     <div class="mb-1 flex justify-between text-[10px] font-bold text-slate-500">
                         <span id="persentaseProgress" class="text-blue-600 font-extrabold text-xs">0% Sukses</span>
-                        <span>Sasaran Bersih: Rp13.000.000</span>
+                        <span>Sasaran Bersih (A): Rp13.000.000</span>
                     </div>
                     <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden p-0.5 border border-slate-200">
                         <div id="progressBar" class="bg-gradient-to-r from-emerald-400 to-green-600 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
@@ -115,7 +126,7 @@
                 </div>
             </div>
 
-            <!-- INVENTORI STOK BAHAN BAKU TOKO -->
+            <!-- INVENTORI STOK BAHAN BAKU GUDANG -->
             <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col justify-between">
                 <div>
                     <div class="flex justify-between items-center mb-3">
@@ -369,6 +380,13 @@
                     <div class="mb-4">
                         <input type="date" id="inputTanggal" class="w-full p-2.5 border border-slate-300 rounded-lg font-bold text-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none">
                     </div>
+                    
+                    <div class="flex items-end mb-4">
+                        <label class="flex items-center space-x-3 bg-gray-50 p-2.5 rounded-lg border border-gray-200 w-full cursor-pointer hover:bg-gray-100 transition-colors">
+                            <input type="checkbox" id="inputLangsung47k" class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500" checked>
+                            <span class="text-xs font-semibold text-gray-700">Jadwalkan Tabungan B (Rp47k)</span>
+                        </label>
+                    </div>
 
                     <!-- Ringkasan Singkat Counter Akumulasi -->
                     <div class="bg-slate-50 p-3 rounded-xl border border-slate-150 space-y-1 text-xs">
@@ -420,7 +438,7 @@
                         <button onclick="inputCalc('/')" class="p-2.5 bg-indigo-750 hover:bg-indigo-600 rounded-lg transition">÷</button>
                         <button onclick="inputCalc('*')" class="p-2.5 bg-indigo-750 hover:bg-indigo-600 rounded-lg transition">×</button>
                         
-                        <button onclick="inputCalc('7')" class="p-2.5 bg-slate-850 hover:bg-slate-750 rounded-lg transition">7</button>
+                        <button onclick="inputCalc('7')" class="p-2.5 bg-slate-855 hover:bg-slate-750 rounded-lg transition">7</button>
                         <button onclick="inputCalc('8')" class="p-2.5 bg-slate-855 hover:bg-slate-750 rounded-lg transition">8</button>
                         <button onclick="inputCalc('9')" class="p-2.5 bg-slate-855 hover:bg-slate-750 rounded-lg transition">9</button>
                         <button onclick="inputCalc('-')" class="p-2.5 bg-indigo-750 hover:bg-indigo-600 rounded-lg transition">-</button>
@@ -473,14 +491,15 @@
                             <th class="p-4">Epson L14150</th>
                             <th class="p-4">XP600 1.6 (Bahan Custom)</th>
                             <th class="p-4 text-right">Omset Kotor</th>
-                            <th class="p-4 text-right text-emerald-700 font-bold bg-green-50/50">Masuk Tabungan Bersih</th>
+                            <th class="p-4 text-right text-emerald-700 font-bold bg-green-50/50">Masuk Tabungan Bersih (A)</th>
+                            <th class="p-4 text-center">Tabungan Rp47k (B)</th>
                             <th class="p-4 text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody id="tabelRiwayat" class="divide-y divide-slate-100 text-sm">
                         <!-- Disisipkan otomatis via JS -->
                         <tr>
-                            <td colspan="7" class="p-8 text-center text-slate-400">Belum ada transaksi harian. Silakan masukkan data di atas!</td>
+                            <td colspan="8" class="p-8 text-center text-slate-400">Belum ada transaksi harian. Silakan masukkan data di atas!</td>
                         </tr>
                     </tbody>
                 </table>
@@ -736,6 +755,7 @@
         // PORSI PENYISIHAN PERAWATAN DARI KEUNTUNGAN BERSIH
         const PORSI_RAWAT = { pw: 0.10, ep: 0.05, xp: 0.15 };
         const TARGET_AKHIR = 13000000; // Rp 13.000.000
+        const NOMINAL_HARIAN_B = 47000; // Rp47.000 harian
 
         // Format Rupiah Indonesia
         function formatRupiah(angka) {
@@ -1192,7 +1212,7 @@
                 }
             });
 
-            // Update UI Nilai Tercatat Hari Ini di masing-masing mesin (Telah diperbaiki)
+            // Update UI Nilai Tercatat Hari Ini di masing-masing mesin
             document.getElementById('recordedPW').innerText = sdhTercatatPW.toLocaleString('id-ID') + " Lbr";
             document.getElementById('recordedEP').innerText = sdhTercatatEP.toLocaleString('id-ID') + " Lbr";
             document.getElementById('recordedXP').innerText = sdhTercatatXP.toFixed(2) + " m";
@@ -1213,7 +1233,7 @@
             const xp_custom = parseFloat(document.getElementById('inputXP_CustomQty').value) || 0;
             const sedangKetikXP = xp_spanduk + xp_stiker + xp_custom;
 
-            // 3. Gabungkan: Tercatat di DB + Sedang Diketik saat ini
+            // 3. Merangkum total akumulasi harian
             const akumulasiPW = sdhTercatatPW + sedangKetikPW;
             const akumulasiEP = sdhTercatatEP + sedangKetikEP;
             const akumulasiXP = sdhTercatatXP + sedangKetikXP;
@@ -1223,7 +1243,7 @@
             document.getElementById('totalInputEP').innerText = akumulasiEP.toLocaleString('id-ID');
             document.getElementById('totalInputXP').innerText = akumulasiXP.toFixed(2);
 
-            // 5. Kontrol Muncul/Hilangnya Spanduk Peringatan Merah secara otomatis
+            // 5. Kontrol spanduk pengaman limit harian
             const warnPW = document.getElementById('warnPW');
             if (warnPW) {
                 if (akumulasiPW > 2000) warnPW.classList.remove('hidden');
@@ -1266,9 +1286,36 @@
             if (tglEl) tglEl.addEventListener('change', hitungUlangKapasitas);
         }
 
+        // --- SISTEM STATUS TRANSFER HARIAN REKENING B ---
+        function toggleTransfer47k(id) {
+            const itemIndex = database.findIndex(item => item.id === id);
+            if (itemIndex !== -1) {
+                const wasTransferred = database[itemIndex].transfer47k;
+                database[itemIndex].transfer47k = !database[itemIndex].transfer47k;
+                
+                // Potong langsung Rp47.000 dari Tabungan Utama (Savings) jika status diubah jadi TRUE (Sudah Ditransfer)
+                // Kembalikan ke Tabungan Utama jika diubah jadi FALSE (Belum Ditransfer)
+                if (database[itemIndex].transfer47k && !wasTransferred) {
+                    database[itemIndex].savings -= NOMINAL_HARIAN_B;
+                } else if (!database[itemIndex].transfer47k && wasTransferred) {
+                    database[itemIndex].savings += NOMINAL_HARIAN_B;
+                }
+                
+                simpanKeLocalStorage();
+                renderHalaman();
+                
+                const statusKini = database[itemIndex].transfer47k;
+                if (statusKini) {
+                    showModal("Transfer Berhasil!", `Tercatat: Rp${NOMINAL_HARIAN_B.toLocaleString('id-ID')} dipotong dari Tabungan A dan berhasil disisihkan ke Rekening B untuk tanggal tersebut.`, "🏦");
+                } else {
+                    showModal("Ditarik", `Pencatatan setoran Rekening B ditarik kembali, dana Rp${NOMINAL_HARIAN_B.toLocaleString('id-ID')} dikembalikan ke Tabungan A harian.`, "⚠️");
+                }
+            }
+        }
+
         // --- SISTEM RENDER HALAMAN UTAMA ---
         function renderHalaman() {
-            let totalTabungan = 0;
+            let totalTabungan = 0; // Tabungan Bersih A
             let totalKertasPW = 0;
             let totalKertasEP = 0;
             let totalMtrSpanduk = 0;
@@ -1278,6 +1325,9 @@
             let hitungKasPW = 0;
             let hitungKasEP = 0;
             let hitungKasXP = 0;
+            
+            let totalTabungan47k = 0; // Tabungan B
+            let totalOmsetKotor = 0;  // Omset Laci
 
             const tbody = document.getElementById('tabelRiwayat');
             tbody.innerHTML = '';
@@ -1285,11 +1335,11 @@
             if (database.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="7" class="p-8 text-center text-slate-400 font-medium">Belum ada catatan transaksi harian. Silakan masukkan data di atas mumpung libur sekolah!</td>
+                        <td colspan="8" class="p-8 text-center text-slate-400 font-medium">Belum ada catatan transaksi harian. Silakan masukkan data di atas mumpung libur sekolah!</td>
                     </tr>
                 `;
             } else {
-                // Menggunakan salinan array terpisah untuk diurutkan agar indeks array asli tetap terjaga & tidak merusak input terakhir saat dicadangkan/ekspor
+                // Menggunakan salinan array terpisah untuk diurutkan agar indeks array asli tetap terjaga
                 const databaseUrutanSaji = [...database].sort((a, b) => b.id - a.id);
 
                 databaseUrutanSaji.forEach((item) => {
@@ -1313,6 +1363,7 @@
                             </td>
                             <td class="p-4 text-right font-bold text-red-600">${formatRupiah(item.biaya_expense)}</td>
                             <td class="p-4 text-right font-bold text-slate-400 bg-red-50/20">- (Dipotong Kas)</td>
+                            <td class="p-4 text-center">-</td>
                             <td class="p-4 text-center">
                                 <button onclick="hapusBarisByID(${item.id})" class="text-xs text-red-500 hover:text-red-700 font-extrabold">Hapus</button>
                             </td>
@@ -1320,19 +1371,21 @@
                         tbody.appendChild(tr);
 
                     } else if (item.is_bahan_expense) {
-                        totalTabungan += item.savings; // Mengurangi tabungan utama (nilai minus)
+                        totalTabungan += item.savings; // Mengurangi tabungan utama (jika belanja), atau 0 (jika stok baru)
+                        const isStokBaru = (item.savings === 0);
 
                         const tr = document.createElement('tr');
                         tr.className = "bg-amber-50/50 hover:bg-amber-50/85 transition-colors border-l-4 border-amber-500";
                         tr.innerHTML = `
                             <td class="p-4 font-bold text-amber-900">${tglID}${jamSistem}</td>
                             <td colspan="3" class="p-4 text-xs font-semibold text-amber-800">
-                                📦 [${item.savings === 0 ? 'STOK BARU' : 'KULAKAN'}] Beli ${item.nama_bahan} sebanyak ${item.jumlah_bahan} ${item.satuan_bahan}
+                                📦 [${isStokBaru ? 'STOK BARU' : 'KULAKAN'}] Beli ${item.nama_bahan} sebanyak ${item.jumlah_bahan} ${item.satuan_bahan}
                             </td>
                             <td class="p-4 text-right font-bold text-amber-600">${formatRupiah(item.biaya_expense)}</td>
-                            <td class="p-4 text-right font-black ${item.savings === 0 ? 'text-slate-400 font-medium' : 'text-red-600'} bg-amber-50/20">
-                                ${item.savings === 0 ? 'Rp 0 (Modal Terpisah)' : `-${formatRupiah(item.biaya_expense)} (Potong Target)`}
+                            <td class="p-4 text-right font-black bg-amber-50/20">
+                                ${isStokBaru ? '<span class="text-slate-400 font-medium">Rp 0 (Modal Terpisah)</span>' : `<span class="text-red-600">-${formatRupiah(item.biaya_expense)} (Potong Target)</span>`}
                             </td>
+                            <td class="p-4 text-center">-</td>
                             <td class="p-4 text-center">
                                 <button onclick="panggilModalHapusBahanBaku(${item.id}, '${item.nama_bahan}', ${item.jumlah_bahan})" class="text-xs text-red-500 hover:text-red-700 font-extrabold">Hapus</button>
                             </td>
@@ -1341,6 +1394,12 @@
 
                     } else {
                         totalTabungan += item.savings;
+                        totalOmsetKotor += item.revenue || 0;
+
+                        if (item.transfer47k) {
+                            totalTabungan47k += NOMINAL_HARIAN_B;
+                        }
+
                         totalKertasPW += ((item.pw_fc || 0) + (item.pw_hp || 0) + (item.pw_warna || 0));
                         totalKertasEP += ((item.ep_fc || 0) + (item.ep_hp || 0) + (item.ep_warna || 0));
                         totalMtrSpanduk += (item.xp_spanduk || 0);
@@ -1388,6 +1447,15 @@
                             displayXPCustomName = pInfo ? pInfo.nama_bahan : item.xp_custom_jenis.replace(/_/g, ' ');
                         }
 
+                        // Tombol transfer interaktif - warna biru untuk Sudah Ditransfer & biru muda untuk Belum Ditransfer
+                        const statusTransferBtn = item.transfer47k 
+                            ? `<button onclick="toggleTransfer47k(${item.id})" class="inline-flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-1 px-2.5 rounded-full transition-all border border-blue-700 shadow-md">
+                                Sudah Ditransfer ✅
+                               </button>`
+                            : `<button onclick="toggleTransfer47k(${item.id})" class="inline-flex items-center gap-1 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold py-1 px-2.5 rounded-full transition-all border border-blue-200 shadow-sm">
+                                Belum Ditransfer 📲
+                               </button>`;
+
                         const tr = document.createElement('tr');
                         tr.className = "hover:bg-slate-50/80 transition-colors";
                         tr.innerHTML = `
@@ -1412,6 +1480,7 @@
                             </td>
                             <td class="p-4 text-right font-semibold text-slate-500">${formatRupiah(item.revenue)}</td>
                             <td class="p-4 text-right font-black text-emerald-600 bg-emerald-50/40">${formatRupiah(item.savings)}</td>
+                            <td class="p-4 text-center">${statusTransferBtn}</td>
                             <td class="p-4 text-center">
                                 <button onclick="hapusBarisByID(${item.id})" class="text-xs text-red-500 hover:text-red-700 font-extrabold">Hapus</button>
                             </td>
@@ -1483,12 +1552,14 @@
             const transaksiHarianCount = database.filter(i => !i.is_expense && !i.is_bahan_expense).length;
             const rataAn = transaksiHarianCount > 0 ? Math.round(totalTabungan / transaksiHarianCount) : 0;
 
+            document.getElementById('totalOmsetKotor').innerText = formatRupiah(totalOmsetKotor);
             document.getElementById('totalTerkumpul').innerText = formatRupiah(totalTabungan);
+            document.getElementById('totalTabungan47k').innerText = formatRupiah(totalTabungan47k);
             document.getElementById('sisaTarget').innerText = sisa <= 0 ? "TARGET TEMBUS! 🎉" : formatRupiah(sisa);
             
             const elemTotalHari = document.getElementById('totalHari');
             if (elemTotalHari) {
-                elemTotalHari.innerText = transaksiHarianCount + " Hari";
+                elemTotalHari.innerText = transaksiHarianCount + " Transaksi";
             }
             
             document.getElementById('rataHarian').innerText = formatRupiah(rataAn);
@@ -1526,6 +1597,7 @@
             const xp_stiker = parseFloat(document.getElementById('inputXP_Sticker').value) || 0;
             const xp_custom = parseFloat(document.getElementById('inputXP_CustomQty').value) || 0;
             const xp_custom_jenis = document.getElementById('inputXP_CustomJenis').value;
+            const langsung47k = document.getElementById('inputLangsung47k').checked;
 
             if (!tgl) return showModal("Eror", "Silakan pilih tanggal pencatatan!", "❌");
 
@@ -1602,6 +1674,8 @@
                 stokInventori[xp_custom_jenis] -= xp_custom;
             }
 
+            localStorage.setItem('si_printing_stok', JSON.stringify(stokInventori));
+
             // --- PERHITUNGAN KAS & TABUNGAN GABUNGAN DINAMIS ---
             const omset = (pw_fc * TARIF.pw_fc) + (pw_hp * TARIF.pw_hp) + (pw_warna * TARIF.pw_warna) + 
                           (ep_fc * TARIF.ep_fc) + (ep_hp * TARIF.ep_hp) + (ep_warna * TARIF.ep_warna) + 
@@ -1630,7 +1704,12 @@
             const potongEP = untungEP * PORSI_RAWAT.ep;
             const potongXP = untungXP * PORSI_RAWAT.xp;
 
-            const setorTabunganUtama = (untungPW - potongPW) + (untungEP - potongEP) + (untungXP - potongXP);
+            let setorTabunganUtama = (untungPW - potongPW) + (untungEP - potongEP) + (untungXP - potongXP);
+
+            // Potong tabungan utama secara langsung untuk Tabungan B (Rp47.000) jika dijadwalkan
+            if (langsung47k) {
+                setorTabunganUtama -= NOMINAL_HARIAN_B;
+            }
 
             const sekarang = new Date();
             const jamFormat = sekarang.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
@@ -1654,7 +1733,8 @@
                 xp_custom: xp_custom,
                 xp_custom_jenis: xp_custom_jenis,
                 revenue: omset,
-                savings: setorTabunganUtama
+                savings: setorTabunganUtama,
+                transfer47k: langsung47k
             };
 
             database.push(dataHariIni);
@@ -1678,7 +1758,7 @@
             if (setorTabunganUtama >= 72000) {
                 showModal("Target Tembus & Stok Berkurang!", `Luar biasa Pak! Tabungan utama bertambah ${formatRupiah(setorTabunganUtama)} (Melewati target harian Rp72.000). Kas perawatan juga terisi otomatis!`, "🎉");
             } else {
-                showModal("Catatan Disimpan", `Data dicatat. Setor tabungan bersih utama: ${formatRupiah(setorTabunganUtama)}. Kas perawatan otomatis disisihkan.`, "✅");
+                showModal("Catatan Disimpan", `Data dicatat. Setor tabungan bersih utama (A): ${formatRupiah(setorTabunganUtama)}. Kas perawatan otomatis disisihkan.`, "✅");
             }
         }
         window.simpanTransaksi = simpanTransaksi;
@@ -1795,14 +1875,14 @@
                 stokInventori: stokInventori,
                 kasPerawatan: kasPerawatan,
                 hargaModalBahan: hargaModalBahan,
-                appVersion: "v7.6",
+                appVersion: "v7.7",
                 eksporPada: new Date().toISOString()
             };
 
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(paketCadangan));
             const dlAnchor = document.createElement('a');
             dlAnchor.setAttribute("href", dataStr);
-            dlAnchor.setAttribute("download", `backup_si_printing_v7.6_${new Date().toISOString().slice(0,10)}.json`);
+            dlAnchor.setAttribute("download", `backup_si_printing_v7.7_${new Date().toISOString().slice(0,10)}.json`);
             document.body.appendChild(dlAnchor);
             dlAnchor.click();
             dlAnchor.remove();
@@ -1816,12 +1896,12 @@
                 try {
                     const dataImpor = JSON.parse(fileReader.result);
                     
-                    // Deteksi format berkas (Mendukung berkas versi baru v7.6 atau berkas jadul berupa array transaksi biasa)
+                    // Deteksi format berkas (Mendukung berkas versi baru v7.7 atau berkas jadul berupa array transaksi biasa)
                     if (Array.isArray(dataImpor)) {
                         // Kompatibilitas Mundur (Berkas lama)
                         database = dataImpor;
                     } else if (dataImpor && typeof dataImpor === 'object' && dataImpor.database) {
-                        // Format Terpadu Baru v7.6
+                        // Format Terpadu Baru v7.7
                         database = dataImpor.database || [];
                         stokInventori = dataImpor.stokInventori || stokInventori;
                         kasPerawatan = dataImpor.kasPerawatan || kasPerawatan;
@@ -1866,34 +1946,6 @@
             updateCalcDisplay();
         }
 
-        function backspaceCalc() {
-            if (calcVal === "Error") {
-                calcVal = "0";
-            } else if (calcVal.length > 1) {
-                calcVal = calcVal.slice(0, -1);
-            } else {
-                calcVal = "0";
-            }
-            updateCalcDisplay();
-        }
-
-        function calculateCalc() {
-            try {
-                let expression = calcVal;
-                expression = expression.replace(/%/g, '/100');
-                let result = new Function(`return ${expression}`)();
-                if (result === undefined || isNaN(result)) {
-                    calcVal = "Error";
-                } else {
-                    if (result % 1 !== 0) result = parseFloat(result.toFixed(4));
-                    calcVal = result.toString();
-                }
-            } catch (e) {
-                calcVal = "Error";
-            }
-            updateCalcDisplay();
-        }
-
         // Ikat fungsi modul agar selalu dapat dipanggil secara global (Mencegah ReferenceError)
         window.bukaModalBahanKertas = bukaModalBahanKertas;
         window.tutupModalBahanKertas = tutupModalBahanKertas;
@@ -1916,9 +1968,19 @@
         window.imporData = imporData;
         window.inputCalc = inputCalc;
         window.clearCalc = clearCalc;
-        window.backspaceCalc = backspaceCalc;
+        window.backspaceCalc = function() {
+            if (calcVal === "Error") {
+                calcVal = "0";
+            } else if (calcVal.length > 1) {
+                calcVal = calcVal.slice(0, -1);
+            } else {
+                calcVal = "0";
+            }
+            updateCalcDisplay();
+        };
         window.calculateCalc = calculateCalc;
         window.hitungUlangKapasitas = hitungUlangKapasitas;
+        window.toggleTransfer47k = toggleTransfer47k;
 
         // --- INITIAL RUN ON LOAD ---
         inisialisasiMonitorBatasMesin();
