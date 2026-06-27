@@ -454,7 +454,7 @@
                         <button onclick="calculateCalc()" class="p-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-lg row-span-2 flex items-center justify-center text-lg transition">=</button>
                         
                         <button onclick="inputCalc('0')" class="p-2.5 bg-slate-855 hover:bg-slate-750 rounded-lg col-span-2 transition">0</button>
-                        <button onclick="inputCalc('.')" class="p-2.5 bg-slate-855 hover:bg-slate-750 rounded-lg transition">.</button>
+                        <button onclick="inputCalc('.')" class="p-2.5 bg-slate-855 hover:bg-slate-750 rounded-lg transition text-slate-300">.</button>
                     </div>
                 </div>
             </div>
@@ -1025,6 +1025,7 @@
             document.getElementById('modalEditStok').classList.remove('hidden');
         }
 
+        // --- SISTEM TUTUP EDIT STOK ---
         function tutupModalEditStok() {
             document.getElementById('modalEditStok').classList.add('hidden');
         }
@@ -1064,6 +1065,7 @@
             document.getElementById('modalPerawatan').classList.add('hidden');
         }
 
+        // --- PROSES SIMPAN PERAWATAN ---
         function prosesSimpanPerawatan() {
             const mesin = document.getElementById('maintMesin').value;
             const ket = document.getElementById('maintKeterangan').value;
@@ -1943,6 +1945,24 @@
 
         function clearCalc() {
             calcVal = "0";
+            updateCalcDisplay();
+        }
+
+        // Deklarasi fungsi calculateCalc yang sebenarnya
+        function calculateCalc() {
+            try {
+                let expression = calcVal;
+                expression = expression.replace(/%/g, '/100');
+                let result = new Function(`return ${expression}`)();
+                if (result === undefined || isNaN(result)) {
+                    calcVal = "Error";
+                } else {
+                    if (result % 1 !== 0) result = parseFloat(result.toFixed(4));
+                    calcVal = result.toString();
+                }
+            } catch (e) {
+                calcVal = "Error";
+            }
             updateCalcDisplay();
         }
 
