@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SI-PRINTING v7.7 - Edisi Pilihan Sumber Dana Belanja & Bebas Bug</title>
+    <title>SI-PRINTING v7.8 - Edisi Finansial Ganda & Bebas Bug</title>
     <!-- Tailwind CSS CDN untuk Tampilan Premium & Modern -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -28,7 +28,7 @@
         <div class="max-w-[1600px] mx-auto px-4 py-6 flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="text-center md:text-left">
                 <span class="bg-emerald-500/30 text-emerald-300 text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-wider">Misi 6 Bulan & Sumber Dana Fleksibel</span>
-                <h1 class="text-3xl font-extrabold tracking-tight mt-1">SI-PRINTING <span class="text-yellow-400">v7.7</span></h1>
+                <h1 class="text-3xl font-extrabold tracking-tight mt-1">SI-PRINTING <span class="text-yellow-400">v7.8</span></h1>
                 <p class="text-xs text-slate-300 mt-1">Sistem Terpadu Pembukuan, Tabungan Utama, Kas Penyelenggaraan Mesin & Inventori Stok</p>
             </div>
             <div class="bg-white/10 backdrop-blur-md px-5 py-3 rounded-xl border border-white/10 text-center md:text-right">
@@ -111,15 +111,15 @@
                     
                     <div class="space-y-2 text-xs">
                         <div class="flex justify-between items-center p-2 bg-slate-950 rounded border border-blue-900/40">
-                            <span class="text-slate-400">Kas HP PageWide (Porsi 10%)</span>
+                            <span class="text-slate-400">Kas HP PageWide (Porsi 25%)</span>
                             <span id="kasPW" class="font-mono font-bold text-blue-400">Rp0</span>
                         </div>
                         <div class="flex justify-between items-center p-2 bg-slate-950 rounded border border-teal-900/40">
-                            <span class="text-slate-400">Kas Epson L14150 (Porsi 5%)</span>
+                            <span class="text-slate-400">Kas Epson L14150 (Porsi 25%)</span>
                             <span id="kasEP" class="font-mono font-bold text-teal-400">Rp0</span>
                         </div>
                         <div class="flex justify-between items-center p-2 bg-slate-950 rounded border border-purple-900/40">
-                            <span class="text-slate-400">Kas XP600 Eco-Solvent (Porsi 15%)</span>
+                            <span class="text-slate-400">Kas XP600 Eco-Solvent (Porsi 25%)</span>
                             <span id="kasXP" class="font-mono font-bold text-purple-400">Rp0</span>
                         </div>
                     </div>
@@ -454,7 +454,7 @@
                         <button onclick="calculateCalc()" class="p-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-lg row-span-2 flex items-center justify-center text-lg transition">=</button>
                         
                         <button onclick="inputCalc('0')" class="p-2.5 bg-slate-855 hover:bg-slate-750 rounded-lg col-span-2 transition">0</button>
-                        <button onclick="inputCalc('.')" class="p-2.5 bg-slate-855 hover:bg-slate-750 rounded-lg transition text-slate-300">.</button>
+                        <button onclick="inputCalc('.')" class="p-2.5 bg-slate-855 hover:bg-slate-750 rounded-lg transition">.</button>
                     </div>
                 </div>
             </div>
@@ -518,7 +518,7 @@
         </div>
     </div>
 
-    <!-- POPUP MODAL KONFIRMASI CUSTOM (PREMIUM & AMAN) -->
+    <!-- POPUP MODAL KONFIRSIMASI CUSTOM (PREMIUM & AMAN) -->
     <div id="confirmModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center hidden z-50 p-4 animate-fade-in">
         <div class="bg-white rounded-2xl p-6 max-w-sm w-full text-center shadow-xl border border-slate-100">
             <div id="confirmIcon" class="text-5xl mb-4">⚠️</div>
@@ -753,7 +753,7 @@
         const BIAYA_PRODUKSI_TINTA = 500; // Rp500 / lembar warna
 
         // PORSI PENYISIHAN PERAWATAN DARI KEUNTUNGAN BERSIH
-        const PORSI_RAWAT = { pw: 0.10, ep: 0.05, xp: 0.15 };
+        const PORSI_RAWAT = { pw: 0.25, ep: 0.25, xp: 0.25 };
         const TARGET_AKHIR = 13000000; // Rp 13.000.000
         const NOMINAL_HARIAN_B = 47000; // Rp47.000 harian
 
@@ -1449,7 +1449,7 @@
                             displayXPCustomName = pInfo ? pInfo.nama_bahan : item.xp_custom_jenis.replace(/_/g, ' ');
                         }
 
-                        // Tombol transfer interaktif - warna biru untuk Sudah Ditransfer & biru muda untuk Belum Ditransfer
+                        // Tombol transfer harian B - Berwarna biru premium & biru muda
                         const statusTransferBtn = item.transfer47k 
                             ? `<button onclick="toggleTransfer47k(${item.id})" class="inline-flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-1 px-2.5 rounded-full transition-all border border-blue-700 shadow-md">
                                 Sudah Ditransfer ✅
