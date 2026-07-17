@@ -1,1130 +1,2299 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="h-full bg-slate-50">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aplikasi Nota dengan LocalStorage - MUSADAD.COM</title>
+    <title>SI-PRINTING PRO v8.0</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for Reports -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        .print-area { background: white; }
-        .invoice-table th, .invoice-table td { border: 1px solid black; }
-
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar for beautiful UI */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        
+        /* A5 Printing Optimization & Exact Capture_2.JPG Replicas */
         @media print {
-            body * { visibility: hidden; }
-            .print-area, .print-area * { visibility: visible; }
-            .print-area { 
-                position: absolute; 
-                left: 0; 
-                top: 0; 
-                width: 100%; 
+            body > *:not(#printArea) {
+                display: none !important;
             }
-            /* Menyesuaikan warna untuk cetak */
-            .print-area .bg-yellow-200 { background-color: #fce76b !important; -webkit-print-color-adjust: exact; color-adjust: exact; }
-            .print-area .text-blue-600 { color: #2563eb !important; -webkit-print-color-adjust: exact; color-adjust: exact; }
-            .print-area .text-red-600 { color: #dc2626 !important; -webkit-print-color-adjust: exact; color-adjust: exact; }
+            #printArea {
+                display: block !important;
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                background: white;
+                color: black;
+            }
+            #printArea * {
+                visibility: visible !important;
+            }
+            @page {
+                size: A5 landscape;
+                margin: 4mm;
+            }
         }
     </style>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                        },
+                        secondary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
 </head>
-<body class="bg-gray-100 min-h-screen">
-    <div class="container mx-auto p-4">
-        <!-- Header -->
-        <div class="bg-blue-600 text-white p-4 rounded-t-lg">
-            <h1 class="text-2xl font-bold">Aplikasi Nota Percetakan dengan LocalStorage</h1>
-            <p class="text-blue-100">MUSADAD.COM - Ringan dan Cepat</p>
+<body class="h-full flex flex-col md:flex-row overflow-hidden text-slate-800">
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="w-64 bg-slate-900 text-slate-300 flex-shrink-0 flex flex-col transition-all duration-300 z-30 fixed md:relative h-full -translate-x-full md:translate-x-0">
+        <!-- Logo Header -->
+        <div class="h-16 flex items-center justify-between px-6 bg-slate-950 border-b border-slate-800">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-gradient-to-tr from-emerald-500 to-blue-500 rounded-lg text-white">
+                    <i class="fa-solid fa-print text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-white font-bold leading-none text-base">SI-PRINTING</h1>
+                    <span class="text-xs text-emerald-400 font-semibold tracking-wider uppercase">PRO v8.0</span>
+                </div>
+            </div>
+            <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
         </div>
 
-        <div class="flex gap-4 bg-white rounded-b-lg shadow-lg">
-            <!-- Left Panel - Invoice Creation -->
-            <div class="flex-1 p-6">
-                <div class="print-area">
-                    <!-- Invoice Header Section -->
-                    <div class="flex justify-between items-start mb-6">
-                        <div class="w-1/2">
-                            <h2 class="text-xl font-bold text-gray-800">MUSADAD.COM</h2>
-                            <p class="text-xs text-gray-600">PERCETAKAN</p>
-                            <p class="text-[10px] text-gray-600 mt-2">Jl. Rp.Garendong - cisema Petir, Kab.Serang BANTEN<br>Tlp. 083812352663<br>Email. musadad08@gmail.com</p>
+        <!-- Navigation Links -->
+        <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+            <button onclick="switchTab('dashboard')" id="btn-dashboard" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition text-left text-white bg-slate-800 font-medium">
+                <i class="fa-solid fa-chart-line w-5 text-emerald-400"></i>
+                <span>Dashboard</span>
+            </button>
+            <button onclick="switchTab('nota')" id="btn-nota" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition text-left hover:bg-slate-800 font-medium">
+                <i class="fa-solid fa-file-invoice-dollar w-5 text-blue-400"></i>
+                <span>Transaksi Nota</span>
+            </button>
+            <button onclick="switchTab('produksi')" id="btn-produksi" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition text-left hover:bg-slate-800 font-medium">
+                <i class="fa-solid fa-gears w-5 text-purple-400"></i>
+                <span>Produksi & Mesin</span>
+            </button>
+            <button onclick="switchTab('inventori')" id="btn-inventori" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition text-left hover:bg-slate-800 font-medium">
+                <i class="fa-solid fa-boxes-stacked w-5 text-amber-400"></i>
+                <span>Inventori Stok</span>
+            </button>
+            <button onclick="switchTab('kas')" id="btn-kas" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition text-left hover:bg-slate-800 font-medium">
+                <i class="fa-solid fa-screwdriver-wrench w-5 text-rose-400"></i>
+                <span>Kas Perawatan</span>
+            </button>
+            <button onclick="switchTab('tabungan')" id="btn-tabungan" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition text-left hover:bg-slate-800 font-medium">
+                <i class="fa-solid fa-piggy-bank w-5 text-pink-400"></i>
+                <span>Target Tabungan</span>
+            </button>
+            <button onclick="switchTab('laporan')" id="btn-laporan" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition text-left hover:bg-slate-800 font-medium">
+                <i class="fa-solid fa-file-waveform w-5 text-cyan-400"></i>
+                <span>Laporan Keuangan</span>
+            </button>
+            <button onclick="switchTab('database')" id="btn-database" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition text-left hover:bg-slate-800 font-medium">
+                <i class="fa-solid fa-database w-5 text-teal-400"></i>
+                <span>Manajemen Database</span>
+            </button>
+            <button onclick="switchTab('pengaturan')" id="btn-pengaturan" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition text-left hover:bg-slate-800 font-medium">
+                <i class="fa-solid fa-sliders w-5 text-indigo-400"></i>
+                <span>Pengaturan Sistem</span>
+            </button>
+        </nav>
+
+        <!-- User Profile Footer -->
+        <div class="p-4 bg-slate-950 border-t border-slate-800 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-emerald-500/20 border border-emerald-500 flex items-center justify-center text-emerald-400 font-bold">
+                SP
+            </div>
+            <div class="overflow-hidden">
+                <p class="text-sm font-semibold text-white truncate">Administrator</p>
+                <p class="text-xs text-slate-500 truncate">SI-Printing Owner</p>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col overflow-hidden relative">
+        <!-- Top bar -->
+        <header class="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between flex-shrink-0 z-20">
+            <div class="flex items-center gap-4">
+                <button onclick="toggleSidebar()" class="md:hidden text-slate-600 hover:text-slate-900 focus:outline-none">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+                <h2 id="page-title" class="text-xl font-bold text-slate-800">Dashboard Utama</h2>
+            </div>
+            <div class="flex items-center gap-4">
+                <span class="hidden md:inline-flex items-center gap-2 px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-full border border-emerald-200">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Database Aktif (Lokal)
+                </span>
+                <span id="current-time" class="text-sm font-medium text-slate-500 hidden sm:inline-block"></span>
+            </div>
+        </header>
+
+        <!-- Dynamic Main Content Area -->
+        <div class="flex-1 overflow-y-auto p-6 space-y-6" id="content-area">
+
+            <!-- TAB: DASHBOARD -->
+            <section id="tab-dashboard" class="tab-content space-y-6">
+                <!-- Highlight Cards Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Omzet Card -->
+                    <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
+                        <div class="space-y-1">
+                            <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Omzet</p>
+                            <h3 id="dash-omzet" class="text-2xl font-bold text-slate-900">Rp0</h3>
                         </div>
-                        <div class="w-1/2 text-right">
-                            <div class="flex justify-end gap-2 text-xs mb-2 items-center">
-                                <label class="font-medium text-gray-700 text-base">Tanggal</label>
-                                <input type="text" id="invoiceDateDisplay" class="border border-black px-1" readonly>
+                        <div class="p-3 bg-blue-50 text-blue-600 rounded-xl">
+                            <i class="fa-solid fa-wallet text-xl"></i>
+                        </div>
+                    </div>
+                    <!-- Laba Bersih Card -->
+                    <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
+                        <div class="space-y-1">
+                            <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Laba Bersih</p>
+                            <h3 id="dash-laba" class="text-2xl font-bold text-emerald-600">Rp0</h3>
+                        </div>
+                        <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+                            <i class="fa-solid fa-money-bill-trend-up text-xl"></i>
+                        </div>
+                    </div>
+                    <!-- Total Modal Card -->
+                    <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
+                        <div class="space-y-1">
+                            <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Modal</p>
+                            <h3 id="dash-modal" class="text-2xl font-bold text-indigo-600">Rp0</h3>
+                        </div>
+                        <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+                            <i class="fa-solid fa-sack-dollar text-xl"></i>
+                        </div>
+                    </div>
+                    <!-- Total Transaksi Card -->
+                    <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
+                        <div class="space-y-1">
+                            <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Transaksi</p>
+                            <h3 id="dash-transaksi" class="text-2xl font-bold text-slate-900">0</h3>
+                        </div>
+                        <div class="p-3 bg-slate-50 text-slate-600 rounded-xl">
+                            <i class="fa-solid fa-receipt text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Savings & Machines Dashboard -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Progress Tabungan -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm col-span-1 lg:col-span-2 flex flex-col justify-between space-y-4">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <h4 class="font-bold text-slate-800 text-base">Progress Target Tabungan</h4>
+                                <span class="px-2 py-1 bg-pink-50 text-pink-700 rounded-lg text-xs font-bold" id="dash-target-title">Target: Rp13.000.000</span>
                             </div>
-                            <div class="flex justify-end gap-2 text-xs items-center">
-                                <label class="font-medium text-gray-700 text-base">Tuan</label>
-                                <input type="text" id="customerNameInput" class="border border-black px-1" placeholder="Nama Pelanggan">
+                            <p class="text-xs text-slate-400">Dialokasikan dari persentase keuntungan bersih setiap pesanan percetakan.</p>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-sm font-semibold">
+                                <span id="dash-tabungan-terkumpul" class="text-pink-600">Rp0</span>
+                                <span id="dash-tabungan-persen" class="text-slate-500">0%</span>
                             </div>
-                            <div class="flex justify-end gap-2 text-xs mt-2 items-center">
-                                <label class="font-medium text-gray-700 text-base">Tlp.</label>
-                                <input type="text" id="customerPhoneInput" class="border border-black px-1" placeholder="No. Telepon">
+                            <div class="w-full bg-slate-100 rounded-full h-4 overflow-hidden">
+                                <div id="dash-tabungan-bar" class="bg-gradient-to-r from-pink-500 to-rose-500 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="flex items-center mb-4">
-                        <label class="text-xs font-medium text-gray-700 mr-2">NO NOTA:</label>
-                        <input type="text" id="invoiceNumber" class="border border-black w-24 px-1" readonly>
+                    <!-- Piutang Ringkasan -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
+                        <div class="space-y-2 w-full">
+                            <h4 class="font-bold text-slate-800 text-sm uppercase tracking-wider text-slate-400">Ringkasan Piutang</h4>
+                            <div class="flex items-baseline justify-between">
+                                <span class="text-xs text-slate-500">Nota Belum Lunas:</span>
+                                <span id="dash-nota-belum-lunas" class="text-sm font-bold text-rose-600">0 Nota</span>
+                            </div>
+                            <div class="flex items-baseline justify-between pt-1 border-t border-slate-100">
+                                <span class="text-xs text-slate-500">Total Sisa Piutang:</span>
+                                <span id="dash-piutang" class="text-lg font-extrabold text-rose-600">Rp0</span>
+                            </div>
+                        </div>
                     </div>
+                </div>
 
-                    <!-- Items Table -->
-                    <div class="mb-6">
-                        <table class="w-full border-collapse invoice-table">
-                            <thead class="bg-yellow-200">
-                                <tr class="border border-black">
-                                    <th class="border border-black p-2 text-center w-20">BANYAK</th>
-                                    <th class="border border-black p-2 text-left">NAMA BARANG</th>
-                                    <th class="border border-black p-2 text-right w-24">HARGA</th>
-                                    <th class="border border-black p-2 text-right w-24">JUMLAH</th>
-                                    <th class="border border-black p-2 text-center w-12"></th>
+                <!-- Maintenance Cash Widgets -->
+                <div class="space-y-4">
+                    <h3 class="text-lg font-bold text-slate-800">Kas Perawatan Mesin Cetak</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4" id="dash-kas-container">
+                        <!-- Dynamic maintenance widgets -->
+                    </div>
+                </div>
+
+                <!-- Inventory Stock Mini Tracker -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h4 class="font-bold text-slate-800">Status Stok Inventori</h4>
+                        <span id="dash-total-stok" class="text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-700 rounded-full">0 Total Unit Stok</span>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4" id="dash-inventory-list">
+                        <!-- Dynamic inventory list -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB: NOTA -->
+            <section id="tab-nota" class="tab-content hidden space-y-6">
+                <!-- Search & Action Panel -->
+                <div class="flex flex-col sm:flex-row gap-4 items-center justify-between bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+                    <div class="relative w-full sm:w-80">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </span>
+                        <input type="text" id="search-invoice" oninput="renderInvoiceTable()" placeholder="Cari No. Nota, Pelanggan, Barang, atau Mesin..." class="pl-10 pr-4 py-2 w-full border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm outline-none">
+                    </div>
+                    <div class="flex gap-2 w-full sm:w-auto">
+                        <button onclick="openInvoiceModal()" class="w-full sm:w-auto px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition shadow">
+                            <i class="fa-solid fa-plus"></i> Buat Nota Baru
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Invoice DB Table -->
+                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-wider">
+                                    <th class="py-4 px-6">No. Nota</th>
+                                    <th class="py-4 px-6">Pelanggan</th>
+                                    <th class="py-4 px-6">Tanggal</th>
+                                    <th class="py-4 px-6">Total Pembayaran</th>
+                                    <th class="py-4 px-6">Sisa Piutang</th>
+                                    <th class="py-4 px-6 text-center">Status</th>
+                                    <th class="py-4 px-6 text-right">Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody id="itemsTable">
-                                <!-- Default row for new invoices -->
-                                <tr>
-                                    <td class="border border-black p-1 text-center">
-                                        <input type="number" class="w-full p-1 border-0 text-center quantity-input" value="0" min="0">
-                                    </td>
-                                    <td class="border border-black p-1">
-                                        <input type="text" class="w-full p-1 border-0 item-name" placeholder="Nama barang/jasa">
-                                    </td>
-                                    <td class="border border-black p-1">
-                                        <input type="number" class="w-full p-1 border-0 text-right item-price" placeholder="0" min="0">
-                                    </td>
-                                    <td class="border border-black p-1 text-right item-total font-medium">Rp 0</td>
-                                    <td class="border border-black p-1 text-center">
-                                        <button onclick="removeItem(this)" class="text-red-500 hover:text-red-700">🗑️</button>
-                                    </td>
-                                </tr>
+                            <tbody id="invoice-table-body" class="divide-y divide-slate-100 text-sm">
+                                <!-- Dynamic rows -->
                             </tbody>
                         </table>
-                        <button onclick="addItem()" class="mt-2 bg-green-500 text-white px-4 py-1 rounded hover:bg-green-600 text-sm">+ Tambah Item</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB: PRODUKSI -->
+            <section id="tab-produksi" class="tab-content hidden space-y-6">
+                <!-- Add New Machine Section -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+                    <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                        <span class="p-1.5 bg-purple-100 text-purple-600 rounded-lg"><i class="fa-solid fa-plus"></i></span>
+                        Daftarkan Mesin Cetak Baru
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="space-y-1">
+                            <label class="text-xs font-semibold text-slate-500">Nama Mesin</label>
+                            <input type="text" id="new-mac-name" placeholder="Contoh: Canon C710" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-purple-500">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-semibold text-slate-500">Biaya Rawat / Satuan (Rp)</label>
+                            <input type="number" id="new-mac-cost" placeholder="Contoh: 150" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-purple-500">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-semibold text-slate-500">Satuan Cetak</label>
+                            <select id="new-mac-type" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-purple-500">
+                                <option value="Lembar">Lembar</option>
+                                <option value="Pcs">Pcs</option>
+                                <option value="m²">m² (Meter Persegi)</option>
+                                <option value="Klik">Klik</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-semibold text-slate-500">Deskripsi / Spesifikasi Singkat</label>
+                            <input type="text" id="new-mac-desc" placeholder="Contoh: Mesin cetak A3+ laser toner" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-purple-500">
+                        </div>
+                    </div>
+                    <div class="flex justify-end pt-2">
+                        <button onclick="registerNewMachine()" class="px-5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-semibold text-sm transition shadow flex items-center gap-2">
+                            <i class="fa-solid fa-save"></i> Simpan Mesin Baru
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Dynamic Production Machines Info cards -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6" id="produksi-machines-list">
+                    <!-- Cards populated dynamically -->
+                </div>
+
+                <!-- Cost Calculator Helper -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+                    <h3 class="font-bold text-slate-800 text-base">Kalkulator Simulasi Untung Produksi</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="space-y-1">
+                            <label class="text-xs font-semibold text-slate-500">Pilih Bahan Baku</label>
+                            <select id="calc-item" onchange="runSimulasi()" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                                <!-- Populated dynamically -->
+                            </select>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-semibold text-slate-500">Pilih Mesin Produksi</label>
+                            <select id="calc-machine" onchange="runSimulasi()" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                                <!-- Populated dynamically -->
+                            </select>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-semibold text-slate-500">Jumlah Cetak (Qty)</label>
+                            <input type="number" id="calc-qty" value="100" oninput="runSimulasi()" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-semibold text-slate-500">Harga Jual / Unit (Rp)</label>
+                            <input type="number" id="calc-sell" value="500" oninput="runSimulasi()" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                        </div>
                     </div>
 
-                    <!-- Ringkasan & Peringatan -->
-                    <div class="flex justify-between items-end mb-6">
-                        <div class="flex-1 mr-4">
-                            <p class="text-sm font-medium mb-1">Diterima,</p>
-                            <div class="h-16 border-b border-black"></div>
-                            <div class="mt-2 text-sm text-center font-bold">( ................ )</div>
+                    <!-- Kalkulasi Box -->
+                    <div class="bg-slate-50 p-4 rounded-xl grid grid-cols-2 sm:grid-cols-4 gap-4 border border-slate-200/50">
+                        <div>
+                            <span class="text-xs text-slate-400">Total Harga Jual:</span>
+                            <p id="sim-omzet" class="text-base font-bold text-slate-800">Rp0</p>
                         </div>
-                        <div class="flex-1">
-                            <div class="grid grid-cols-2 gap-1 mb-1">
-                                <span class="text-sm font-medium">Jumlah Rp.</span>
-                                <input type="text" id="totalAmount" readonly class="border border-black px-1 text-right font-bold bg-gray-100">
+                        <div>
+                            <span class="text-xs text-slate-400">Total Modal Bahan:</span>
+                            <p id="sim-modal" class="text-base font-bold text-indigo-600">Rp0</p>
+                        </div>
+                        <div>
+                            <span class="text-xs text-slate-400">Alokasi Kas Rawat:</span>
+                            <p id="sim-rawat" class="text-base font-bold text-rose-600">Rp0</p>
+                        </div>
+                        <div>
+                            <span class="text-xs text-slate-400">Estimasi Laba Bersih:</span>
+                            <p id="sim-laba" class="text-lg font-extrabold text-emerald-600">Rp0</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB: INVENTORI -->
+            <section id="tab-inventori" class="tab-content hidden space-y-6">
+                <!-- Dynamic Items Edit / Add Form -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+                    <h3 class="font-bold text-slate-800 text-base">Atur & Tambah Stok Inventori Bahan</h3>
+                    <p class="text-xs text-slate-400">Ketik nama bahan baru untuk menambahkan ke database, atau pilih bahan lama menggunakan dropdown auto-suggest.</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="space-y-1">
+                            <label class="text-xs font-semibold text-slate-500">Nama Bahan</label>
+                            <input list="inventory-datalist" id="inv-name" placeholder="Ketik nama bahan (contoh: Art Paper 260g)..." class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500" onchange="loadSelectedInv()">
+                            <datalist id="inventory-datalist">
+                                <!-- Populated dynamically -->
+                            </datalist>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-semibold text-slate-500">Stok Saat Ini</label>
+                            <input type="number" id="inv-stock" placeholder="0" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-semibold text-slate-500">Harga Modal Per Unit (Rp)</label>
+                            <input type="number" id="inv-cost" placeholder="0" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                        <div class="space-y-1 flex items-end gap-2">
+                            <button onclick="saveInventory()" class="w-full px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold text-sm transition shadow">
+                                Simpan / Update Bahan
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Inventory Stock Table -->
+                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                    <div class="p-5 border-b border-slate-100">
+                        <h4 class="font-bold text-slate-800">Daftar Bahan Baku Inventori</h4>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-wider">
+                                    <th class="py-4 px-6">Bahan Baku</th>
+                                    <th class="py-4 px-6">Sisa Stok</th>
+                                    <th class="py-4 px-6">Harga Modal / Unit</th>
+                                    <th class="py-4 px-6">Nilai Aset</th>
+                                    <th class="py-4 px-6 text-center">Status Keamanan</th>
+                                    <th class="py-4 px-6 text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventory-table-body" class="divide-y divide-slate-100 text-sm">
+                                <!-- Dynamic rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB: KAS PERAWATAN -->
+            <section id="tab-kas" class="tab-content hidden space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Setup Custom Alokasi -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+                        <h3 class="font-bold text-slate-800 text-base">Alokasi Biaya Perawatan Mesin</h3>
+                        <p class="text-xs text-slate-400">Atur seberapa besar dana perawatan yang dipotong langsung dari laba setiap kali pesanan dikerjakan menggunakan mesin.</p>
+                        <div class="space-y-3" id="settings-rawat-container">
+                            <!-- Dynamic inputs for machines -->
+                        </div>
+                        <button onclick="saveMaintenanceSettings()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold text-sm transition font-bold shadow">
+                            Simpan Parameter Alokasi
+                        </button>
+                    </div>
+
+                    <!-- Tarik Dana Perawatan / Maintenance Expense -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+                        <h3 class="font-bold text-slate-800 text-base">Gunakan Kas Perawatan</h3>
+                        <p class="text-xs text-slate-400">Mencatat pengeluaran kas perawatan untuk membeli sparepart atau jasa servis mesin bersangkutan.</p>
+                        <div class="space-y-3">
+                            <div class="space-y-1">
+                                <label class="text-xs font-semibold text-slate-500">Pilih Mesin</label>
+                                <select id="expense-machine" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-rose-500">
+                                    <!-- Populated dynamically -->
+                                </select>
                             </div>
-                            <div class="grid grid-cols-2 gap-1 mb-1">
-                                <span class="text-sm font-medium">Uang Muka Rp.</span>
-                                <input type="number" id="downPayment" class="border border-black px-1 text-right" min="0">
+                            <div class="space-y-1">
+                                <label class="text-xs font-semibold text-slate-500">Jumlah Penarikan (Rp)</label>
+                                <input type="number" id="expense-amount" placeholder="Contoh: 150000" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-rose-500">
                             </div>
-                            <div class="grid grid-cols-2 gap-1">
-                                <span class="text-sm font-medium">Kurang Rp.</span>
-                                <input type="text" id="remainingAmount" readonly class="border border-black px-1 text-right font-bold text-red-600 bg-gray-100">
+                            <div class="space-y-1">
+                                <label class="text-xs font-semibold text-slate-500">Keterangan / Keperluan Servis</label>
+                                <input type="text" id="expense-desc" placeholder="Contoh: Beli Head Cleaner" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-rose-500">
                             </div>
+                            <button onclick="withdrawMaintenanceCash()" class="w-full py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-semibold text-sm transition">
+                                Catat Pengeluaran Kas Rawat
+                            </button>
                         </div>
                     </div>
 
-                    <!-- Payment Info & Warning -->
-                    <div class="mt-6 border-t border-black pt-4 flex justify-between items-start">
-                        <div class="w-1/2 mr-4">
-                            <p class="text-sm font-bold">PEMBAYARAN BISA MELALUI</p>
-                            <div class="text-xs mt-2">
-                                <p>Transfer ke:</p>
-                                <p>NOREK BANK BCA</p>
-                                <p class="font-bold">5410927839 ROHMATULLOH AL MUSADAD</p>
+                    <!-- Saldo Status Box -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
+                        <h3 class="font-bold text-slate-800 text-base">Status Buku Kas Saat Ini</h3>
+                        <div class="space-y-3 py-4" id="kas-detail-list">
+                            <!-- Populated dynamically -->
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs text-slate-500">
+                            Setiap penarikan dana perawatan akan secara otomatis dicatat dalam Modul Pengeluaran / Laporan Keuangan secara komprehensif.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Maintenance History Table -->
+                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                    <div class="p-5 border-b border-slate-100">
+                        <h4 class="font-bold text-slate-800">Riwayat Penggunaan Kas Perawatan</h4>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-wider">
+                                    <th class="py-4 px-6">Tanggal</th>
+                                    <th class="py-4 px-6">Mesin Cetak</th>
+                                    <th class="py-4 px-6">Keterangan</th>
+                                    <th class="py-4 px-6 text-right">Jumlah Keluar</th>
+                                </tr>
+                            </thead>
+                            <tbody id="maintenance-history-body" class="divide-y divide-slate-100 text-sm">
+                                <!-- Dynamic maintenance records -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB: TARGET TABUNGAN -->
+            <section id="tab-tabungan" class="tab-content hidden space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Target Setting & Direct Deposit -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+                        <h3 class="font-bold text-slate-800 text-base">Atur Target Tabungan Utama</h3>
+                        <p class="text-xs text-slate-400">Atur batas pencapaian finansial target tabungan percetakan Anda.</p>
+                        <div class="space-y-3">
+                            <div class="space-y-1">
+                                <label class="text-xs font-semibold text-slate-500">Target Nominal (Rp)</label>
+                                <input type="number" id="setting-target-nominal" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-pink-500">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-xs font-semibold text-slate-500">Persentase Alokasi / Transaksi Laba</label>
+                                <input type="number" id="setting-target-percent" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-pink-500" placeholder="Default: 15%">
+                            </div>
+                            <button onclick="saveSavingsSettings()" class="w-full py-2.5 bg-pink-600 hover:bg-pink-700 text-white rounded-xl font-semibold text-sm transition">
+                                Simpan Parameter Target
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Direct Deposit to Savings -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+                        <h3 class="font-bold text-slate-800 text-base">Setoran Tabungan Manual</h3>
+                        <p class="text-xs text-slate-400">Gunakan form ini untuk menyetorkan saldo tabungan di luar keuntungan cetak otomatis.</p>
+                        <div class="space-y-3">
+                            <div class="space-y-1">
+                                <label class="text-xs font-semibold text-slate-500">Jumlah Setoran (Rp)</label>
+                                <input type="number" id="manual-saving-amount" placeholder="Contoh: 500000" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-pink-500">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-xs font-semibold text-slate-500">Sumber Dana</label>
+                                <input type="text" id="manual-saving-source" placeholder="Contoh: Sisa Modal Bulan Lalu" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-pink-500">
+                            </div>
+                            <button onclick="addManualSaving()" class="w-full py-2.5 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-xl font-semibold text-sm transition font-bold">
+                                Tambahkan Setoran
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Visual Progress -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
+                        <h3 class="font-bold text-slate-800 text-base">Status Tabungan</h3>
+                        <div class="space-y-4 py-4 text-center">
+                            <div class="inline-block p-4 rounded-full bg-pink-50 text-pink-600">
+                                <i class="fa-solid fa-piggy-bank text-4xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs text-slate-400 uppercase tracking-widest font-semibold">Telah Terkumpul</p>
+                                <p id="saving-detail-collected" class="text-2xl font-extrabold text-slate-900 mt-1">Rp0</p>
+                            </div>
+                            <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+                                <div id="saving-detail-bar" class="bg-gradient-to-r from-pink-500 to-rose-500 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
                             </div>
                         </div>
-                        <div class="w-1/2 border border-red-500 bg-red-100 rounded p-2 text-center text-xs">
-                            <p class="text-red-800 font-bold">PERHATIAN !!!</p>
-                            <p class="text-red-600 mt-1">Barang-barang yang sudah dibeli tidak bisa ditukar / dikembalikan</p>
+                        <p class="text-[11px] text-slate-400 text-center">
+                            Sistem secara real-time mengunci persentase keuntungan dari nota lunas untuk dipindahbukukan sebagai Target Tabungan.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB: DATABASE -->
+            <section id="tab-database" class="tab-content hidden space-y-6">
+                <!-- Backup and Restore Actions -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Export JSON Section -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+                        <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                            <span class="p-1.5 bg-blue-50 text-blue-600 rounded-lg"><i class="fa-solid fa-download"></i></span>
+                            Ekspor Seluruh Database
+                        </h3>
+                        <p class="text-xs text-slate-400">Unduh seluruh berkas data transaksi nota, detail inventori, kas mesin, serta histori tabungan ke dalam berkas tunggal .JSON.</p>
+                        <button onclick="exportFullDatabase()" class="px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold text-sm transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-file-export"></i> Ekspor Database ke JSON
+                        </button>
+                    </div>
+
+                    <!-- Import JSON Section -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+                        <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                            <span class="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg"><i class="fa-solid fa-upload"></i></span>
+                            Impor / Pulihkan Database
+                        </h3>
+                        <p class="text-xs text-slate-400">Unggah kembali berkas backup JSON Anda untuk memulihkan seluruh aktivitas transaksi dan konfigurasi ke SI-PRINTING PRO.</p>
+                        <div class="flex items-center gap-4">
+                            <input type="file" id="import-file" class="hidden" onchange="importFullDatabase(event)">
+                            <button onclick="document.getElementById('import-file').click()" class="px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold text-sm transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-file-import"></i> Pilih File & Impor Sekarang
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Clear DB Action (Caution) -->
+                <div class="bg-white p-6 rounded-2xl border border-red-100 shadow-sm space-y-4">
+                    <h3 class="font-bold text-red-600 text-base flex items-center gap-2">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Zona Berbahaya
+                    </h3>
+                    <p class="text-xs text-slate-400">Fungsi di bawah akan menghapus secara permanen seluruh database transaksi nota, kas perawatan, tabungan, dan inventori di peramban ini. Pastikan Anda melakukan ekspor sebelum menghapusnya.</p>
+                    <button onclick="confirmClearDatabase()" class="px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-xl font-bold text-xs transition">
+                        Reset Seluruh Database Aplikasi
+                    </button>
+                </div>
+            </section>
+
+            <!-- TAB: LAPORAN -->
+            <section id="tab-laporan" class="tab-content hidden space-y-6">
+                <!-- Financial Report cards -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="bg-white p-5 rounded-xl border border-slate-100">
+                        <span class="text-xs text-slate-400">Total Omzet</span>
+                        <h4 id="rep-omzet" class="text-xl font-extrabold text-slate-800">Rp0</h4>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl border border-slate-100">
+                        <span class="text-xs text-slate-400">Total Modal</span>
+                        <h4 id="rep-modal" class="text-xl font-extrabold text-slate-800">Rp0</h4>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl border border-slate-100">
+                        <span class="text-xs text-slate-400">Beban Servis / Rawat</span>
+                        <h4 id="rep-kas" class="text-xl font-extrabold text-rose-600">Rp0</h4>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl border border-slate-100">
+                        <span class="text-xs text-slate-400">Estimasi Bersih (Laba)</span>
+                        <h4 id="rep-profit" class="text-xl font-extrabold text-emerald-600">Rp0</h4>
+                    </div>
+                </div>
+
+                <!-- Periodical Omzet Filters -->
+                <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex flex-col sm:flex-row gap-4 items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold text-slate-500 uppercase">Periode Laporan:</span>
+                        <select id="report-period" onchange="renderLaporanTab()" class="border border-slate-200 rounded-xl px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-emerald-500 font-semibold">
+                            <option value="Semua">Semua Waktu</option>
+                            <option value="Hari">Hari Ini</option>
+                            <option value="Bulan">Bulan Ini</option>
+                            <option value="Tahun">Tahun Ini</option>
+                        </select>
+                    </div>
+                    <span class="text-xs text-slate-400">Gunakan filter untuk mengamati perbandingan grafik di bawah.</span>
+                </div>
+
+                <!-- Graph Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+                        <h3 class="font-bold text-slate-800 text-sm uppercase tracking-wider">Perkembangan Omzet & Laba</h3>
+                        <div class="h-64">
+                            <canvas id="chart-omzet-laba"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+                        <h3 class="font-bold text-slate-800 text-sm uppercase tracking-wider">Porsi Biaya / Alokasi Laba</h3>
+                        <div class="h-64 flex justify-center">
+                            <canvas id="chart-allocation"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Printable Report Table -->
+                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                    <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+                        <h4 class="font-bold text-slate-800">Rincian Buku Besar Laporan Keuangan</h4>
+                        <button onclick="window.print()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5">
+                            <i class="fa-solid fa-print"></i> Cetak Laporan Keuangan
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-wider">
+                                    <th class="py-4 px-6">Tanggal</th>
+                                    <th class="py-4 px-6">Kategori</th>
+                                    <th class="py-4 px-6">Deskripsi / No. Nota</th>
+                                    <th class="py-4 px-6 text-right">Debit (Masuk)</th>
+                                    <th class="py-4 px-6 text-right">Kredit (Keluar)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="report-table-body" class="divide-y divide-slate-100 text-sm">
+                                <!-- Dynamic transactions -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB: PENGATURAN -->
+            <section id="tab-pengaturan" class="tab-content hidden space-y-6">
+                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-6">
+                    <h3 class="font-bold text-slate-800 text-lg">Informasi Profil Percetakan</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="space-y-1">
+                            <label class="text-xs font-semibold text-slate-500">Nama Percetakan</label>
+                            <input type="text" id="setting-company-name" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-semibold text-slate-500">Nomor Handphone / WhatsApp</label>
+                            <input type="text" id="setting-company-phone" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-semibold text-slate-500">Alamat Lengkap Workshop</label>
+                            <input type="text" id="setting-company-address" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-100">
+                        <button onclick="saveCompanyProfile()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold text-sm transition shadow">
+                            Simpan Perubahan Pengaturan
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- MODAL WINDOW: EDIT / TAMBAH NOTA -->
+    <div id="invoice-modal" class="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4 hidden backdrop-blur-sm">
+        <div class="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto flex flex-col shadow-2xl">
+            <!-- Header -->
+            <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <h3 id="invoice-modal-title" class="font-bold text-slate-800 text-lg">Membuat Nota Transaksi Baru</h3>
+                    <span class="px-2.5 py-1 text-amber-800 bg-amber-100 border border-amber-200 text-xs font-bold rounded-lg uppercase tracking-wider">Mode Edit Aktif</span>
+                </div>
+                <button onclick="closeInvoiceModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            
+            <!-- Body -->
+            <div class="p-6 overflow-y-auto space-y-6 flex-1">
+                <!-- Meta billing details -->
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                    <div class="space-y-1">
+                        <label class="text-xs font-semibold text-slate-500">No. Nota Otomatis</label>
+                        <input type="text" id="invoice-id" readonly class="w-full border border-slate-200 bg-slate-100 rounded-xl px-3 py-2 text-sm outline-none">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-semibold text-slate-500">Nama Pelanggan (Tuan)</label>
+                        <input type="text" id="invoice-customer" placeholder="Nama lengkap..." class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-semibold text-slate-500">Nomor Telepon/WA</label>
+                        <input type="text" id="invoice-phone" placeholder="08xxxxxxxx..." class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-semibold text-slate-500">Tanggal Transaksi</label>
+                        <input type="date" id="invoice-date" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                </div>
+
+                <!-- Items Row Generator -->
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                        <h4 class="font-bold text-slate-700 text-sm">Daftar Item Nota (Sesuai Capture_2.JPG)</h4>
+                        <button onclick="addInvoiceItemRow()" class="text-xs px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold rounded-lg border border-emerald-200 flex items-center gap-1">
+                            <i class="fa-solid fa-plus"></i> Tambah Item
+                        </button>
+                    </div>
+
+                    <div class="space-y-3" id="invoice-items-container">
+                        <!-- Dynamic item rows will be pushed here -->
+                    </div>
+                </div>
+
+                <!-- Totals & Payment Setup -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/50 space-y-4">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div>
+                            <span class="text-xs text-slate-400">Total Harga Jual:</span>
+                            <p id="invoice-total-display" class="text-lg font-bold text-slate-800">Rp0</p>
+                        </div>
+                        <div>
+                            <span class="text-xs text-slate-400">Total Biaya Bahan (Modal):</span>
+                            <p id="invoice-cost-display" class="text-lg font-bold text-indigo-600">Rp0</p>
+                        </div>
+                        <div>
+                            <span class="text-xs text-slate-400">Alokasi Kas Perawatan:</span>
+                            <p id="invoice-maintenance-display" class="text-lg font-bold text-rose-600">Rp0</p>
+                        </div>
+                        <div>
+                            <span class="text-xs text-slate-400">Total Laba Bersih:</span>
+                            <p id="invoice-profit-display" class="text-lg font-bold text-emerald-600">Rp0</p>
+                        </div>
+                    </div>
+
+                    <!-- Payment Details -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-slate-200 pt-4">
+                        <div class="space-y-1">
+                            <label class="text-xs font-semibold text-slate-500">Uang Muka / DP (Rp)</label>
+                            <input type="number" id="invoice-paid" oninput="calculateInvoiceValues()" placeholder="0" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-semibold text-slate-500">Status Pembayaran</label>
+                            <select id="invoice-status" onchange="toggleInvoiceStatus(this.value)" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                                <option value="Belum Lunas">Belum Lunas</option>
+                                <option value="DP">DP (Uang Muka)</option>
+                                <option value="Lunas">Lunas</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-semibold text-slate-500">Kurang / Sisa Piutang (Rp)</label>
+                            <input type="text" id="invoice-due" readonly class="w-full border border-slate-200 bg-slate-100 rounded-xl px-3 py-2 text-sm outline-none">
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Right Panel - Database Controls -->
-            <div class="w-96 p-6 bg-gray-50 border-l">
-                <!-- Database Status -->
-                <div class="mb-6 bg-green-100 border border-green-300 rounded p-3">
-                    <h3 class="text-lg font-semibold text-green-800 mb-2">📊 Status Database</h3>
-                    <p class="text-sm text-green-700">Total Records: <span id="dbRecordCount" class="font-bold">0</span></p>
-                    <p class="text-sm text-green-700">Database: <span class="font-bold" id="dbStatus">Loading...</span></p>
-                </div>
+            <!-- Footer -->
+            <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-3">
+                <button onclick="closeInvoiceModal()" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-600 font-semibold text-sm rounded-xl transition">Batal</button>
+                <button onclick="saveCurrentInvoice()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-xl transition shadow">Simpan Transaksi</button>
+            </div>
+        </div>
+    </div>
 
-                <!-- Navigation Controls -->
-                <div class="mb-6">
-                    <h3 class="text-lg font-semibold mb-3">Navigasi Data</h3>
-                    <div class="flex justify-center gap-2 mb-4">
-                        <button onclick="firstRecord()" class="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" title="First">⏮️</button>
-                        <button onclick="prevRecord()" class="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" title="Previous">⏪</button>
-                        <button onclick="nextRecord()" class="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" title="Next">⏩</button>
-                        <button onclick="lastRecord()" class="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" title="Last">⏭️</button>
-                    </div>
-                    <div class="text-center text-sm text-gray-600">
-                        Record: <span id="currentRecord">0</span> of <span id="totalRecords">0</span>
-                    </div>
+    <!-- MODAL WINDOW: PRINT PREVIEW NOTA (Replica of Capture_2.JPG) -->
+    <div id="print-preview-modal" class="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4 hidden backdrop-blur-sm">
+        <div class="bg-white rounded-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto flex flex-col shadow-2xl">
+            <!-- Header -->
+            <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="p-1.5 bg-blue-100 text-blue-600 rounded-lg"><i class="fa-solid fa-print"></i></span>
+                    <h3 class="font-bold text-slate-800 text-lg">Pratinjau Cetak & Berbagi Nota A5</h3>
                 </div>
-
-                <!-- Material Calculation Buttons -->
-                <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded">
-                    <h4 class="text-sm font-semibold text-blue-800 mb-3">Perhitungan Khusus Bahan Percetakan</h4>
-                    <div class="grid grid-cols-1 gap-2">
-                        <button onclick="calculateMaterial(1.6)" class="bg-blue-500 text-white px-3 py-2 rounded hover:bg-blue-600 text-sm">Hitung Bahan 1,6</button>
-                        <button onclick="calculateMaterial(1.1)" class="bg-blue-500 text-white px-3 py-2 rounded hover:bg-blue-600 text-sm">Hitung Bahan 1,1</button>
-                        <button onclick="openMaterialCalculator()" class="bg-green-500 text-white px-3 py-2 rounded hover:bg-green-600 text-sm">HITUNG BAHAN</button>
-                    </div>
+                <button onclick="closePrintPreview()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            
+            <!-- Body: Simulated Paper Viewport -->
+            <div class="p-6 overflow-y-auto bg-slate-100 flex flex-col items-center gap-4">
+                <div class="w-full flex justify-end gap-2">
+                    <button onclick="copyInvoiceTextToClipboard()" class="px-3.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold rounded-lg border border-blue-200 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-copy"></i> Salin Nota (Kirim ke WA)
+                    </button>
                 </div>
-
-                <!-- CRUD Operations -->
-                <div class="mb-6">
-                    <h3 class="text-lg font-semibold mb-3">Database Operations</h3>
-                    <div class="grid grid-cols-2 gap-2">
-                        <button onclick="newInvoice()" class="bg-green-500 text-white px-3 py-2 rounded hover:bg-green-600 text-sm">📄 Baru</button>
-                        <button onclick="saveInvoice()" id="saveButton" class="bg-blue-500 text-white px-3 py-2 rounded hover:bg-blue-600 text-sm">💾 Simpan</button>
-                        <button onclick="updateInvoice()" class="bg-yellow-500 text-white px-3 py-2 rounded hover:bg-yellow-600 text-sm">✏️ Update</button>
-                        <button onclick="deleteInvoice()" class="bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600 text-sm">🗑️ Hapus</button>
-                        <button onclick="printInvoice()" class="bg-purple-500 text-white px-3 py-2 rounded hover:bg-purple-600 text-sm">🖨️ Cetak</button>
-                        <button onclick="exportDatabase()" class="bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600 text-sm">📤 Export</button>
-                    </div>
+                <!-- Outer simulation wrapper -->
+                <div id="simulated-print-paper" class="w-full max-w-[158mm] bg-white shadow-lg p-2 rounded-xl border border-slate-200 overflow-x-auto">
+                    <!-- Dynamic content gets loaded here exactly like printArea -->
                 </div>
+            </div>
 
-                <!-- Search -->
-                <div class="mb-6">
-                    <h3 class="text-lg font-semibold mb-3">Pencarian</h3>
-                    <input type="text" id="searchInput" placeholder="Cari nota, nama, atau alamat..." class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 mb-2">
-                    <button onclick="searchInvoices()" class="w-full bg-orange-500 text-white px-3 py-2 rounded hover:bg-orange-600 text-sm">🔍 Cari</button>
-                </div>
-
-                <!-- Database Records List -->
-                <div class="mb-6">
-                    <h3 class="text-lg font-semibold mb-3">Database Records</h3>
-                    <div class="bg-white rounded border max-h-80 overflow-auto">
-                        <table class="w-full text-xs">
-                            <thead class="bg-gray-100 sticky top-0">
-                                <tr>
-                                    <th class="p-2 text-left border-b">No. Nota</th>
-                                    <th class="p-2 text-left border-b">Tanggal</th>
-                                    <th class="p-2 text-left border-b">Pelanggan</th>
-                                    <th class="p-2 text-left border-b">Total</th>
-                                    <th class="p-2 text-left border-b">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="databaseTable">
-                                <!-- Records will be populated by JavaScript -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Database Management -->
-                <div class="mb-6">
-                    <h3 class="text-lg font-semibold mb-3">Database Management</h3>
-                    <div class="space-y-2">
-                        <button onclick="clearDatabase()" class="w-full bg-red-600 text-white px-3 py-2 rounded hover:bg-red-700 text-sm">🗑️ Clear Database</button>
-                        <button onclick="importDatabase()" class="w-full bg-gray-600 text-white px-3 py-2 rounded hover:bg-gray-700 text-sm">📥 Import Database</button>
-                        <input type="file" id="importFile" class="hidden" accept=".json" onchange="handleImportFile(event)">
-                    </div>
+            <!-- Footer -->
+            <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <p class="text-xs text-slate-500 font-medium">
+                    <i class="fa-solid fa-circle-info text-blue-500"></i> Pastikan pengaturan cetak di set ke kertas <b>A5 Landscape</b> atau simpan sebagai <b>PDF</b>.
+                </p>
+                <div class="flex items-center gap-3">
+                    <button onclick="closePrintPreview()" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-600 font-semibold text-sm rounded-xl transition">
+                        Batal
+                    </button>
+                    <button onclick="triggerActualPrint()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl transition shadow flex items-center gap-2">
+                        <i class="fa-solid fa-print"></i> Hubungkan ke Printer / PDF
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- PREVIEW AREA FOR PRINTING A5 (STRICTLY CONFIGURED TO MATCH CAPTURE_2.JPG VIEWPORT) -->
+    <div id="printArea" class="hidden"></div>
+
+    <!-- NOTIFICATION DIALOG SYSTEM (Toast) -->
+    <div id="toast-notif" class="fixed bottom-6 right-6 bg-slate-900 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 transform translate-y-20 opacity-0 transition-all duration-300 z-50 pointer-events-none">
+        <span class="p-1 bg-emerald-500/20 text-emerald-400 rounded-lg"><i class="fa-solid fa-circle-check"></i></span>
+        <p id="toast-text" class="text-sm font-medium">Sukses memproses database.</p>
+    </div>
+
     <script>
-        // Database Management System menggunakan localStorage
-        class InvoiceDatabase {
-            constructor() {
-                this.dbKey = 'musadad_invoices_ls';
-                this.records = [];
-                this.currentIndex = 0;
-            }
+        /* Database & State Initialization */
+        let invoiceDB = [];
+        let inventoryDB = {};
+        let maintenanceDB = [];
+        let savingDB = { total: 0, target: 13000000, percent: 15 };
+        let machineDB = {};
+        let settingDB = {
+            companyName: "MUSADAD.COM",
+            companySlogan: "PERCETAKAN & SERVICE",
+            companyPhone: "0838-1235-2663",
+            companyAddress: "Jl. Rp.Garendong - cisema Petir, Kab.Serang BANTEN",
+            companyEmail: "musadad08@gmail.com",
+            paymentAccount: "BCA: 5410927839 (ROHMATULLOH)\nDANA, OVO, GOJEK: 083812352663"
+        };
+        let reportDB = [];
 
-            async init() {
-                // localStorage tidak memerlukan inisialisasi asinkron, jadi kita muat data segera
-                this.loadAllRecords();
-                // Mengubah status UI
-                document.getElementById('dbStatus').textContent = 'Aktif';
-                return Promise.resolve();
-            }
-            
-            // Metode untuk menyimpan data ke localStorage
-            // Setiap kali ada perubahan, kita simpan seluruh array kembali ke localStorage
-            _saveToLocalStorage() {
-                localStorage.setItem(this.dbKey, JSON.stringify(this.records));
-            }
+        // Realtime Clock
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('current-time').textContent = now.toLocaleDateString('id-ID', {
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+            }) + ' - ' + now.toLocaleTimeString('id-ID');
+        }, 1000);
 
-            async create(invoiceData) {
-                const newInvoice = {
-                    id: crypto.randomUUID(), // ID unik untuk setiap nota
-                    invoiceNumber: await this.generateInvoiceNumber(),
-                    ...invoiceData,
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString()
-                };
-                
-                this.records.push(newInvoice);
-                this._saveToLocalStorage();
-                this.updateUI();
-                return newInvoice.id;
-            }
-
-            async update(id, invoiceData) {
-                const index = this.records.findIndex(r => r.id === id);
-                if (index === -1) return false;
-                
-                const updatedInvoice = {
-                    ...this.records[index],
-                    ...invoiceData,
-                    updatedAt: new Date().toISOString()
-                };
-                
-                this.records[index] = updatedInvoice;
-                this._saveToLocalStorage();
-                this.updateUI();
-                return true;
-            }
-
-            async read(id) {
-                return this.records.find(r => r.id === id);
-            }
-
-            async delete(id) {
-                const index = this.records.findIndex(r => r.id === id);
-                if (index === -1) return false;
-                
-                this.records.splice(index, 1);
-                this._saveToLocalStorage();
-                this.updateUI();
-                return true;
-            }
-
-            async loadAllRecords() {
-                const storedData = localStorage.getItem(this.dbKey);
-                this.records = storedData ? JSON.parse(storedData) : [];
-                this.records.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); // Urutkan terbaru ke terlama
-                this.updateUI();
-            }
-
-            async search(query) {
-                const searchTerm = query.toLowerCase();
-                const results = this.records.filter(record => 
-                    record.invoiceNumber.toLowerCase().includes(searchTerm) ||
-                    record.customerName.toLowerCase().includes(searchTerm) ||
-                    record.customerPhone.toLowerCase().includes(searchTerm) ||
-                    record.items.some(item => item.name.toLowerCase().includes(searchTerm))
-                );
-                return results;
-            }
-
-            async clear() {
-                localStorage.removeItem(this.dbKey);
-                this.records = [];
-                this.updateUI();
-                return true;
-            }
-
-            async exportData() {
-                return this.records;
-            }
-            
-            async importData(data) {
-                if (!Array.isArray(data)) {
-                    throw new Error('Format data tidak valid. Diperlukan array.');
-                }
-                this.records = data;
-                this._saveToLocalStorage();
-                this.updateUI();
-            }
-
-            async generateInvoiceNumber() {
-                const lastNumber = this.records.length > 0 ? 
-                    Math.max(...this.records.map(r => parseInt(r.invoiceNumber) || 0)) : 0;
-                return String(lastNumber + 1);
-            }
-
-            updateUI() {
-                const totalCount = this.records.length;
-                document.getElementById('dbRecordCount').textContent = totalCount;
-                document.getElementById('totalRecords').textContent = totalCount;
-                document.getElementById('currentRecord').textContent = totalCount > 0 ? this.currentIndex + 1 : 0;
-                this.populateTable(this.records);
-            }
-
-            populateTable(records) {
-                const tbody = document.getElementById('databaseTable');
-                tbody.innerHTML = '';
-                
-                records.forEach((record, index) => {
-                    const row = tbody.insertRow();
-                    const remaining = record.totalAmount - (record.downPayment || 0);
-                    const status = remaining <= 0 ? 'Lunas' : 'Belum Lunas';
-                    const statusColor = remaining <= 0 ? 'text-green-600' : 'text-red-600';
-
-                    row.innerHTML = `
-                        <td class="p-2 border-b cursor-pointer hover:bg-blue-50" onclick="db.loadRecordByIndex(${index})">${record.invoiceNumber}</td>
-                        <td class="p-2 border-b">${new Date(record.invoiceDate).toLocaleDateString('id-ID')}</td>
-                        <td class="p-2 border-b">${record.customerName}</td>
-                        <td class="p-2 border-b">Rp ${record.totalAmount.toLocaleString('id-ID')}</td>
-                        <td class="p-2 border-b ${statusColor} font-semibold">${status}</td>
-                    `;
-                });
-            }
-
-            async loadRecordByIndex(index) {
-                if (index >= 0 && index < this.records.length) {
-                    this.currentIndex = index;
-                    const record = this.records[index];
-
-                    // Populate form
-                    document.getElementById('invoiceNumber').value = record.invoiceNumber;
-                    document.getElementById('invoiceDateDisplay').value = new Date(record.invoiceDate).toLocaleDateString('id-ID', {day: '2-digit', month: '2-digit', year: 'numeric'});
-                    document.getElementById('customerNameInput').value = record.customerName;
-                    document.getElementById('customerPhoneInput').value = record.customerPhone;
-                    document.getElementById('downPayment').value = record.downPayment || '';
-                    document.getElementById('saveButton').textContent = '💾 Simpan';
-                    document.getElementById('saveButton').onclick = saveInvoice;
-
-                    // Populate items
-                    const tbody = document.getElementById('itemsTable');
-                    tbody.innerHTML = '';
-                    
-                    record.items.forEach(item => {
-                        const row = tbody.insertRow();
-                        const totalItemPrice = (item.quantity * item.price);
-                        row.innerHTML = `
-                            <tr>
-                                <td class="border border-black p-1 text-center">
-                                    <input type="number" class="w-full p-1 border-0 text-center quantity-input" value="${item.quantity}" min="0">
-                                </td>
-                                <td class="border border-black p-1">
-                                    <input type="text" class="w-full p-1 border-0 item-name" value="${item.name}">
-                                </td>
-                                <td class="border border-black p-1">
-                                    <input type="number" class="w-full p-1 border-0 text-right item-price" value="${item.price}" min="0">
-                                </td>
-                                <td class="border border-black p-1 text-right item-total font-medium">Rp ${totalItemPrice.toLocaleString('id-ID')}</td>
-                                <td class="border border-black p-1 text-center">
-                                    <button onclick="removeItem(this)" class="text-red-500 hover:text-red-700">🗑️</button>
-                                </td>
-                            </tr>
-                        `;
-                    });
-                    updateCalculations();
-                    this.updateUI();
-                }
-            }
-
-            // Navigation methods
-            async first() {
-                if (this.records.length > 0) {
-                    await this.loadRecordByIndex(0);
-                }
-            }
-
-            async previous() {
-                if (this.currentIndex > 0) {
-                    await this.loadRecordByIndex(this.currentIndex - 1);
-                }
-            }
-
-            async next() {
-                if (this.currentIndex < this.records.length - 1) {
-                    await this.loadRecordByIndex(this.currentIndex + 1);
-                }
-            }
-
-            async last() {
-                if (this.records.length > 0) {
-                    await this.loadRecordByIndex(this.records.length - 1);
-                }
-            }
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('-translate-x-full');
         }
 
-        // Initialize database
-        const db = new InvoiceDatabase();
-        
-        // Initialize application after the database is ready
-        document.addEventListener('DOMContentLoaded', async function() {
-            await db.init();
-            document.getElementById('invoiceDateDisplay').value = new Date().toLocaleDateString('id-ID', {day: '2-digit', month: '2-digit', year: 'numeric'});
-            document.getElementById('invoiceNumber').value = await db.generateInvoiceNumber();
-            
-            // Add event listeners for automatic calculations
-            document.addEventListener('input', function(e) {
-                if (e.target.classList.contains('quantity-input') || 
-                    e.target.classList.contains('item-price') || 
-                    e.target.id === 'downPayment') {
-                    updateCalculations();
-                }
-            });
-        });
-
-        // Form management functions
-        function addItem() {
-            const tbody = document.getElementById('itemsTable');
-            const newRow = tbody.insertRow();
-            newRow.innerHTML = `
-                <tr>
-                    <td class="border border-black p-1 text-center">
-                        <input type="number" class="w-full p-1 border-0 text-center quantity-input" value="1" min="0">
-                    </td>
-                    <td class="border border-black p-1">
-                        <input type="text" class="w-full p-1 border-0 item-name" placeholder="Nama barang/jasa">
-                    </td>
-                    <td class="border border-black p-1">
-                        <input type="number" class="w-full p-1 border-0 text-right item-price" placeholder="0" min="0">
-                    </td>
-                    <td class="border border-black p-1 text-right item-total font-medium">Rp 0</td>
-                    <td class="border border-black p-1 text-center">
-                        <button onclick="removeItem(this)" class="text-red-500 hover:text-red-700">🗑️</button>
-                    </td>
-                </tr>
-            `;
-            updateCalculations();
-        }
-
-        function removeItem(button) {
-            button.closest('tr').remove();
-            updateCalculations();
-        }
-
-        function updateCalculations() {
-            const rows = document.querySelectorAll('#itemsTable tr');
-            let total = 0;
-
-            rows.forEach(row => {
-                const quantity = parseFloat(row.querySelector('.quantity-input').value) || 0;
-                const price = parseFloat(row.querySelector('.item-price').value) || 0;
-                const itemTotal = quantity * price;
-                
-                row.querySelector('.item-total').textContent = `Rp ${itemTotal.toLocaleString('id-ID')}`;
-                total += itemTotal;
-            });
-
-            document.getElementById('totalAmount').value = `Rp ${total.toLocaleString('id-ID')}`;
-            
-            const downPayment = parseFloat(document.getElementById('downPayment').value) || 0;
-            const remaining = total - downPayment;
-            document.getElementById('remainingAmount').value = `Rp ${remaining.toLocaleString('id-ID')}`;
-        }
-
-        // Get form data
-        function getFormData() {
-            const items = [];
-            const rows = document.querySelectorAll('#itemsTable tr');
-            
-            rows.forEach(row => {
-                const quantity = parseFloat(row.querySelector('.quantity-input').value) || 0;
-                const name = row.querySelector('.item-name').value;
-                const price = parseFloat(row.querySelector('.item-price').value) || 0;
-                
-                if (name && quantity > 0) {
-                    items.push({ quantity, name, price });
-                }
-            });
-
-            const totalText = document.getElementById('totalAmount').value;
-            const totalAmount = parseFloat(totalText.replace(/[^\d]/g, '')) || 0;
-            const invoiceNumber = document.getElementById('invoiceNumber').value;
-            
-            return {
-                id: db.records.find(r => r.invoiceNumber === invoiceNumber)?.id,
-                invoiceNumber: invoiceNumber,
-                invoiceDate: new Date().toISOString().split('T')[0],
-                customerName: document.getElementById('customerNameInput').value,
-                customerPhone: document.getElementById('customerPhoneInput').value,
-                items: items,
-                totalAmount: totalAmount,
-                downPayment: parseFloat(document.getElementById('downPayment').value) || 0
-            };
-        }
-
-        // Database operation functions
-        async function newInvoice() {
-            document.getElementById('invoiceNumber').value = await db.generateInvoiceNumber();
-            document.getElementById('invoiceDateDisplay').value = new Date().toLocaleDateString('id-ID', {day: '2-digit', month: '2-digit', year: 'numeric'});
-            document.getElementById('customerNameInput').value = '';
-            document.getElementById('customerPhoneInput').value = '';
-            document.getElementById('downPayment').value = '';
-            
-            const tbody = document.getElementById('itemsTable');
-            tbody.innerHTML = `
-                <tr>
-                    <td class="border border-black p-1 text-center">
-                        <input type="number" class="w-full p-1 border-0 text-center quantity-input" value="1" min="0">
-                    </td>
-                    <td class="border border-black p-1">
-                        <input type="text" class="w-full p-1 border-0 item-name" placeholder="Nama barang/jasa">
-                    </td>
-                    <td class="border border-black p-1">
-                        <input type="number" class="w-full p-1 border-0 text-right item-price" placeholder="0" min="0">
-                    </td>
-                    <td class="border border-black p-1 text-right item-total font-medium">Rp 0</td>
-                    <td class="border border-black p-1 text-center">
-                        <button onclick="removeItem(this)" class="text-red-500 hover:text-red-700">🗑️</button>
-                    </td>
-                </tr>
-            `;
-            updateCalculations();
-            
-            showCustomMessage('Nota baru telah dibuat! Silakan isi data dan klik Simpan.');
-        }
-
-        async function saveInvoice() {
-            const formData = getFormData();
-            
-            if (!formData.customerName) {
-                showCustomMessage('Mohon isi nama pelanggan!');
-                return;
-            }
-            
-            if (formData.items.length === 0) {
-                showCustomMessage('Mohon tambahkan minimal satu item!');
-                return;
-            }
-
+        /* Load from LocalStorage with Fallback Defaults */
+        function loadDatabase() {
             try {
-                const id = await db.create(formData);
-                showCustomMessage(`Nota berhasil disimpan dengan ID: ${id}`);
-            } catch (error) {
-                showCustomMessage('Gagal menyimpan nota! Coba lagi.');
-                console.error('Save error:', error);
-            }
-        }
-
-        async function updateInvoice() {
-            const formData = getFormData();
-            
-            if (!formData.id) {
-                showCustomMessage('Tidak ada nota yang dipilih untuk diupdate!');
-                return;
-            }
-
-            if (!formData.customerName) {
-                showCustomMessage('Mohon isi nama pelanggan!');
-                return;
-            }
-            
-            try {
-                const success = await db.update(formData.id, formData);
-                if (success) {
-                    showCustomMessage('Nota berhasil diupdate!');
+                if (localStorage.getItem('invoiceDB')) invoiceDB = JSON.parse(localStorage.getItem('invoiceDB'));
+                
+                if (localStorage.getItem('inventoryDB')) {
+                    inventoryDB = JSON.parse(localStorage.getItem('inventoryDB'));
                 } else {
-                    showCustomMessage('Gagal mengupdate nota!');
+                    // Default starting materials
+                    inventoryDB = {
+                        "HVS": { stock: 5000, cost: 100 },
+                        "Undangan": { stock: 1200, cost: 800 },
+                        "Spanduk": { stock: 800, cost: 15000 },
+                        "Sticker": { stock: 1500, cost: 1500 }
+                    };
                 }
-            } catch (error) {
-                showCustomMessage('Gagal mengupdate nota! Coba lagi.');
-                console.error('Update error:', error);
+                
+                if (localStorage.getItem('maintenanceDB')) maintenanceDB = JSON.parse(localStorage.getItem('maintenanceDB'));
+                if (localStorage.getItem('savingDB')) savingDB = JSON.parse(localStorage.getItem('savingDB'));
+                
+                if (localStorage.getItem('machineDB')) {
+                    machineDB = JSON.parse(localStorage.getItem('machineDB'));
+                } else {
+                    // Default starting machines
+                    machineDB = {
+                        "HP PageWide": { totalCetak: 0, cost: 50, type: "Lembar", desc: "High-Speed Pigment." },
+                        "Epson L14150": { totalCetak: 0, cost: 100, type: "Lembar", desc: "A3+ InkTank." },
+                        "XP600": { totalCetak: 0, cost: 1000, type: "m²", desc: "Eco-Solvent." }
+                    };
+                }
+                
+                if (localStorage.getItem('settingDB')) settingDB = JSON.parse(localStorage.getItem('settingDB'));
+                if (localStorage.getItem('reportDB')) reportDB = JSON.parse(localStorage.getItem('reportDB'));
+            } catch (e) {
+                console.error("Gagal membaca database dari LocalStorage", e);
             }
         }
 
-        async function deleteInvoice() {
-            const formData = getFormData();
+        /* Save to LocalStorage */
+        function saveToLocalStorage() {
+            localStorage.setItem('invoiceDB', JSON.stringify(invoiceDB));
+            localStorage.setItem('inventoryDB', JSON.stringify(inventoryDB));
+            localStorage.setItem('maintenanceDB', JSON.stringify(maintenanceDB));
+            localStorage.setItem('savingDB', JSON.stringify(savingDB));
+            localStorage.setItem('machineDB', JSON.stringify(machineDB));
+            localStorage.setItem('settingDB', JSON.stringify(settingDB));
+            localStorage.setItem('reportDB', JSON.stringify(reportDB));
+        }
+
+        /* Toast Notifications */
+        function triggerNotification(text) {
+            const toast = document.getElementById('toast-notif');
+            document.getElementById('toast-text').textContent = text;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        /* Formatting Money */
+        function formatRupiah(number) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'decimal',
+                minimumFractionDigits: 0
+            }).format(number);
+        }
+    </script>
+
+    <script>
+        /* Tab Switch Control */
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
             
-            if (!formData.id) {
-                showCustomMessage('Tidak ada nota yang dipilih untuk dihapus!');
-                return;
+            // Highlight Button
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-slate-800', 'text-white');
+                btn.classList.add('hover:bg-slate-800');
+            });
+            const activeBtn = document.getElementById('btn-' + tabId);
+            if (activeBtn) {
+                activeBtn.classList.remove('hover:bg-slate-800');
+                activeBtn.classList.add('bg-slate-800', 'text-white');
             }
 
-            const isConfirmed = await new Promise(resolve => {
-                showCustomMessageWithConfirmation('Yakin ingin menghapus nota ini dari database?', resolve);
+            // Set Title Header
+            const titles = {
+                'dashboard': 'Dashboard Utama',
+                'nota': 'Transaksi Nota Percetakan',
+                'produksi': 'Mesin & Proses Produksi',
+                'inventori': 'Manajemen Stok Bahan',
+                'kas': 'Kas Perawatan Mesin',
+                'tabungan': 'Target Tabungan Utama',
+                'laporan': 'Laporan Keuangan & Buku Besar',
+                'database': 'Pemeliharaan & Backup Database',
+                'pengaturan': 'Pengaturan Sistem & Profil'
+            };
+            document.getElementById('page-title').textContent = titles[tabId] || 'SI-PRINTING';
+
+            // Special reload for specific tabs
+            if (tabId === 'dashboard') updateDashboard();
+            if (tabId === 'nota') renderInvoiceTable();
+            if (tabId === 'produksi') renderProduksiTab();
+            if (tabId === 'inventori') {
+                updateInventoryDatalist();
+                renderInventoryTable();
+            }
+            if (tabId === 'kas') renderMaintenanceTab();
+            if (tabId === 'tabungan') renderSavingsTab();
+            if (tabId === 'laporan') renderLaporanTab();
+            if (tabId === 'pengaturan') renderSettingsTab();
+
+            // Close sidebar mobile on tab change
+            if (window.innerWidth < 768) {
+                document.getElementById('sidebar').classList.add('-translate-x-full');
+            }
+        }
+    </script>
+
+    <script>
+        /* DASHBOARD BUSINESS LOGIC */
+        function updateDashboard() {
+            let totalOmzet = 0;
+            let totalModal = 0;
+            let totalLaba = 0;
+            let totalTransactions = invoiceDB.length;
+            let totalPiutang = 0;
+            let notaBelumLunasCount = 0;
+
+            invoiceDB.forEach(inv => {
+                totalOmzet += Number(inv.total) || 0;
+                totalModal += Number(inv.modal) || 0;
+                
+                // Realtime Piutang
+                if (inv.status === 'Belum Lunas' || inv.status === 'DP') {
+                    notaBelumLunasCount++;
+                    totalPiutang += (Number(inv.total) - Number(inv.paid));
+                }
             });
 
-            if (isConfirmed) {
-                try {
-                    const success = await db.delete(formData.id);
-                    if (success) {
-                        newInvoice();
-                        showCustomMessage('Nota berhasil dihapus dari database!');
-                    } else {
-                        showCustomMessage('Gagal menghapus nota!');
-                    }
-                } catch (error) {
-                    showCustomMessage('Gagal menghapus nota! Coba lagi.');
-                    console.error('Delete error:', error);
-                }
-            }
-        }
+            // Laba Bersih calculation
+            totalLaba = totalOmzet - totalModal;
 
-        function printInvoice() {
-            const formData = getFormData();
+            // Render to Dashboard UI
+            document.getElementById('dash-omzet').textContent = "Rp " + formatRupiah(totalOmzet);
+            document.getElementById('dash-laba').textContent = "Rp " + formatRupiah(totalLaba);
+            document.getElementById('dash-modal').textContent = "Rp " + formatRupiah(totalModal);
+            document.getElementById('dash-transaksi').textContent = totalTransactions;
+
+            document.getElementById('dash-nota-belum-lunas').textContent = notaBelumLunasCount + " Nota";
+            document.getElementById('dash-piutang').textContent = "Rp " + formatRupiah(totalPiutang);
+
+            // Savings Target
+            document.getElementById('dash-target-title').textContent = "Target: Rp " + formatRupiah(savingDB.target);
+            document.getElementById('dash-tabungan-terkumpul').textContent = "Rp " + formatRupiah(savingDB.total);
+            const progressPercent = Math.min(100, Math.round((savingDB.total / savingDB.target) * 100)) || 0;
+            document.getElementById('dash-tabungan-persen').textContent = progressPercent + "%";
+            document.getElementById('dash-tabungan-bar').style.width = progressPercent + "%";
+
+            // Render Dynamic Maintenance Widget Cards on Dashboard
+            const widgetContainer = document.getElementById('dash-kas-container');
+            widgetContainer.innerHTML = '';
             
-            if (!formData.customerName) {
-                showCustomMessage('Mohon isi nama pelanggan terlebih dahulu!');
-                return;
-            }
+            for (let mac in machineDB) {
+                let currentBal = 0;
+                maintenanceDB.forEach(log => {
+                    if (log.machine === mac) currentBal += log.amount;
+                });
 
-            const printWindow = window.open('', '_blank', 'width=600,height=800');
-            
-            const printContent = `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <meta charset="UTF-8">
-                    <title>Nota - ${formData.invoiceNumber}</title>
-                    <style>
-                        @page { size: A5; margin: 0; }
-                        body { font-family: 'Arial', sans-serif; font-size: 10px; margin: 0; padding: 20mm; box-sizing: border-box; }
-                        .nota-container { width: 100%; height: auto; position: relative; }
-                        
-                        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
-                        .header-left { width: 60%; }
-                        .header-right { width: 40%; text-align: right; }
-                        .logo-text { font-size: 16px; font-weight: bold; margin-bottom: 2px; color: #2563eb; }
-                        .company-info { font-size: 8px; line-height: 1.2; }
-                        
-                        .info-row { display: flex; justify-content: flex-end; align-items: center; margin-bottom: 4px; }
-                        .info-label { font-weight: bold; margin-right: 5px; font-size: 14px; }
-                        .info-value { border-bottom: 1px solid black; padding: 0 5px; font-size: 12px; }
-                        
-                        .invoice-number-section { display: flex; align-items: center; font-size: 10px; margin-bottom: 10px; }
-                        .invoice-number-label { margin-right: 5px; }
-                        .invoice-number-value { border-bottom: 1px solid black; padding: 0 5px; }
-
-                        .items-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
-                        .items-table th, .items-table td { border: 1px solid black; padding: 4px; }
-                        .items-table th { background-color: #fce76b; text-align: center; }
-                        .qty-col { width: 15%; text-align: center; }
-                        .item-col { width: 45%; }
-                        .price-col { width: 20%; text-align: right; }
-                        .total-col { width: 20%; text-align: right; }
-                        
-                        .summary-warning-section { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px; }
-                        .summary-box { border-collapse: collapse; width: 40%; }
-                        .summary-box td { border: 1px solid black; padding: 4px; }
-                        .warning-box { border: 1px solid #dc2626; background-color: #fecaca; padding: 6px; text-align: center; font-size: 8px; width: 40%; }
-                        .warning-title { font-weight: bold; color: #b91c1c; margin-bottom: 2px; }
-
-                        .footer-section { display: flex; align-items: flex-end; justify-content: space-between; margin-top: 10px; }
-                        .footer-left { width: 30%; }
-                        
-                        .payment-info { margin-top: 15px; font-size: 9px; }
-                        .payment-info p { margin: 2px 0; }
-
-                        /* Memastikan warna cetak */
-                        @media print {
-                            body {
-                                -webkit-print-color-adjust: exact;
-                                color-adjust: exact;
-                            }
-                            .logo-text {
-                                color: #2563eb !important;
-                            }
-                            .items-table th {
-                                background-color: #fce76b !important;
-                            }
-                            .warning-box {
-                                border-color: #dc2626 !important;
-                                background-color: #fecaca !important;
-                            }
-                            .warning-title {
-                                color: #b91c1c !important;
-                            }
-                            .text-red-600 {
-                                color: #dc2626 !important;
-                            }
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="nota-container">
-                        
-                        <div class="header">
-                            <div class="header-left">
-                                <div class="logo-text">MUSADAD.COM</div>
-                                <div class="company-info">
-                                    PERCETAKAN<br>
-                                    Jl. Rp.Garendong - cisema Petir,<br>
-                                    Kab.Serang BANTEN<br>
-                                    Tlp. 083812352663<br>
-                                    Email. musadad08@gmail.com
-                                </div>
-                            </div>
-                            <div class="header-right">
-                                <div class="info-row">
-                                    <span class="info-label">Tanggal</span>
-                                    <span class="info-value">${new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="info-label">Tuan</span>
-                                    <span class="info-value">${formData.customerName}</span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="info-label">Tlp.</span>
-                                    <span class="info-value">${formData.customerPhone}</span>
-                                </div>
-                            </div>
+                widgetContainer.innerHTML += `
+                    <div class="bg-slate-900 text-white p-5 rounded-2xl relative overflow-hidden shadow">
+                        <div class="absolute -right-4 -bottom-4 opacity-10 text-8xl">
+                            <i class="fa-solid fa-print"></i>
                         </div>
-
-                        <div class="invoice-number-section">
-                            <span class="invoice-number-label">NO NOTA:</span>
-                            <span class="invoice-number-value">${formData.invoiceNumber}</span>
-                        </div>
-
-                        <table class="items-table">
-                            <thead>
-                                <tr>
-                                    <th class="qty-col">BANYAK</th>
-                                    <th class="item-col">NAMA BARANG</th>
-                                    <th class="price-col">HARGA</th>
-                                    <th class="total-col">JUMLAH</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${formData.items.map(item => `
-                                    <tr>
-                                        <td class="qty-col">${item.quantity}</td>
-                                        <td class="item-col">${item.name}</td>
-                                        <td class="price-col">Rp ${item.price.toLocaleString('id-ID')}</td>
-                                        <td class="total-col">Rp ${(item.quantity * item.price).toLocaleString('id-ID')}</td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                        
-                        <div class="summary-warning-section">
-                            <div class="warning-box">
-                                <div class="warning-title">PERHATIAN !!!</div>
-                                <p>Barang-barang yang sudah dibeli tidak bisa ditukar / dikembalikan</p>
+                        <div class="relative z-10 space-y-4">
+                            <div class="flex items-center gap-3">
+                                <span class="p-2 bg-emerald-500/20 text-emerald-400 rounded-lg"><i class="fa-solid fa-microchip text-sm"></i></span>
+                                <h4 class="font-bold text-sm">${mac}</h4>
                             </div>
-                            <table class="summary-box">
-                                <tr>
-                                    <td>Jumlah Rp.</td>
-                                    <td class="text-right">Rp ${formData.totalAmount.toLocaleString('id-ID')}</td>
-                                </tr>
-                                <tr>
-                                    <td>Uang Muka Rp.</td>
-                                    <td class="text-right">Rp ${formData.downPayment.toLocaleString('id-ID')}</td>
-                                </tr>
-                                <tr>
-                                    <td>Kurang Rp.</td>
-                                    <td class="text-right font-bold text-red-600">Rp ${(formData.totalAmount - formData.downPayment).toLocaleString('id-ID')}</td>
-                                </tr>
-                            </table>
-                        </div>
-
-                        <div class="footer-section">
-                            <div class="footer-left">
-                                <p class="text-xs">Diterima,</p>
-                                <div class="w-full h-8 border-b border-black mt-4"></div>
-                                <div class="mt-2 text-xs text-center font-bold">( ................ )</div>
+                            <div>
+                                <p class="text-xs text-slate-400 leading-none">Saldo Kas Perawatan</p>
+                                <p class="text-xl font-bold mt-1 text-emerald-400">Rp ${formatRupiah(currentBal)}</p>
                             </div>
-                        </div>
-
-                        <div class="payment-info">
-                            <p><strong>PEMBAYARAN BISA MELALUI</strong></p>
-                            <p class="mt-2">Transfer ke:</p>
-                            <p>NOREK BANK BCA</p>
-                            <p><strong>5410927839 ROHMATULLOH AL MUSADAD</strong></p>
                         </div>
                     </div>
-                </body>
-                </html>
-            `;
-            
-            printWindow.document.write(printContent);
-            printWindow.document.close();
-            printWindow.focus();
-            printWindow.print();
+                `;
+            }
+
+            // Render mini inventory tracker
+            let totalStokUnit = 0;
+            let container = document.getElementById('dash-inventory-list');
+            container.innerHTML = '';
+            for (let raw in inventoryDB) {
+                totalStokUnit += inventoryDB[raw].stock;
+                let bgState = inventoryDB[raw].stock < 100 ? 'bg-rose-50 text-rose-700 border-rose-100' : 'bg-slate-50 text-slate-700 border-slate-100';
+                container.innerHTML += `
+                    <div class="p-3 rounded-xl border ${bgState}">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="font-bold truncate max-w-[80px]">${raw}</span>
+                            <span class="text-[9px] font-bold px-1 rounded ${inventoryDB[raw].stock < 100 ? 'bg-rose-100 text-rose-800' : 'bg-slate-200 text-slate-800'}">${inventoryDB[raw].stock < 100 ? 'RE-STOCK' : 'AMAN'}</span>
+                        </div>
+                        <p class="text-lg font-extrabold mt-1">${inventoryDB[raw].stock}</p>
+                    </div>
+                `;
+            }
+            document.getElementById('dash-total-stok').textContent = totalStokUnit + " Unit Stok";
+        }
+    </script>
+
+    <script>
+        /* MODUL NOTA - TRANSAKSI */
+        let currentEditingInvoiceId = null;
+
+        function renderInvoiceTable() {
+            const query = document.getElementById('search-invoice').value.toLowerCase();
+            const tbody = document.getElementById('invoice-table-body');
+            tbody.innerHTML = '';
+
+            invoiceDB.forEach(inv => {
+                const match = inv.id.toLowerCase().includes(query) ||
+                              inv.customer.toLowerCase().includes(query) ||
+                              inv.phone.includes(query) ||
+                              inv.items.some(item => item.name.toLowerCase().includes(query)) ||
+                              (inv.items.some(item => item.machine && item.machine.toLowerCase().includes(query))) ||
+                              inv.date.includes(query);
+
+                if (query === '' || match) {
+                    const due = Number(inv.total) - Number(inv.paid);
+                    let badgeColor = "bg-rose-50 text-rose-700 border-rose-200";
+                    if (inv.status === 'Lunas') badgeColor = "bg-emerald-50 text-emerald-700 border-emerald-200";
+                    if (inv.status === 'DP') badgeColor = "bg-blue-50 text-blue-700 border-blue-200";
+
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="py-4 px-6 font-bold text-slate-900">${inv.id}</td>
+                            <td class="py-4 px-6">
+                                <div class="font-semibold text-slate-800">${inv.customer}</div>
+                                <div class="text-xs text-slate-400">${inv.phone}</div>
+                            </td>
+                            <td class="py-4 px-6 text-slate-500">${inv.date}</td>
+                            <td class="py-4 px-6 font-bold text-slate-800">Rp ${formatRupiah(inv.total)}</td>
+                            <td class="py-4 px-6 text-slate-600">Rp ${formatRupiah(due)}</td>
+                            <td class="py-4 px-6 text-center">
+                                <span class="px-2.5 py-1 text-xs font-bold rounded-full border ${badgeColor}">${inv.status}</span>
+                            </td>
+                            <td class="py-4 px-6 text-right space-x-1">
+                                <button onclick="printInvoiceA5('${inv.id}')" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition" title="Print A5 (Capture_2 Layout)">
+                                    <i class="fa-solid fa-print"></i>
+                                </button>
+                                <button onclick="editInvoice('${inv.id}')" class="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl transition" title="Edit">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                                <button onclick="deleteInvoice('${inv.id}')" class="p-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl transition" title="Delete">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }
+            });
         }
 
-        async function exportDatabase() {
-            try {
-                const data = await db.exportData();
-                const jsonString = JSON.stringify(data, null, 2);
-                const blob = new Blob([jsonString], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `musadad_invoices_${new Date().toISOString().split('T')[0]}.json`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                showCustomMessage('Database berhasil diekspor!');
-            } catch (error) {
-                showCustomMessage('Gagal mengekspor database!');
-                console.error('Export error:', error);
+        function openInvoiceModal() {
+            currentEditingInvoiceId = null;
+            document.getElementById('invoice-modal-title').textContent = "Membuat Nota Transaksi Baru";
+            
+            const runNum = String(invoiceDB.length + 1).padStart(4, '0');
+            document.getElementById('invoice-id').value = "INV/" + new Date().getFullYear().toString().slice(-2) + "/" + runNum;
+            document.getElementById('invoice-customer').value = '';
+            document.getElementById('invoice-phone').value = '';
+            document.getElementById('invoice-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('invoice-paid').value = 0;
+            document.getElementById('invoice-status').value = 'Belum Lunas';
+            document.getElementById('invoice-due').value = 0;
+
+            document.getElementById('invoice-items-container').innerHTML = '';
+            addInvoiceItemRow(); // start with one row
+
+            calculateInvoiceValues();
+            document.getElementById('invoice-modal').classList.remove('hidden');
+        }
+
+        function closeInvoiceModal() {
+            document.getElementById('invoice-modal').classList.add('hidden');
+        }
+    </script>
+
+    <script>
+        /* Add customizable inline editable row exactly matching Capture_2.JPG */
+        function addInvoiceItemRow(name = '', qty = 1, price = 0, mappedMaterial = '', mappedMachine = '') {
+            const container = document.getElementById('invoice-items-container');
+            const rowId = 'row-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4);
+
+            // Populate materials datalist options
+            let materialOptionsHtml = '<option value="">(Tanpa Pemotongan Stok)</option>';
+            for (let raw in inventoryDB) {
+                materialOptionsHtml += `<option value="${raw}" ${raw === mappedMaterial ? 'selected' : ''}>${raw}</option>`;
+            }
+
+            // Populate machine options
+            let machineOptionsHtml = '<option value="Tanpa Mesin" ${mappedMachine === "Tanpa Mesin" ? "selected" : ""}>Tanpa Alokasi Mesin</option>';
+            for (let mac in machineDB) {
+                machineOptionsHtml += `<option value="${mac}" ${mac === mappedMachine ? 'selected' : ''}>${mac}</option>`;
+            }
+
+            container.insertAdjacentHTML('beforeend', `
+                <div id="${rowId}" class="item-row bg-slate-50 border border-slate-200/80 rounded-xl p-3 space-y-2">
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+                        <div class="col-span-1 md:col-span-5 space-y-1">
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Nama Barang (Bisa Diketik Bebas)</label>
+                            <input type="text" class="item-name w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:ring-2 focus:ring-emerald-500 font-semibold" value="${name}" placeholder="Contoh: CETAK BUKU / SETEMPEL 77X36" oninput="matchMaterialOnType(this)">
+                        </div>
+                        <div class="col-span-1 md:col-span-2 space-y-1">
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Qty</label>
+                            <input type="number" class="item-qty w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-center outline-none focus:ring-2 focus:ring-emerald-500" value="${qty}" oninput="calculateInvoiceValues()">
+                        </div>
+                        <div class="col-span-1 md:col-span-3 space-y-1">
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Harga (Rp)</label>
+                            <input type="number" class="item-price w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:ring-2 focus:ring-emerald-500" value="${price}" oninput="calculateInvoiceValues()">
+                        </div>
+                        <div class="col-span-1 md:col-span-2 flex items-center justify-end gap-2 mt-4 md:mt-0">
+                            <!-- Toggle Button for Production Details -->
+                            <button onclick="toggleProductionDetails('${rowId}')" type="button" class="p-1.5 text-slate-500 hover:bg-slate-200 rounded-lg transition" title="⚙️ Atur Back-End Produksi & Pemotongan Stok">
+                                <i class="fa-solid fa-gears"></i>
+                            </button>
+                            <button onclick="removeInvoiceItemRow('${rowId}')" type="button" class="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Hapus Item">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Expandable Production & Material Mapper (Hidden visually, works in bg) -->
+                    <div id="prod-det-${rowId}" class="hidden p-3 bg-white border border-slate-100 rounded-lg grid grid-cols-1 md:grid-cols-2 gap-4 text-xs transition">
+                        <div class="space-y-1">
+                            <label class="font-bold text-slate-500">Bahan Baku (Pilih untuk Potong Stok):</label>
+                            <select class="item-mapped-material w-full border border-slate-200 rounded-lg p-2 text-xs" onchange="calculateInvoiceValues()">
+                                ${materialOptionsHtml}
+                            </select>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="font-bold text-slate-500">Mesin Produksi (Alokasi Kas Perawatan):</label>
+                            <select class="item-mapped-machine w-full border border-slate-200 rounded-lg p-2 text-xs" onchange="calculateInvoiceValues()">
+                                ${machineOptionsHtml}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            `);
+            calculateInvoiceValues();
+        }
+
+        function toggleProductionDetails(rowId) {
+            const details = document.getElementById('prod-det-' + rowId);
+            if (details) details.classList.toggle('hidden');
+        }
+
+        /* Auto-match backend materials to simplify user typing */
+        function matchMaterialOnType(inputEl) {
+            const val = inputEl.value.trim().toLowerCase();
+            const row = inputEl.closest('.item-row');
+            const materialSelect = row.querySelector('.item-mapped-material');
+            const priceInput = row.querySelector('.item-price');
+
+            // Find matching inventory items
+            for (let raw in inventoryDB) {
+                if (raw.toLowerCase() === val) {
+                    materialSelect.value = raw;
+                    // Propose price if not edited yet
+                    if (Number(priceInput.value) === 0) {
+                        const defaults = { "HVS": 500, "Undangan": 3500, "Spanduk": 45000, "Sticker": 12000 };
+                        priceInput.value = defaults[raw] || (inventoryDB[raw].cost * 2);
+                    }
+                    break;
+                }
+            }
+            calculateInvoiceValues();
+        }
+
+        function removeInvoiceItemRow(rowId) {
+            const row = document.getElementById(rowId);
+            if (row) row.remove();
+            calculateInvoiceValues();
+        }
+
+        /* Calculate complete financial aggregates */
+        function calculateInvoiceValues() {
+            let grandTotal = 0;
+            let totalCost = 0;
+            let totalMaint = 0;
+
+            document.querySelectorAll('.item-row').forEach(row => {
+                const qty = Number(row.querySelector('.item-qty').value) || 0;
+                const price = Number(row.querySelector('.item-price').value) || 0;
+                const mappedMat = row.querySelector('.item-mapped-material').value;
+                const mappedMac = row.querySelector('.item-mapped-machine').value;
+
+                grandTotal += qty * price;
+
+                // Modal Cost
+                if (mappedMat && inventoryDB[mappedMat]) {
+                    totalCost += qty * inventoryDB[mappedMat].cost;
+                }
+
+                // Maintenance Cost
+                if (mappedMac !== 'Tanpa Mesin' && machineDB[mappedMac]) {
+                    totalMaint += qty * machineDB[mappedMac].cost;
+                }
+            });
+
+            const profit = grandTotal - totalCost;
+
+            document.getElementById('invoice-total-display').textContent = "Rp " + formatRupiah(grandTotal);
+            document.getElementById('invoice-cost-display').textContent = "Rp " + formatRupiah(totalCost);
+            document.getElementById('invoice-maintenance-display').textContent = "Rp " + formatRupiah(totalMaint);
+            document.getElementById('invoice-profit-display').textContent = "Rp " + formatRupiah(profit);
+
+            const paid = Number(document.getElementById('invoice-paid').value) || 0;
+            const due = Math.max(0, grandTotal - paid);
+            document.getElementById('invoice-due').value = formatRupiah(due);
+
+            const statusSelect = document.getElementById('invoice-status');
+            if (paid >= grandTotal && grandTotal > 0) {
+                statusSelect.value = 'Lunas';
             }
         }
 
-        async function importDatabase() {
-            document.getElementById('importFile').click();
+        function toggleInvoiceStatus(val) {
+            const total = parseInt(document.getElementById('invoice-total-display').textContent.replace(/[^0-9]/g, '')) || 0;
+            if (val === 'Lunas') {
+                document.getElementById('invoice-paid').value = total;
+            } else if (val === 'Belum Lunas') {
+                document.getElementById('invoice-paid').value = 0;
+            }
+            calculateInvoiceValues();
+        }
+    </script>
+
+    <script>
+        function saveCurrentInvoice() {
+            const id = document.getElementById('invoice-id').value;
+            const customer = document.getElementById('invoice-customer').value.trim();
+            const phone = document.getElementById('invoice-phone').value.trim();
+            const date = document.getElementById('invoice-date').value;
+            const paid = Number(document.getElementById('invoice-paid').value) || 0;
+            const status = document.getElementById('invoice-status').value;
+
+            if (!customer) {
+                alert("Harap masukkan nama pelanggan!");
+                return;
+            }
+
+            let items = [];
+            let totalCost = 0;
+            let totalMaint = 0;
+            let totalSell = 0;
+            let isValidInventory = true;
+
+            document.querySelectorAll('.item-row').forEach(row => {
+                const name = row.querySelector('.item-name').value.trim() || "Item Tanpa Nama";
+                const qty = Number(row.querySelector('.item-qty').value) || 0;
+                const price = Number(row.querySelector('.item-price').value) || 0;
+                const mappedMat = row.querySelector('.item-mapped-material').value;
+                const mappedMac = row.querySelector('.item-mapped-machine').value;
+
+                totalSell += qty * price;
+                let cost = 0;
+                if (mappedMat && inventoryDB[mappedMat]) {
+                    cost = inventoryDB[mappedMat].cost;
+                    totalCost += qty * cost;
+                }
+
+                let maint = 0;
+                if (mappedMac !== 'Tanpa Mesin' && machineDB[mappedMac]) {
+                    maint = machineDB[mappedMac].cost;
+                    totalMaint += qty * maint;
+                }
+
+                items.push({ name, qty, price, mappedMat, mappedMac, cost, maint });
+
+                // Check Inventory Stock
+                if (mappedMat && inventoryDB[mappedMat] && inventoryDB[mappedMat].stock < qty && !currentEditingInvoiceId) {
+                    isValidInventory = false;
+                }
+            });
+
+            if (!isValidInventory) {
+                if (!confirm("Peringatan: Stok bahan di inventori tidak mencukupi untuk pesanan ini. Tetap simpan?")) {
+                    return;
+                }
+            }
+
+            // Rollback stocks and machine loads on edit
+            if (currentEditingInvoiceId) {
+                const oldInv = invoiceDB.find(x => x.id === currentEditingInvoiceId);
+                if (oldInv) {
+                    oldInv.items.forEach(oldItem => {
+                        if (oldItem.mappedMat && inventoryDB[oldItem.mappedMat]) {
+                            inventoryDB[oldItem.mappedMat].stock += oldItem.qty; 
+                        }
+                        if (oldItem.mappedMac && oldItem.mappedMac !== 'Tanpa Mesin' && machineDB[oldItem.mappedMac]) {
+                            machineDB[oldItem.mappedMac].totalCetak = Math.max(0, machineDB[oldItem.mappedMac].totalCetak - oldItem.qty);
+                        }
+                    });
+                }
+                maintenanceDB = maintenanceDB.filter(m => m.refInvoice !== currentEditingInvoiceId);
+            }
+
+            // Deduct stock and increment machine usage counters
+            items.forEach(item => {
+                if (item.mappedMat && inventoryDB[item.mappedMat]) {
+                    inventoryDB[item.mappedMat].stock = Math.max(0, inventoryDB[item.mappedMat].stock - item.qty);
+                }
+                
+                if (item.mappedMac && item.mappedMac !== 'Tanpa Mesin' && machineDB[item.mappedMac]) {
+                    machineDB[item.mappedMac].totalCetak += item.qty;
+                    maintenanceDB.push({
+                        date: date,
+                        machine: item.mappedMac,
+                        desc: "Alokasi perawatan otomatis No. Nota: " + id,
+                        amount: item.qty * item.maint,
+                        type: 'Masuk',
+                        refInvoice: id
+                    });
+                }
+            });
+
+            // Target Savings allocation
+            const profit = totalSell - totalCost;
+            if (profit > 0 && status === 'Lunas') {
+                const autoSavingAmt = Math.round(profit * (savingDB.percent / 100));
+                savingDB.total += autoSavingAmt;
+            }
+
+            const newInvoice = {
+                id, customer, phone, date, paid, status,
+                items, total: totalSell, modal: totalCost, maint: totalMaint
+            };
+
+            if (currentEditingInvoiceId) {
+                const index = invoiceDB.findIndex(x => x.id === currentEditingInvoiceId);
+                invoiceDB[index] = newInvoice;
+                triggerNotification("Transaksi " + id + " berhasil diperbarui!");
+            } else {
+                invoiceDB.push(newInvoice);
+                triggerNotification("Transaksi " + id + " berhasil disimpan!");
+            }
+
+            saveToLocalStorage();
+            closeInvoiceModal();
+            renderInvoiceTable();
+            updateDashboard();
         }
 
-        function handleImportFile(event) {
+        function editInvoice(id) {
+            currentEditingInvoiceId = id;
+            const inv = invoiceDB.find(x => x.id === id);
+            if (!inv) return;
+
+            document.getElementById('invoice-modal-title').textContent = "Ubah Detail Nota: " + id;
+            document.getElementById('invoice-id').value = inv.id;
+            document.getElementById('invoice-customer').value = inv.customer;
+            document.getElementById('invoice-phone').value = inv.phone;
+            document.getElementById('invoice-date').value = inv.date;
+            document.getElementById('invoice-paid').value = inv.paid;
+            document.getElementById('invoice-status').value = inv.status;
+
+            document.getElementById('invoice-items-container').innerHTML = '';
+            inv.items.forEach(item => {
+                addInvoiceItemRow(item.name, item.qty, item.price, item.mappedMat, item.mappedMac);
+            });
+
+            calculateInvoiceValues();
+            document.getElementById('invoice-modal').classList.remove('hidden');
+        }
+
+        function deleteInvoice(id) {
+            if (confirm("Apakah Anda yakin ingin menghapus Nota " + id + " secara permanen?")) {
+                const inv = invoiceDB.find(x => x.id === id);
+                if (inv) {
+                    inv.items.forEach(item => {
+                        if (item.mappedMat && inventoryDB[item.mappedMat]) {
+                            inventoryDB[item.mappedMat].stock += item.qty;
+                        }
+                        if (item.mappedMac && item.mappedMac !== 'Tanpa Mesin' && machineDB[item.mappedMac]) {
+                            machineDB[item.mappedMac].totalCetak = Math.max(0, machineDB[item.mappedMac].totalCetak - item.qty);
+                        }
+                    });
+                    maintenanceDB = maintenanceDB.filter(m => m.refInvoice !== id);
+                }
+
+                invoiceDB = invoiceDB.filter(x => x.id !== id);
+                saveToLocalStorage();
+                renderInvoiceTable();
+                updateDashboard();
+                triggerNotification("Nota " + id + " berhasil dihapus.");
+            }
+        }
+    </script>
+
+    <script>
+        /* PRODUKSI & MESIN DYNAMIC RENDERING */
+        function renderProduksiTab() {
+            const container = document.getElementById('produksi-machines-list');
+            container.innerHTML = '';
+
+            for (let mac in machineDB) {
+                const machineObj = machineDB[mac];
+                container.innerHTML += `
+                    <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-bold text-slate-800 text-lg flex items-center gap-2">
+                                <span class="p-1.5 bg-purple-100 text-purple-600 rounded-lg"><i class="fa-solid fa-print"></i></span>
+                                ${mac}
+                            </h3>
+                            <span class="px-2 py-0.5 bg-purple-50 text-purple-700 text-xs font-bold rounded">${machineObj.type} unit</span>
+                        </div>
+                        <p class="text-xs text-slate-500">${machineObj.desc || 'Deskripsi belum diset untuk mesin ini.'}</p>
+                        <div class="space-y-2 border-t border-slate-100 pt-3">
+                            <div class="flex justify-between text-xs">
+                                <span class="text-slate-400">Biaya Rawat / Satuan:</span>
+                                <span class="font-semibold text-slate-700">Rp ${machineObj.cost}</span>
+                            </div>
+                            <div class="flex justify-between text-xs">
+                                <span class="text-slate-400">Total Akumulasi Cetak:</span>
+                                <span class="font-semibold text-slate-700">${machineObj.totalCetak} ${machineObj.type}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            const itemSelect = document.getElementById('calc-item');
+            itemSelect.innerHTML = '';
+            for (let raw in inventoryDB) {
+                itemSelect.innerHTML += `<option value="${raw}">${raw}</option>`;
+            }
+
+            const machineSelect = document.getElementById('calc-machine');
+            machineSelect.innerHTML = '';
+            for (let mac in machineDB) {
+                machineSelect.innerHTML += `<option value="${mac}">${mac}</option>`;
+            }
+            machineSelect.innerHTML += `<option value="Tanpa Mesin">Tanpa Mesin</option>`;
+
+            runSimulasi();
+        }
+
+        function registerNewMachine() {
+            const name = document.getElementById('new-mac-name').value.trim();
+            const cost = Number(document.getElementById('new-mac-cost').value) || 0;
+            const type = document.getElementById('new-mac-type').value;
+            const desc = document.getElementById('new-mac-desc').value.trim();
+
+            if (!name) {
+                alert("Harap masukkan nama mesin!");
+                return;
+            }
+
+            if (machineDB[name]) {
+                alert("Mesin dengan nama tersebut sudah terdaftar!");
+                return;
+            }
+
+            machineDB[name] = {
+                totalCetak: 0,
+                cost: cost,
+                type: type,
+                desc: desc || "Mesin cetak kustom baru."
+            };
+
+            maintenanceDB.push({
+                date: new Date().toISOString().split('T')[0],
+                machine: name,
+                desc: "Saldo awal pembukaan kas mesin",
+                amount: 0,
+                type: 'Masuk',
+                refInvoice: 'init-seed'
+            });
+
+            saveToLocalStorage();
+            triggerNotification("Mesin " + name + " berhasil didaftarkan!");
+            
+            document.getElementById('new-mac-name').value = '';
+            document.getElementById('new-mac-cost').value = '';
+            document.getElementById('new-mac-desc').value = '';
+
+            renderProduksiTab();
+            updateDashboard();
+        }
+
+        function runSimulasi() {
+            const raw = document.getElementById('calc-item').value;
+            const machine = document.getElementById('calc-machine').value;
+            const qty = Number(document.getElementById('calc-qty').value) || 0;
+            const sell = Number(document.getElementById('calc-sell').value) || 0;
+
+            const totalSell = qty * sell;
+            const modalBahan = inventoryDB[raw] ? (inventoryDB[raw].cost * qty) : 0;
+            
+            let rawat = 0;
+            if (machine !== 'Tanpa Mesin' && machineDB[machine]) {
+                rawat = qty * machineDB[machine].cost;
+            }
+
+            const estimasiLaba = totalSell - modalBahan - rawat;
+
+            document.getElementById('sim-omzet').textContent = "Rp " + formatRupiah(totalSell);
+            document.getElementById('sim-modal').textContent = "Rp " + formatRupiah(modalBahan);
+            document.getElementById('sim-rawat').textContent = "Rp " + formatRupiah(rawat);
+            document.getElementById('sim-laba').textContent = "Rp " + formatRupiah(estimasiLaba);
+        }
+    </script>
+
+    <script>
+        function updateInventoryDatalist() {
+            const datalist = document.getElementById('inventory-datalist');
+            datalist.innerHTML = '';
+            for (let raw in inventoryDB) {
+                datalist.innerHTML += `<option value="${raw}">`;
+            }
+        }
+
+        function loadSelectedInv() {
+            const raw = document.getElementById('inv-name').value.trim();
+            if (inventoryDB[raw]) {
+                document.getElementById('inv-stock').value = inventoryDB[raw].stock;
+                document.getElementById('inv-cost').value = inventoryDB[raw].cost;
+            } else {
+                document.getElementById('inv-stock').value = '';
+                document.getElementById('inv-cost').value = '';
+            }
+        }
+
+        function saveInventory() {
+            const raw = document.getElementById('inv-name').value.trim();
+            const stock = Number(document.getElementById('inv-stock').value) || 0;
+            const cost = Number(document.getElementById('inv-cost').value) || 0;
+
+            if (!raw) {
+                alert("Harap masukkan atau pilih nama bahan baku!");
+                return;
+            }
+
+            inventoryDB[raw] = {
+                stock: stock,
+                cost: cost
+            };
+
+            saveToLocalStorage();
+            triggerNotification("Bahan " + raw + " berhasil disimpan ke inventori!");
+            
+            document.getElementById('inv-name').value = '';
+            document.getElementById('inv-stock').value = '';
+            document.getElementById('inv-cost').value = '';
+
+            updateInventoryDatalist();
+            renderInventoryTable();
+            updateDashboard();
+        }
+
+        function deleteInventoryItem(raw) {
+            if (confirm("Apakah anda yakin ingin menghapus bahan " + raw + " dari inventori?")) {
+                delete inventoryDB[raw];
+                saveToLocalStorage();
+                triggerNotification("Bahan " + raw + " berhasil dihapus!");
+                updateInventoryDatalist();
+                renderInventoryTable();
+                updateDashboard();
+            }
+        }
+
+        function renderInventoryTable() {
+            const tbody = document.getElementById('inventory-table-body');
+            tbody.innerHTML = '';
+
+            for (let raw in inventoryDB) {
+                const item = inventoryDB[raw];
+                const value = item.stock * item.cost;
+                const safety = item.stock < 100 ? 'border-rose-200 bg-rose-50 text-rose-700' : 'border-emerald-200 bg-emerald-50 text-emerald-700';
+                const safetyText = item.stock < 100 ? 'Kritis / Re-stock' : 'Aman';
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="py-4 px-6 font-bold text-slate-800">${raw}</td>
+                        <td class="py-4 px-6 font-semibold">${item.stock} Unit</td>
+                        <td class="py-4 px-6">Rp ${formatRupiah(item.cost)}</td>
+                        <td class="py-4 px-6 font-bold text-slate-800">Rp ${formatRupiah(value)}</td>
+                        <td class="py-4 px-6 text-center">
+                            <span class="px-2.5 py-1 rounded-full border text-xs font-bold ${safety}">${safetyText}</span>
+                        </td>
+                        <td class="py-4 px-6 text-right">
+                            <button onclick="deleteInventoryItem('${raw}')" class="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Hapus Bahan">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+    </script>
+
+    <script>
+        function renderMaintenanceTab() {
+            const alokasiContainer = document.getElementById('settings-rawat-container');
+            alokasiContainer.innerHTML = '';
+
+            for (let mac in machineDB) {
+                alokasiContainer.innerHTML += `
+                    <div class="space-y-1">
+                        <label class="text-xs font-semibold text-slate-500">${mac} (Rp/${machineDB[mac].type})</label>
+                        <input type="number" id="setting-rawat-${mac.replace(/\s+/g, '-')}" value="${machineDB[mac].cost}" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                `;
+            }
+
+            const detailContainer = document.getElementById('kas-detail-list');
+            detailContainer.innerHTML = '';
+
+            for (let mac in machineDB) {
+                let currentBal = 0;
+                maintenanceDB.forEach(log => {
+                    if (log.machine === mac) currentBal += log.amount;
+                });
+
+                detailContainer.innerHTML += `
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-slate-500 font-medium">Kas ${mac}:</span>
+                        <span class="font-bold text-emerald-600">Rp ${formatRupiah(currentBal)}</span>
+                    </div>
+                `;
+            }
+
+            const expSelect = document.getElementById('expense-machine');
+            expSelect.innerHTML = '';
+            for (let mac in machineDB) {
+                expSelect.innerHTML += `<option value="${mac}">${mac}</option>`;
+            }
+
+            const tbody = document.getElementById('maintenance-history-body');
+            tbody.innerHTML = '';
+            maintenanceDB.slice().reverse().forEach(log => {
+                const amtStyle = log.amount < 0 ? 'text-rose-600 font-bold' : 'text-emerald-600 font-bold';
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="py-4 px-6 text-slate-500">${log.date}</td>
+                        <td class="py-4 px-6 font-bold text-slate-800">${log.machine}</td>
+                        <td class="py-4 px-6 text-slate-600">${log.desc}</td>
+                        <td class="py-4 px-6 text-right ${amtStyle}">Rp ${formatRupiah(log.amount)}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function saveMaintenanceSettings() {
+            for (let mac in machineDB) {
+                const inputEl = document.getElementById('setting-rawat-' + mac.replace(/\s+/g, '-'));
+                if (inputEl) {
+                    machineDB[mac].cost = Number(inputEl.value) || 0;
+                }
+            }
+
+            saveToLocalStorage();
+            triggerNotification("Harga alokasi perawatan berhasil disimpan!");
+            renderMaintenanceTab();
+        }
+
+        function withdrawMaintenanceCash() {
+            const machine = document.getElementById('expense-machine').value;
+            const amt = Number(document.getElementById('expense-amount').value) || 0;
+            const desc = document.getElementById('expense-desc').value.trim();
+
+            if (amt <= 0 || !desc) {
+                alert("Harap masukkan nilai penarikan dan keterangan keperluan servis!");
+                return;
+            }
+
+            let balance = 0;
+            maintenanceDB.forEach(log => {
+                if (log.machine === machine) balance += log.amount;
+            });
+
+            if (amt > balance) {
+                alert("Gagal: Saldo kas perawatan " + machine + " tidak mencukupi!");
+                return;
+            }
+
+            maintenanceDB.push({
+                date: new Date().toISOString().split('T')[0],
+                machine: machine,
+                desc: "Pengeluaran Kas: " + desc,
+                amount: -amt,
+                type: 'Keluar',
+                refInvoice: 'servis-manual'
+            });
+
+            saveToLocalStorage();
+            triggerNotification("Penarikan kas perawatan berhasil didaftarkan!");
+            document.getElementById('expense-amount').value = '';
+            document.getElementById('expense-desc').value = '';
+            renderMaintenanceTab();
+            updateDashboard();
+        }
+
+        function renderSavingsTab() {
+            document.getElementById('setting-target-nominal').value = savingDB.target;
+            document.getElementById('setting-target-percent').value = savingDB.percent;
+
+            document.getElementById('saving-detail-collected').textContent = "Rp " + formatRupiah(savingDB.total);
+            const progressPercent = Math.min(100, Math.round((savingDB.total / savingDB.target) * 100)) || 0;
+            document.getElementById('saving-detail-bar').style.width = progressPercent + "%";
+        }
+
+        function saveSavingsSettings() {
+            savingDB.target = Number(document.getElementById('setting-target-nominal').value) || 13000000;
+            savingDB.percent = Number(document.getElementById('setting-target-percent').value) || 15;
+
+            saveToLocalStorage();
+            triggerNotification("Target dan alokasi tabungan berhasil disimpan!");
+            renderSavingsTab();
+            updateDashboard();
+        }
+
+        function addManualSaving() {
+            const amt = Number(document.getElementById('manual-saving-amount').value) || 0;
+            const source = document.getElementById('manual-saving-source').value.trim();
+
+            if (amt <= 0 || !source) {
+                alert("Harap masukkan jumlah nominal setoran dan sumber dana!");
+                return;
+            }
+
+            savingDB.total += amt;
+            saveToLocalStorage();
+            triggerNotification("Setoran manual tabungan berhasil ditambahkan.");
+            document.getElementById('manual-saving-amount').value = '';
+            document.getElementById('manual-saving-source').value = '';
+            renderSavingsTab();
+            updateDashboard();
+        }
+    </script>
+
+    <script>
+        function exportFullDatabase() {
+            const fullDB = {
+                invoiceDB,
+                inventoryDB,
+                maintenanceDB,
+                savingDB,
+                machineDB,
+                settingDB,
+                reportDB
+            };
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(fullDB));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `SIPRINTING_BACKUP_PRO_v8_${new Date().toISOString().split('T')[0]}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            triggerNotification("Ekspor Database Sukses!");
+        }
+
+        function importFullDatabase(event) {
             const file = event.target.files[0];
             if (!file) return;
 
             const reader = new FileReader();
-            reader.onload = async (e) => {
+            reader.onload = function(e) {
                 try {
-                    const importedData = JSON.parse(e.target.result);
-                    await db.importData(importedData);
-                    showCustomMessage('Data berhasil diimpor!');
-                    newInvoice();
-                } catch (error) {
-                    showCustomMessage('Gagal mengimpor data. Pastikan file dalam format JSON yang benar.');
-                    console.error('Import error:', error);
+                    const parsed = JSON.parse(e.target.result);
+                    if (parsed.invoiceDB) invoiceDB = parsed.invoiceDB;
+                    if (parsed.inventoryDB) inventoryDB = parsed.inventoryDB;
+                    if (parsed.maintenanceDB) maintenanceDB = parsed.maintenanceDB;
+                    if (parsed.savingDB) savingDB = parsed.savingDB;
+                    if (parsed.machineDB) machineDB = parsed.machineDB;
+                    if (parsed.settingDB) settingDB = parsed.settingDB;
+                    if (parsed.reportDB) reportDB = parsed.reportDB;
+
+                    saveToLocalStorage();
+                    triggerNotification("Seluruh Database Berhasil Diimpor & Dipulihkan!");
+                    updateDashboard();
+                } catch (err) {
+                    alert("Kesalahan saat mengimpor file. Pastikan format file adalah JSON SI-PRINTING PRO!");
                 }
             };
             reader.readAsText(file);
         }
 
-        async function searchInvoices() {
-            const query = document.getElementById('searchInput').value;
-            if (!query) {
-                await db.loadAllRecords();
-                return;
-            }
-
-            try {
-                const results = await db.search(query);
-                db.populateTable(results);
-                showCustomMessage(`Ditemukan ${results.length} hasil pencarian.`);
-            } catch (error) {
-                showCustomMessage('Gagal melakukan pencarian.');
-                console.error('Search error:', error);
+        function confirmClearDatabase() {
+            if (confirm("PERINGATAN: Seluruh data transaksi, tabungan, dan inventori Anda akan terhapus sepenuhnya. Lanjutkan reset total?")) {
+                localStorage.clear();
+                invoiceDB = [];
+                maintenanceDB = [];
+                savingDB = { total: 0, target: 13000000, percent: 15 };
+                machineDB = {
+                    "HP PageWide": { totalCetak: 0, cost: 50, type: "Lembar", desc: "High-Speed Pigment." },
+                    "Epson L14150": { totalCetak: 0, cost: 100, type: "Lembar", desc: "A3+ InkTank." },
+                    "XP600": { totalCetak: 0, cost: 1000, type: "m²", desc: "Eco-Solvent." }
+                };
+                inventoryDB = {
+                    "HVS": { stock: 5000, cost: 100 },
+                    "Undangan": { stock: 1200, cost: 800 },
+                    "Spanduk": { stock: 800, cost: 15000 },
+                    "Sticker": { stock: 1500, cost: 1500 }
+                };
+                saveToLocalStorage();
+                updateDashboard();
+                triggerNotification("Database berhasil di-reset ke pengaturan pabrik!");
             }
         }
+    </script>
 
-        async function clearDatabase() {
-            const isConfirmed = await new Promise(resolve => {
-                showCustomMessageWithConfirmation('PERINGATAN: Ini akan menghapus SEMUA data dari database. Yakin ingin melanjutkan?', resolve, 'Hapus', 'Batal');
+    <script>
+        let omzetLabaChart = null;
+        let allocationChart = null;
+
+        function renderLaporanTab() {
+            const period = document.getElementById('report-period').value;
+            const now = new Date();
+            
+            let totalOmzet = 0;
+            let totalModal = 0;
+            let totalMaint = 0;
+
+            const filteredInvoices = invoiceDB.filter(inv => {
+                if (period === 'Semua') return true;
+                const invDate = new Date(inv.date);
+                if (period === 'Hari') {
+                    return invDate.toDateString() === now.toDateString();
+                }
+                if (period === 'Bulan') {
+                    return invDate.getMonth() === now.getMonth() && invDate.getFullYear() === now.getFullYear();
+                }
+                if (period === 'Tahun') {
+                    return invDate.getFullYear() === now.getFullYear();
+                }
+                return true;
             });
 
-            if (isConfirmed) {
-                const isFinalConfirmed = await new Promise(resolve => {
-                    showCustomMessageWithConfirmation('Konfirmasi sekali lagi: Semua data akan hilang permanen!', resolve, 'Ya, Hapus', 'Batalkan');
+            const filteredMaintenance = maintenanceDB.filter(log => {
+                if (log.amount >= 0) return false;
+                if (period === 'Semua') return true;
+                const logDate = new Date(log.date);
+                if (period === 'Hari') {
+                    return logDate.toDateString() === now.toDateString();
+                }
+                if (period === 'Bulan') {
+                    return logDate.getMonth() === now.getMonth() && logDate.getFullYear() === now.getFullYear();
+                }
+                if (period === 'Tahun') {
+                    return logDate.getFullYear() === now.getFullYear();
+                }
+                return true;
+            });
+
+            filteredInvoices.forEach(inv => {
+                totalOmzet += Number(inv.total) || 0;
+                totalModal += Number(inv.modal) || 0;
+            });
+
+            filteredMaintenance.forEach(log => {
+                totalMaint += Math.abs(log.amount);
+            });
+
+            const netProfit = totalOmzet - totalModal - totalMaint;
+
+            document.getElementById('rep-omzet').textContent = "Rp " + formatRupiah(totalOmzet);
+            document.getElementById('rep-modal').textContent = "Rp " + formatRupiah(totalModal);
+            document.getElementById('rep-kas').textContent = "Rp " + formatRupiah(totalMaint);
+            document.getElementById('rep-profit').textContent = "Rp " + formatRupiah(netProfit);
+
+            const tbody = document.getElementById('report-table-body');
+            tbody.innerHTML = '';
+
+            let mergedLog = [];
+            filteredInvoices.forEach(inv => {
+                mergedLog.push({
+                    date: inv.date,
+                    cat: 'Penjualan Nota',
+                    desc: `Penjualan ${inv.customer} (Nota: ${inv.id})`,
+                    in: inv.total,
+                    out: 0
                 });
-                if (isFinalConfirmed) {
-                    try {
-                        const success = await db.clear();
-                        if (success) {
-                            newInvoice();
-                            showCustomMessage('Database berhasil dikosongkan!');
-                        } else {
-                            showCustomMessage('Gagal mengosongkan database!');
+                mergedLog.push({
+                    date: inv.date,
+                    cat: 'Beban Pokok (Modal)',
+                    desc: `Bahan Percetakan (Nota: ${inv.id})`,
+                    in: 0,
+                    out: inv.modal
+                });
+            });
+
+            filteredMaintenance.forEach(log => {
+                mergedLog.push({
+                    date: log.date,
+                    cat: 'Beban Servis',
+                    desc: `${log.machine} (${log.desc})`,
+                    in: 0,
+                    out: Math.abs(log.amount)
+                });
+            });
+
+            mergedLog.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            mergedLog.forEach(log => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="py-3 px-6 text-slate-500">${log.date}</td>
+                        <td class="py-3 px-6"><span class="px-2 py-0.5 rounded text-xs font-semibold bg-slate-100 text-slate-600">${log.cat}</span></td>
+                        <td class="py-3 px-6 text-slate-800 font-medium">${log.desc}</td>
+                        <td class="py-3 px-6 text-right text-emerald-600 font-semibold">${log.in > 0 ? "Rp " + formatRupiah(log.in) : '-'}</td>
+                        <td class="py-3 px-6 text-right text-rose-600 font-semibold">${log.out > 0 ? "Rp " + formatRupiah(log.out) : '-'}</td>
+                    </tr>
+                `;
+            });
+
+            initReportsCharts(totalOmzet, totalModal, totalMaint, netProfit);
+        }
+
+        function initReportsCharts(omzet, modal, maintenance, netProfit) {
+            if (omzetLabaChart) omzetLabaChart.destroy();
+            if (allocationChart) allocationChart.destroy();
+
+            const ctx1 = document.getElementById('chart-omzet-laba').getContext('2d');
+            omzetLabaChart = new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: ['Omzet Bruto', 'Laba Bersih', 'Modal Bahan', 'Beban Operasional'],
+                    datasets: [{
+                        label: 'Nilai Finansial (Rp)',
+                        data: [omzet, netProfit > 0 ? netProfit : 0, modal, maintenance],
+                        backgroundColor: [
+                            'rgba(14, 165, 233, 0.75)',
+                            'rgba(34, 197, 94, 0.75)',
+                            'rgba(99, 102, 241, 0.75)',
+                            'rgba(244, 63, 94, 0.75)'
+                        ],
+                        borderColor: [
+                            '#0ea5e9', '#22c55e', '#6366f1', '#f43f5e'
+                        ],
+                        borderWidth: 1.5,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return 'Rp ' + value.toLocaleString('id-ID');
+                                }
+                            }
                         }
-                    } catch (error) {
-                        showCustomMessage('Gagal mengosongkan database!');
-                        console.error('Clear DB error:', error);
                     }
                 }
-            }
-        }
+            });
 
-        function showCustomMessage(message, type = 'info') {
-            const overlay = document.createElement('div');
-            overlay.id = 'messageOverlay';
-            overlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 2000;';
-
-            const box = document.createElement('div');
-            box.style.cssText = 'background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); max-width: 350px; text-align: center;';
-
-            const messageText = document.createElement('p');
-            messageText.textContent = message;
-            messageText.style.cssText = 'font-size: 1rem; color: #333; margin-bottom: 20px;';
-
-            const closeButton = document.createElement('button');
-            closeButton.textContent = 'OK';
-            closeButton.style.cssText = 'background: #3b82f6; color: white; padding: 10px 20px; border: none; border-radius: 9999px; font-weight: 600; cursor: pointer;';
-            closeButton.onclick = () => overlay.remove();
-
-            box.appendChild(messageText);
-            box.appendChild(closeButton);
-            overlay.appendChild(box);
-            document.body.appendChild(overlay);
-        }
-
-        function showCustomMessageWithConfirmation(message, callback, confirmText = 'OK', cancelText = 'Batal') {
-            const overlay = document.createElement('div');
-            overlay.id = 'messageOverlay';
-            overlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 2000;';
-
-            const box = document.createElement('div');
-            box.style.cssText = 'background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); max-width: 350px; text-align: center;';
-
-            const messageText = document.createElement('p');
-            messageText.textContent = message;
-            messageText.style.cssText = 'font-size: 1rem; color: #333; margin-bottom: 20px;';
-
-            const buttonContainer = document.createElement('div');
-            buttonContainer.style.cssText = 'display: flex; justify-content: space-around; gap: 10px;';
-            
-            const confirmButton = document.createElement('button');
-            confirmButton.textContent = confirmText;
-            confirmButton.style.cssText = 'background: #3b82f6; color: white; padding: 10px 20px; border: none; border-radius: 9999px; font-weight: 600; cursor: pointer;';
-            confirmButton.onclick = () => {
-                overlay.remove();
-                callback(true);
-            };
-
-            const cancelButton = document.createElement('button');
-            cancelButton.textContent = cancelText;
-            cancelButton.style.cssText = 'background: #6b7280; color: white; padding: 10px 20px; border: none; border-radius: 9999px; font-weight: 600; cursor: pointer;';
-            cancelButton.onclick = () => {
-                overlay.remove();
-                callback(false);
-            };
-
-            buttonContainer.appendChild(confirmButton);
-            buttonContainer.appendChild(cancelButton);
-            box.appendChild(messageText);
-            box.appendChild(buttonContainer);
-            overlay.appendChild(box);
-            document.body.appendChild(overlay);
-        }
-
-
-        // Navigation functions
-        function firstRecord() { db.first(); }
-        function prevRecord() { db.previous(); }
-        function nextRecord() { db.next(); }
-        function lastRecord() { db.last(); }
-
-        // Search on Enter key
-        document.getElementById('searchInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                searchInvoices();
-            }
-        });
-
-        // Material calculation functions
-        function calculateMaterial(width) {
-            const length = prompt(`Masukkan panjang bahan (meter) untuk lebar ${width}m:`);
-            if (length && !isNaN(length)) {
-                const area = parseFloat(length) * width;
-                const pricePerSqm = width === 1.6 ? 35000 : 40000;
-                const totalPrice = area * pricePerSqm;
-                
-                const rows = document.querySelectorAll('#itemsTable tr');
-                const lastRow = rows[rows.length - 1];
-                
-                if (lastRow.querySelector('.item-name').value === '') {
-                    lastRow.querySelector('.quantity-input').value = area.toFixed(2);
-                    lastRow.querySelector('.item-name').value = `Bahan ${width}m x ${length}m`;
-                    lastRow.querySelector('.item-price').value = pricePerSqm;
-                } else {
-                    addItem();
-                    const newRows = document.querySelectorAll('#itemsTable tr');
-                    const newRow = newRows[newRows.length - 1];
-                    newRow.querySelector('.quantity-input').value = area.toFixed(2);
-                    newRow.querySelector('.item-name').value = `Bahan ${width}m x ${length}m`;
-                    newRow.querySelector('.item-price').value = pricePerSqm;
+            const ctx2 = document.getElementById('chart-allocation').getContext('2d');
+            allocationChart = new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Modal Bahan', 'Beban Rawat Mesin', 'Laba Bersih'],
+                    datasets: [{
+                        data: [modal, maintenance, netProfit > 0 ? netProfit : 0],
+                        backgroundColor: ['#6366f1', '#f43f5e', '#22c55e'],
+                        borderWidth: 2,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } }
                 }
-                
-                updateCalculations();
-                showCustomMessage(`Perhitungan: ${length}m x ${width}m = ${area.toFixed(2)}m²\nHarga: Rp ${totalPrice.toLocaleString('id-ID')}`);
-            }
+            });
         }
 
-        function openMaterialCalculator() {
-            const calculator = `
-                <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 400px;">
-                    <h3 style="margin-bottom: 15px; color: #1f2937;">Kalkulator Bahan Percetakan</h3>
+        function renderSettingsTab() {
+            document.getElementById('setting-company-name').value = settingDB.companyName || "";
+            document.getElementById('setting-company-phone').value = settingDB.companyPhone || "";
+            document.getElementById('setting-company-address').value = settingDB.companyAddress || "";
+        }
+
+        function saveCompanyProfile() {
+            settingDB.companyName = document.getElementById('setting-company-name').value.trim();
+            settingDB.companyPhone = document.getElementById('setting-company-phone').value.trim();
+            settingDB.companyAddress = document.getElementById('setting-company-address').value.trim();
+
+            saveToLocalStorage();
+            triggerNotification("Profil perusahaan berhasil diperbarui!");
+        }
+    </script>
+
+    <script>
+        /* Replicating the physical print design of "Capture_2.JPG" */
+        function printInvoiceA5(id) {
+            const inv = invoiceDB.find(x => x.id === id);
+            if (!inv) return;
+
+            const due = inv.total - inv.paid;
+            
+            const printHTML = `
+                <div style="font-family: Arial, sans-serif; padding: 18px; border: 4px solid #f59e0b; width: 100%; max-width: 148mm; min-height: 105mm; background-color: #fff; box-sizing: border-box; margin: 0 auto; position: relative; color: #1e293b;">
                     
-                    <div style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">Lebar Bahan:</label>
-                        <select id="calcWidth" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
-                            <option value="1.6">1.6 meter (Rp 35.000/m²)</option>
-                            <option value="1.1">1.1 meter (Rp 40.000/m²)</option>
-                            <option value="custom">Custom</option>
-                        </select>
+                    <!-- Mode Header (Matching yellow alert banner from Capture_2) -->
+                    <div style="position: absolute; top: 0; right: 0; background: #eab308; color: black; font-weight: 900; font-size: 8pt; padding: 4px 12px; border-bottom-left-radius: 6px; letter-spacing: 0.5px;">
+                        MODE EDIT AKTIF
                     </div>
-                    
-                    <div style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">Panjang (meter):</label>
-                        <input type="number" id="calcLength" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;" step="0.1">
-                    </div>
-                    
-                    <div style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">Harga per m² (Rp):</label>
-                        <input type="number" id="calcPrice" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;" value="35000">
-                    </div>
-                    
-                    <div style="margin-bottom: 15px; padding: 10px; background: #f3f4f6; border-radius: 4px;">
-                        <p style="margin: 0; font-weight: 500;">Hasil Perhitungan:</p>
-                        <p id="calcResult" style="margin: 5px 0 0 0; color: #059669;">Luas: 0 m² | Total: Rp 0</p>
-                    </div>
-                    
-                    <div style="display: flex; gap: 10px;">
-                        <button onclick="addCalculatedMaterial()" style="flex: 1; background: #10b981; color: white; padding: 10px; border: none; border-radius: 4px; cursor: pointer;">Tambah ke Nota</button>
-                        <button onclick="closeCalculator()" style="flex: 1; background: #6b7280; color: white; padding: 10px; border: none; border-radius: 4px; cursor: pointer;">Tutup</button>
+
+                    <!-- Header Grid -->
+                    <table style="width: 100%; border-bottom: 2px solid #1e293b; padding-bottom: 8px; margin-bottom: 12px; border-collapse: collapse;">
+                        <tr>
+                            <td style="vertical-align: top; width: 60%; text-align: left;">
+                                <h1 style="margin: 0; color: #1e3a8a; font-size: 20pt; font-weight: 900; letter-spacing: -0.5px; line-height: 1.1;">${settingDB.companyName}</h1>
+                                <p style="margin: 2px 0 0 0; font-size: 8pt; font-weight: bold; color: #dc2626; letter-spacing: 1px;">${settingDB.companySlogan}</p>
+                                <p style="margin: 4px 0 0 0; font-size: 7.5pt; color: #475569; line-height: 1.3;">
+                                    ${settingDB.companyAddress}<br>
+                                    Tlp/WA. ${settingDB.companyPhone} | ${settingDB.companyEmail}
+                                </p>
+                            </td>
+                            <td style="vertical-align: top; width: 40%; text-align: right; padding-top: 15px; font-size: 8.5pt;">
+                                <table style="width: 100%; text-align: right; border-collapse: collapse;">
+                                    <tr>
+                                        <td style="color: #475569; padding-bottom: 2px; text-align: right; padding-right: 5px;">Tanggal:</td>
+                                        <td style="font-weight: bold; padding-bottom: 2px; border-bottom: 1px dotted #cbd5e1; width: 100px; text-align: left;">${inv.date}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="color: #475569; padding-bottom: 2px; text-align: right; padding-right: 5px;">Tuan:</td>
+                                        <td style="font-weight: bold; padding-bottom: 2px; border-bottom: 1px dotted #cbd5e1; text-transform: uppercase; text-align: left;">${inv.customer}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="color: #475569; padding-bottom: 8px; text-align: right; padding-right: 5px;">Tlp:</td>
+                                        <td style="font-weight: bold; padding-bottom: 8px; border-bottom: 1px dotted #cbd5e1; text-align: left;">${inv.phone || '-'}</td>
+                                    </tr>
+                                </table>
+                                <div style="font-weight: 900; font-size: 10pt; color: black; margin-top: 6px; letter-spacing: 0.5px; text-align: right;">
+                                    NO: ${inv.id}
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <!-- Items Table (NO MACHINE, NO PROCESS! Exact Capture_2 style) -->
+                    <table style="width: 100%; border-collapse: collapse; font-size: 8.5pt; margin-top: 5px; border: 1px solid #cbd5e1;">
+                        <thead>
+                            <tr style="background-color: #1e3a8a; color: white; text-transform: uppercase; font-weight: bold;">
+                                <th style="padding: 6px; text-align: center; border: 1px solid #1e3a8a; width: 30px;">No</th>
+                                <th style="padding: 6px; text-align: left; border: 1px solid #1e3a8a;">Nama Barang</th>
+                                <th style="padding: 6px; text-align: center; border: 1px solid #1e3a8a; width: 60px;">Qty</th>
+                                <th style="padding: 6px; text-align: right; border: 1px solid #1e3a8a; width: 100px;">Harga</th>
+                                <th style="padding: 6px; text-align: right; border: 1px solid #1e3a8a; width: 120px;">Jumlah</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${inv.items.map((item, idx) => `
+                                <tr style="border-bottom: 1px solid #e2e8f0;">
+                                    <td style="padding: 6px; text-align: center; border-left: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; color: #475569;">${idx + 1}</td>
+                                    <td style="padding: 6px; border-right: 1px solid #e2e8f0; font-weight: bold; text-transform: uppercase; text-align: left;">${item.name}</td>
+                                    <td style="padding: 6px; text-align: center; border-right: 1px solid #e2e8f0;">${item.qty}</td>
+                                    <td style="padding: 6px; text-align: right; border-right: 1px solid #e2e8f0;">${formatRupiah(item.price)}</td>
+                                    <td style="padding: 6px; text-align: right; border-right: 1px solid #e2e8f0; font-weight: bold;">${formatRupiah(item.qty * item.price)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+
+                    <!-- Bottom Grid Summary (Diterima, Rekening & Totals Stack) -->
+                    <table style="width: 100%; margin-top: 15px; font-size: 8pt; border-collapse: collapse;">
+                        <tr>
+                            <!-- Left: Recipient & Payments -->
+                            <td style="vertical-align: top; width: 50%; text-align: left;">
+                                <div style="margin-bottom: 25px;">
+                                    <p style="margin: 0; font-weight: bold;">Diterima,</p>
+                                    <div style="margin-top: 35px; border-bottom: 1px solid #1e293b; width: 180px; text-align: center; color: #94a3b8;">
+                                        ( ............................................ )
+                                    </div>
+                                </div>
+                                <div style="font-size: 7.5pt; color: black; line-height: 1.4; border-top: 1px solid #e2e8f0; padding-top: 4px;">
+                                    <b style="font-size: 7pt; text-transform: uppercase; color: #475569;">Pembayaran Bisa Melalui:</b><br>
+                                    ${settingDB.paymentAccount.replace(/\n/g, '<br>')}
+                                </div>
+                            </td>
+
+                            <!-- Right: Totals stack with boxes -->
+                            <td style="vertical-align: top; width: 50%; padding-left: 30px;">
+                                <table style="width: 100%; border-collapse: separate; border-spacing: 0 4px;">
+                                    <tr>
+                                        <td style="font-weight: bold; text-align: right; padding-right: 10px; width: 45%;">Jumlah Rp.</td>
+                                        <td style="border: 1px solid #1e293b; padding: 4px 8px; text-align: right; font-weight: bold; width: 55%; background: #f8fafc;">
+                                            ${formatRupiah(inv.total)}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="font-weight: bold; text-align: right; padding-right: 10px;">Uang Muka Rp.</td>
+                                        <td style="border: 1px solid #1e293b; padding: 4px 8px; text-align: right; font-weight: bold; background: #f8fafc;">
+                                            ${formatRupiah(inv.paid)}
+                                        </td>
+                                    </tr>
+                                    <tr style="color: #dc2626;">
+                                        <td style="font-weight: bold; text-align: right; padding-right: 10px;">Kurang Rp.</td>
+                                        <td style="border: 1px solid #dc2626; padding: 4px 8px; text-align: right; font-weight: 900; background: #fef2f2;">
+                                            ${formatRupiah(due)}
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <!-- Return Policy warning box -->
+                    <div style="margin-top: 15px; border: 1.5px solid #dc2626; padding: 6px; text-align: center; color: #dc2626; font-size: 7.5pt; font-weight: bold; border-radius: 4px;">
+                        PERHATIAN !!! Barang-barang yang sudah dibeli tidak bisa ditukar / dikembalikan
                     </div>
                 </div>
             `;
-            
-            const overlay = document.createElement('div');
-            overlay.id = 'calculatorOverlay';
-            overlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000;';
-            overlay.innerHTML = calculator;
-            document.body.appendChild(overlay);
-            
-            document.getElementById('calcWidth').addEventListener('change', function() {
-                const width = this.value;
-                if (width === '1.6') {
-                    document.getElementById('calcPrice').value = 35000;
-                } else if (width === '1.1') {
-                    document.getElementById('calcPrice').value = 40000;
-                } else {
-                    document.getElementById('calcPrice').value = '';
-                }
-                updateCalcResult();
-            });
-            
-            document.getElementById('calcLength').addEventListener('input', updateCalcResult);
-            document.getElementById('calcPrice').addEventListener('input', updateCalcResult);
-            
-            function updateCalcResult() {
-                const width = parseFloat(document.getElementById('calcWidth').value) || 0;
-                const length = parseFloat(document.getElementById('calcLength').value) || 0;
-                const price = parseFloat(document.getElementById('calcPrice').value) || 0;
-                const area = width * length;
-                const total = area * price;
-                
-                document.getElementById('calcResult').textContent = 
-                    `Luas: ${area.toFixed(2)} m² | Total: Rp ${total.toLocaleString('id-ID')}`;
-            }
+
+            // 1. Load HTML to the screen preview container inside modal
+            document.getElementById('simulated-print-paper').innerHTML = printHTML;
+
+            // 2. Load HTML to the actual hidden printing printArea element
+            document.getElementById('printArea').innerHTML = printHTML;
+
+            // 3. Open the Modal so user can visually verify and click print
+            document.getElementById('print-preview-modal').classList.remove('hidden');
         }
 
-        function addCalculatedMaterial() {
-            const width = document.getElementById('calcWidth').value;
-            const length = parseFloat(document.getElementById('calcLength').value) || 0;
-            const price = parseFloat(document.getElementById('calcPrice').value) || 0;
-            
-            if (length <= 0) {
-                showCustomMessage('Mohon masukkan panjang yang valid!');
-                return;
-            }
-            
-            const area = parseFloat(width) * length;
-            
-            const rows = document.querySelectorAll('#itemsTable tr');
-            const lastRow = rows[rows.length - 1];
-            
-            if (lastRow.querySelector('.item-name').value === '') {
-                lastRow.querySelector('.quantity-input').value = area.toFixed(2);
-                lastRow.querySelector('.item-name').value = `Bahan ${width}m x ${length}m`;
-                lastRow.querySelector('.item-price').value = price;
-            } else {
-                addItem();
-                const newRows = document.querySelectorAll('#itemsTable tr');
-                const newRow = newRows[newRows.length - 1];
-                newRow.querySelector('.quantity-input').value = area.toFixed(2);
-                newRow.querySelector('.item-name').value = `Bahan ${width}m x ${length}m`;
-                newRow.querySelector('.item-price').value = price;
-            }
-            
-            updateCalculations();
-            closeCalculator();
-            showCustomMessage('Bahan berhasil ditambahkan ke nota!');
+        function closePrintPreview() {
+            document.getElementById('print-preview-modal').classList.add('hidden');
         }
 
-        function closeCalculator() {
-            const overlay = document.getElementById('calculatorOverlay');
-            if (overlay) {
-                overlay.remove();
+        function triggerActualPrint() {
+            window.print();
+        }
+
+        function copyInvoiceTextToClipboard() {
+            const paper = document.getElementById('simulated-print-paper');
+            const range = document.createRange();
+            range.selectNode(paper);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+            try {
+                // Compatible with sandboxed iframe clipboard operations
+                document.execCommand('copy');
+                triggerNotification("Nota berhasil disalin ke clipboard! Siap dikirimkan ke WhatsApp.");
+            } catch (err) {
+                triggerNotification("Gagal menyalin nota secara otomatis.");
             }
+            window.getSelection().removeAllRanges();
+        }
+
+        /* INITIAL START */
+        window.onload = function() {
+            loadDatabase();
+            updateDashboard();
         }
     </script>
 </body>
