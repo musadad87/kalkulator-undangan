@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CMYK Ink & Density Analyzer - Analisis Tinta Cetak</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        cmykCyan: '#009EE3',
+                        cmykMagenta: '#E5007D',
+                        cmykYellow: '#FFF100',
+                        cmykBlack: '#1A171B',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .checkerboard-bg {
+            background-color: #f1f5f9;
+            background-image: linear-gradient(45deg, #cbd5e1 25%, transparent 25%), linear-gradient(-45deg, #cbd5e1 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #cbd5e1 75%), linear-gradient(-45deg, transparent 75%, #cbd5e1 75%);
+            background-size: 16px 16px;
+            background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen font-sans antialiased selection:bg-cyan-500 selection:text-white">
+
+    <!-- Navigation / Header -->
+    <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 via-fuchsia-500 to-yellow-400 p-0.5 shadow-lg shadow-cyan-500/20">
+                    <div class="w-full h-full bg-slate-900 rounded-[10px] flex items-center justify-center">
+                        <i class="fa-solid me-0 fa-print text-cyan-400 text-lg"></i>
+                    </div>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+                        CMYK Ink Analyzer
+                    </h1>
+                    <p class="text-xs text-slate-400">Analisis Kebutuhan & Cakupan Tinta Cetak</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <button id="btnSampleGen" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition flex items-center gap-2">
+                    <i class="fa-solid fa-palette text-amber-400"></i>
+                    Gunakan Contoh Gambar
+                </button>
+                <button id="btnPrintReport" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-600/20 transition flex items-center gap-2">
+                    <i class="fa-solid fa-file-pdf"></i>
+                    Cetak Laporan
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+        <!-- Top Control Bar / Drag & Drop -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2">
+                <div id="dropZone" class="border-2 border-dashed border-slate-700 hover:border-cyan-500 rounded-2xl p-6 bg-slate-800/40 hover:bg-slate-800/80 transition-all text-center cursor-pointer group relative overflow-hidden">
+                    <input type="file" id="fileInput" accept="image/*" class="hidden">
+                    <div class="flex flex-col items-center justify-center gap-3 relative z-10">
+                        <div class="w-14 h-14 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center group-hover:scale-110 group-hover:border-cyan-500 transition-all">
+                            <i class="fa-solid fa-cloud-arrow-up text-2xl text-slate-400 group-hover:text-cyan-400"></i>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-slate-200 text-sm sm:text-base">
+                                Drag & Drop gambar desain di sini atau <span class="text-cyan-400 underline">Pilih File</span>
+                            </p>
+                            <p class="text-xs text-slate-400 mt-1">Mendukung format JPG, PNG, WEBP, TIFF (dikonversi otomatis ke profil CMYK standar)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pre-Press Settings Box -->
+            <div class="bg-slate-800/60 border border-slate-700/80 rounded-2xl p-5 flex flex-col justify-between">
+                <div>
+                    <h3 class="font-bold text-sm text-slate-200 flex items-center gap-2 mb-3">
+                        <i class="fa-solid fa-sliders text-cyan-400"></i> Pengaturan Analisis Pre-Press
+                    </h3>
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between text-xs text-slate-300 mb-1">
+                                <span>Batas TAC (Total Area Coverage) Limit:</span>
+                                <span id="tacLimitValue" class="font-bold text-amber-400">300%</span>
+                            </div>
+                            <input type="range" id="tacLimitInput" min="200" max="380" step="10" value="300" class="w-full accent-cyan-500 bg-slate-700 rounded-lg cursor-pointer h-2">
+                            <p class="text-[11px] text-slate-400 mt-1">Standar offset/digital biasanya 280% - 300%. Nilai di atas ini berisiko tinta lambat kering & bleber.</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs text-slate-300 mb-1">Metode Sampling Gambar:</label>
+                            <select id="samplingSelect" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
+                                <option value="1">Presisi Penuh (100% Piksel - Lambat untuk gambar raksasa)</option>
+                                <option value="2" selected>Standar Pre-Press (Sampel tiap 2 piksel - Direkomendasikan)</option>
+                                <option value="4">Cepat (Sampel tiap 4 piksel)</option>
+                            </select>
+                        </div>
+
+                        <!-- Penyesuaian & Naik-Turun Warna Tinta -->
+                        <div class="border-t border-slate-700/70 pt-3 space-y-2.5">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-wand-magic-sparkles text-fuchsia-400"></i> Tuning / Edit Tinta CMYK
+                                </span>
+                                <button id="btnResetInkBoost" class="text-[11px] text-cyan-400 hover:text-cyan-300 underline font-medium">
+                                    Reset Tinta
+                                </button>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2 text-[11px]">
+                                <!-- Cyan Boost -->
+                                <div class="bg-slate-900/60 p-2 rounded-lg border border-slate-800">
+                                    <div class="flex justify-between text-cyan-400 font-semibold mb-1">
+                                        <span>Cyan (C):</span>
+                                        <span id="txtBoostC">+0%</span>
+                                    </div>
+                                    <input type="range" id="sliderBoostC" min="-50" max="50" value="0" step="1" class="w-full accent-cyan-400 bg-slate-700 h-1.5 rounded-lg cursor-pointer">
+                                </div>
+                                <!-- Magenta Boost -->
+                                <div class="bg-slate-900/60 p-2 rounded-lg border border-slate-800">
+                                    <div class="flex justify-between text-fuchsia-400 font-semibold mb-1">
+                                        <span>Magenta (M):</span>
+                                        <span id="txtBoostM">+0%</span>
+                                    </div>
+                                    <input type="range" id="sliderBoostM" min="-50" max="50" value="0" step="1" class="w-full accent-fuchsia-400 bg-slate-700 h-1.5 rounded-lg cursor-pointer">
+                                </div>
+                                <!-- Yellow Boost -->
+                                <div class="bg-slate-900/60 p-2 rounded-lg border border-slate-800">
+                                    <div class="flex justify-between text-yellow-400 font-semibold mb-1">
+                                        <span>Yellow (Y):</span>
+                                        <span id="txtBoostY">+0%</span>
+                                    </div>
+                                    <input type="range" id="sliderBoostY" min="-50" max="50" value="0" step="1" class="w-full accent-yellow-400 bg-slate-700 h-1.5 rounded-lg cursor-pointer">
+                                </div>
+                                <!-- Key Black Boost -->
+                                <div class="bg-slate-900/60 p-2 rounded-lg border border-slate-800">
+                                    <div class="flex justify-between text-slate-300 font-semibold mb-1">
+                                        <span>Black (K):</span>
+                                        <span id="txtBoostK">+0%</span>
+                                    </div>
+                                    <input type="range" id="sliderBoostK" min="-50" max="50" value="0" step="1" class="w-full accent-slate-400 bg-slate-700 h-1.5 rounded-lg cursor-pointer">
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Metrics Cards (Summary CMYK) -->
+        <section class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            <!-- Cyan Card -->
+            <div class="bg-slate-800/60 border border-slate-700/80 rounded-xl p-4 relative overflow-hidden group">
+                <div class="absolute top-0 right-0 w-2 h-full bg-cyan-500"></div>
+                <p class="text-xs font-semibold text-cyan-400 uppercase tracking-wider mb-1">Cyan (C)</p>
+                <h4 id="valCyan" class="text-2xl font-extrabold text-white">0%</h4>
+                <div class="w-full bg-slate-700/60 h-1.5 rounded-full mt-3 overflow-hidden">
+                    <div id="barCyan" class="bg-cyan-500 h-full w-0 transition-all duration-500"></div>
+                </div>
+            </div>
+
+            <!-- Magenta Card -->
+            <div class="bg-slate-800/60 border border-slate-700/80 rounded-xl p-4 relative overflow-hidden group">
+                <div class="absolute top-0 right-0 w-2 h-full bg-fuchsia-500"></div>
+                <p class="text-xs font-semibold text-fuchsia-400 uppercase tracking-wider mb-1">Magenta (M)</p>
+                <h4 id="valMagenta" class="text-2xl font-extrabold text-white">0%</h4>
+                <div class="w-full bg-slate-700/60 h-1.5 rounded-full mt-3 overflow-hidden">
+                    <div id="barMagenta" class="bg-fuchsia-500 h-full w-0 transition-all duration-500"></div>
+                </div>
+            </div>
+
+            <!-- Yellow Card -->
+            <div class="bg-slate-800/60 border border-slate-700/80 rounded-xl p-4 relative overflow-hidden group">
+                <div class="absolute top-0 right-0 w-2 h-full bg-yellow-400"></div>
+                <p class="text-xs font-semibold text-yellow-400 uppercase tracking-wider mb-1">Yellow (Y)</p>
+                <h4 id="valYellow" class="text-2xl font-extrabold text-white">0%</h4>
+                <div class="w-full bg-slate-700/60 h-1.5 rounded-full mt-3 overflow-hidden">
+                    <div id="barYellow" class="bg-yellow-400 h-full w-0 transition-all duration-500"></div>
+                </div>
+            </div>
+
+            <!-- Key/Black Card -->
+            <div class="bg-slate-800/60 border border-slate-700/80 rounded-xl p-4 relative overflow-hidden group">
+                <div class="absolute top-0 right-0 w-2 h-full bg-slate-400"></div>
+                <p class="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Black (K)</p>
+                <h4 id="valKey" class="text-2xl font-extrabold text-white">0%</h4>
+                <div class="w-full bg-slate-700/60 h-1.5 rounded-full mt-3 overflow-hidden">
+                    <div id="barKey" class="bg-slate-400 h-full w-0 transition-all duration-500"></div>
+                </div>
+            </div>
+
+            <!-- Total Average Ink -->
+            <div class="bg-slate-800/60 border border-slate-700/80 rounded-xl p-4 relative overflow-hidden group">
+                <div class="absolute top-0 right-0 w-2 h-full bg-emerald-500"></div>
+                <p class="text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-1">Rata2 Total Tinta</p>
+                <h4 id="valAvgTotal" class="text-2xl font-extrabold text-white">0%</h4>
+                <p class="text-[10px] text-slate-400 mt-2">Daya Cakup Rata-Rata</p>
+            </div>
+
+            <!-- Max TAC Density -->
+            <div class="bg-slate-800/60 border border-slate-700/80 rounded-xl p-4 relative overflow-hidden group">
+                <div class="absolute top-0 right-0 w-2 h-full bg-amber-500"></div>
+                <p class="text-xs font-semibold text-amber-400 uppercase tracking-wider mb-1">Max TAC Found</p>
+                <h4 id="valMaxTac" class="text-2xl font-extrabold text-white">0%</h4>
+                <p id="tacStatusBadge" class="text-[10px] font-bold text-slate-400 mt-2">Maksimum Tumpukan</p>
+            </div>
+        </section>
+
+        <!-- Main Interactive Workspace -->
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+            <!-- Left: Canvas View & Channel Switcher (8 Cols) -->
+            <div class="lg:col-span-8 space-y-4">
+                <div class="bg-slate-800/60 border border-slate-700/80 rounded-2xl p-4">
+                    <!-- Toolbar View Tabs -->
+                    <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-700 mb-4">
+                        <div class="flex items-center gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs">
+                            <button data-view="all" class="view-btn px-3 py-1.5 rounded-lg font-medium text-white bg-slate-700 transition">Semua Warna</button>
+                            <button data-view="cyan" class="view-btn px-3 py-1.5 rounded-lg font-medium text-slate-400 hover:text-cyan-400 transition">Cyan (C)</button>
+                            <button data-view="magenta" class="view-btn px-3 py-1.5 rounded-lg font-medium text-slate-400 hover:text-fuchsia-400 transition">Magenta (M)</button>
+                            <button data-view="yellow" class="view-btn px-3 py-1.5 rounded-lg font-medium text-slate-400 hover:text-yellow-400 transition">Yellow (Y)</button>
+                            <button data-view="black" class="view-btn px-3 py-1.5 rounded-lg font-medium text-slate-400 hover:text-slate-200 transition">Black (K)</button>
+                            <button data-view="tac" class="view-btn px-3 py-1.5 rounded-lg font-medium text-red-400 hover:bg-red-950/40 transition">Peta Over-TAC</button>
+                        </div>
+                        
+                        <div class="flex items-center gap-2 text-xs text-slate-400">
+                            <span id="dimensionLabel"><i class="fa-solid fa-ruler-combined"></i> 0 x 0 px</span>
+                        </div>
+                    </div>
+
+                    <!-- Canvas Container with Interactive Pixel Inspector -->
+                    <div class="relative checkerboard-bg rounded-xl overflow-hidden min-h-[350px] max-h-[550px] flex items-center justify-center border border-slate-700/50 group">
+                        <canvas id="mainCanvas" class="max-w-full max-h-[520px] object-contain cursor-crosshair shadow-2xl"></canvas>
+                        
+                        <!-- Empty State Overlay -->
+                        <div id="emptyState" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/80 text-center p-6 backdrop-blur-sm">
+                            <i class="fa-solid fa-image text-4xl text-slate-600 mb-3 animate-pulse"></i>
+                            <h3 class="text-base font-bold text-slate-300">Belum Ada Gambar Ditampilkan</h3>
+                            <p class="text-xs text-slate-400 max-w-sm mt-1">Unggah gambar cetak Anda atau klik tombol "Gunakan Contoh Gambar" di bagian kanan atas.</p>
+                        </div>
+
+                        <!-- Pixel Inspector Tooltip -->
+                        <div id="loupeTooltip" class="absolute hidden pointer-events-none bg-slate-900/95 border border-slate-700 shadow-2xl rounded-xl p-3 text-xs z-30 w-48 backdrop-blur">
+                            <div class="flex items-center gap-2 mb-2 pb-1.5 border-b border-slate-800">
+                                <div id="inspectColorSwatch" class="w-4 h-4 rounded-full border border-white/20"></div>
+                                <span class="font-bold text-slate-200" id="inspectCoord">X:0 Y:0</span>
+                            </div>
+                            <div class="space-y-1 font-mono text-[11px]">
+                                <div class="flex justify-between text-cyan-400"><span>C:</span><span id="inspC">0%</span></div>
+                                <div class="flex justify-between text-fuchsia-400"><span>M:</span><span id="inspM">0%</span></div>
+                                <div class="flex justify-between text-yellow-400"><span>Y:</span><span id="inspY">0%</span></div>
+                                <div class="flex justify-between text-slate-300"><span>K:</span><span id="inspK">0%</span></div>
+                                <div class="flex justify-between text-amber-400 font-bold border-t border-slate-800 pt-1">
+                                    <span>TAC Total:</span><span id="inspTAC">0%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Live Pixel Inspector & Chart Breakdown (4 Cols) -->
+            <div class="lg:col-span-4 space-y-4">
+                <!-- Color Breakdown Chart Card -->
+                <div class="bg-slate-800/60 border border-slate-700/80 rounded-2xl p-4">
+                    <h3 class="font-bold text-sm text-slate-200 mb-3 flex items-center justify-between">
+                        <span><i class="fa-solid fa-chart-pie text-cyan-400 mr-2"></i> Proporsi Tinta Terpakai</span>
+                    </h3>
+                    <div class="h-52 relative flex items-center justify-center">
+                        <canvas id="cmykPieChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Ink Consumption Calculator for Spanduk / Banner -->
+                <div class="bg-slate-800/60 border border-slate-700/80 rounded-2xl p-4 space-y-3">
+                    <h3 class="font-bold text-sm text-slate-200 flex items-center gap-2">
+                        <i class="fa-solid fa-calculator text-emerald-400"></i> Estimator Gramasi Tinta Spanduk
+                    </h3>
+                    
+                    <div class="grid grid-cols-2 gap-3 text-xs">
+                        <div>
+                            <label class="text-slate-400 block mb-1">Panjang Spanduk (Meter):</label>
+                            <input type="number" id="bannerWidth" value="3" min="0.1" step="0.1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500">
+                        </div>
+                        <div>
+                            <label class="text-slate-400 block mb-1">Tinggi / Lebar (Meter):</label>
+                            <input type="number" id="bannerHeight" value="1" min="0.1" step="0.1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500">
+                        </div>
+                        <div class="col-span-2 sm:col-span-1">
+                            <label class="text-slate-400 block mb-1">Mode Fitting Gambar:</label>
+                            <select id="bannerFitMode" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500">
+                                <option value="crop" selected>Potong Sesuai Rasio Spanduk (Crop)</option>
+                                <option value="stretch">Tarik Gambar (Stretch / Fill)</option>
+                                <option value="original">Gunakan Rasio Asli Gambar</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-slate-400 block mb-1">Jumlah Spanduk (Pcs):</label>
+                            <input type="number" id="printQuantity" value="1" min="1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500">
+                        </div>
+                        <div class="col-span-2">
+                            <label class="text-slate-400 block mb-1">Takaran Tinta (g/m² @ 100%):</label>
+                            <input type="number" id="inkRate" value="10" min="1" step="0.5" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500" title="Standar Cetak Flexi Banner ~10g/m²">
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3 space-y-2 text-xs">
+                        <div class="flex justify-between items-center text-slate-400 pb-1 border-b border-slate-800">
+                            <span>Total Luas Cetak:</span>
+                            <span id="totalAreaLabel" class="font-bold text-slate-200 font-mono">3.00 m²</span>
+                        </div>
+                        <div class="flex justify-between items-center text-slate-300">
+                            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-cyan-500 inline-block"></span> Tinta C:</span>
+                            <span id="estCyan" class="font-bold font-mono text-cyan-400">0.00 Gram</span>
+                        </div>
+                        <div class="flex justify-between items-center text-slate-300">
+                            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-fuchsia-500 inline-block"></span> Tinta M:</span>
+                            <span id="estMagenta" class="font-bold font-mono text-fuchsia-400">0.00 Gram</span>
+                        </div>
+                        <div class="flex justify-between items-center text-slate-300">
+                            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-yellow-400 inline-block"></span> Tinta Y:</span>
+                            <span id="estYellow" class="font-bold font-mono text-yellow-400">0.00 Gram</span>
+                        </div>
+                        <div class="flex justify-between items-center text-slate-300">
+                            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-slate-400 inline-block"></span> Tinta K:</span>
+                            <span id="estKey" class="font-bold font-mono text-slate-200">0.00 Gram</span>
+                        </div>
+                        <div class="border-t border-slate-800 pt-2 flex justify-between items-center text-emerald-400 font-bold text-sm">
+                            <span>Total Tinta:</span>
+                            <span id="estTotal" class="font-mono">0.00 Gram</span>
+                        </div>
+                    </div>
+                    <p class="text-[10px] text-slate-500 italic">*Estimasi berdasarkan standar cetak spanduk flexi / outdoor inkjet (~10g/m² pada 100% solid coverage).</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pre-Press Advisory Banner -->
+        <section id="advisoryCard" class="bg-slate-800/40 border border-slate-700/80 rounded-2xl p-5 hidden">
+            <div class="flex items-start gap-4">
+                <div id="advisoryIcon" class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0 mt-0.5">
+                    <i class="fa-solid fa-triangle-exclamation text-xl"></i>
+                </div>
+                <div class="space-y-1">
+                    <h4 id="advisoryTitle" class="font-bold text-slate-200 text-sm">Catatan Pre-Press Hasil Analisis</h4>
+                    <p id="advisoryBody" class="text-xs text-slate-400 leading-relaxed">
+                        Gambar ini memiliki area dengan batas tumpahan tinta berlebih. Harap lakukan Under Color Removal (UCR) atau Gray Component Replacement (GCR) di Adobe Photoshop / RIP Software sebelum masuk mesin cetak.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Hidden Offscreen Working Canvas -->
+    <canvas id="hiddenCanvas" class="hidden"></canvas>
+
+    <script>
+        // State Application
+        let currentImage = null;
+        let cmykPieChart = null;
+        let activeView = 'all'; // all, cyan, magenta, yellow, black, tac
+        let imagePixelData = null; 
+        let imgWidth = 0;
+        let imgHeight = 0;
+
+        // CMYK Ink Adjustment Shifts (-50% to +50%)
+        let boostC = 0;
+        let boostM = 0;
+        let boostY = 0;
+        let boostK = 0;
+
+        // Cumulative CMYK statistics
+        let stats = {
+            avgC: 0,
+            avgM: 0,
+            avgY: 0,
+            avgK: 0,
+            avgTotal: 0,
+            maxTac: 0,
+            overTacCount: 0,
+            totalPixelsAnalyzed: 0
+        };
+
+        // DOM Elements
+        const fileInput = document.getElementById('fileInput');
+        const dropZone = document.getElementById('dropZone');
+        const mainCanvas = document.getElementById('mainCanvas');
+        const hiddenCanvas = document.getElementById('hiddenCanvas');
+        const mainCtx = mainCanvas.getContext('2d');
+        const hiddenCtx = hiddenCanvas.getContext('2d', { willReadFrequently: true });
+        const emptyState = document.getElementById('emptyState');
+        const loupeTooltip = document.getElementById('loupeTooltip');
+        const btnSampleGen = document.getElementById('btnSampleGen');
+        const tacLimitInput = document.getElementById('tacLimitInput');
+        const tacLimitValue = document.getElementById('tacLimitValue');
+        const samplingSelect = document.getElementById('samplingSelect');
+        const bannerFitModeSelect = document.getElementById('bannerFitMode');
+
+        // Ink Boost Sliders
+        const sliderBoostC = document.getElementById('sliderBoostC');
+        const sliderBoostM = document.getElementById('sliderBoostM');
+        const sliderBoostY = document.getElementById('sliderBoostY');
+        const sliderBoostK = document.getElementById('sliderBoostK');
+        const txtBoostC = document.getElementById('txtBoostC');
+        const txtBoostM = document.getElementById('txtBoostM');
+        const txtBoostY = document.getElementById('txtBoostY');
+        const txtBoostK = document.getElementById('txtBoostK');
+        const btnResetInkBoost = document.getElementById('btnResetInkBoost');
+
+        /**
+         * Standard RGB to CMYK Mathematical Conversion
+         * R, G, B in range [0, 255]
+         * Output: C, M, Y, K in percentages [0 - 100%]
+         */
+        function rgbToCmyk(r, g, b) {
+            let rNorm = r / 255;
+            let gNorm = g / 255;
+            let bNorm = b / 255;
+
+            let k = 1 - Math.max(rNorm, gNorm, bNorm);
+            if (k === 1) {
+                return { c: 0, m: 0, y: 0, k: 100, total: 100 };
+            }
+            let c = (1 - rNorm - k) / (1 - k);
+            let m = (1 - gNorm - k) / (1 - k);
+            let y = (1 - bNorm - k) / (1 - k);
+
+            c = Math.round(c * 100);
+            m = Math.round(m * 100);
+            y = Math.round(y * 100);
+            k = Math.round(k * 100);
+            let total = c + m + y + k;
+
+            return { c, m, y, k, total };
+        }
+
+        /**
+         * Standard CMYK to RGB Conversion for Visual Preview
+         * Inputs C, M, Y, K in range [0 - 100]
+         * Output: {r, g, b} in range [0 - 255]
+         */
+        function cmykToRgb(c, m, y, k) {
+            let cNorm = c / 100;
+            let mNorm = m / 100;
+            let yNorm = y / 100;
+            let kNorm = k / 100;
+
+            let r = Math.round(255 * (1 - cNorm) * (1 - kNorm));
+            let g = Math.round(255 * (1 - mNorm) * (1 - kNorm));
+            let b = Math.round(255 * (1 - yNorm) * (1 - kNorm));
+
+            return {
+                r: Math.max(0, Math.min(255, r)),
+                g: Math.max(0, Math.min(255, g)),
+                b: Math.max(0, Math.min(255, b))
+            };
+        }
+
+        function calculateInkWeight() {
+            const width = parseFloat(document.getElementById('bannerWidth').value) || 0;
+            const height = parseFloat(document.getElementById('bannerHeight').value) || 0;
+            const qty = parseFloat(document.getElementById('printQuantity').value) || 1;
+            const rate = parseFloat(document.getElementById('inkRate').value) || 10; // g/m² @ 100%
+
+            const totalArea = width * height * qty;
+            document.getElementById('totalAreaLabel').innerText = totalArea.toFixed(2) + ' m²';
+
+            const weightC = totalArea * (parseFloat(stats.avgC) / 100) * rate;
+            const weightM = totalArea * (parseFloat(stats.avgM) / 100) * rate;
+            const weightY = totalArea * (parseFloat(stats.avgY) / 100) * rate;
+            const weightK = totalArea * (parseFloat(stats.avgK) / 100) * rate;
+            const weightTotal = weightC + weightM + weightY + weightK;
+
+            document.getElementById('estCyan').innerText = weightC.toFixed(2) + ' Gram';
+            document.getElementById('estMagenta').innerText = weightM.toFixed(2) + ' Gram';
+            document.getElementById('estYellow').innerText = weightY.toFixed(2) + ' Gram';
+            document.getElementById('estKey').innerText = weightK.toFixed(2) + ' Gram';
+            document.getElementById('estTotal').innerText = weightTotal.toFixed(2) + ' Gram';
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('cmykPieChart').getContext('2d');
+            cmykPieChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Cyan', 'Magenta', 'Yellow', 'Black'],
+                    datasets: [{
+                        data: [0, 0, 0, 0],
+                        backgroundColor: ['#009EE3', '#E5007D', '#FFF100', '#1A171B'],
+                        borderColor: '#1e293b',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: '#cbd5e1', font: { family: 'Plus Jakarta Sans', size: 11 } }
+                        }
+                    },
+                    cutout: '65%'
+                }
+            });
+        }
+
+        function updateUI() {
+            document.getElementById('valCyan').innerText = stats.avgC + '%';
+            document.getElementById('barCyan').style.width = stats.avgC + '%';
+
+            document.getElementById('valMagenta').innerText = stats.avgM + '%';
+            document.getElementById('barMagenta').style.width = stats.avgM + '%';
+
+            document.getElementById('valYellow').innerText = stats.avgY + '%';
+            document.getElementById('barYellow').style.width = stats.avgY + '%';
+
+            document.getElementById('valKey').innerText = stats.avgK + '%';
+            document.getElementById('barKey').style.width = stats.avgK + '%';
+
+            document.getElementById('valAvgTotal').innerText = stats.avgTotal + '%';
+            document.getElementById('valMaxTac').innerText = stats.maxTac + '%';
+
+            const tacLimit = parseInt(tacLimitInput.value) || 300;
+            const tacStatusBadge = document.getElementById('tacStatusBadge');
+            const advisoryCard = document.getElementById('advisoryCard');
+            const advisoryTitle = document.getElementById('advisoryTitle');
+            const advisoryBody = document.getElementById('advisoryBody');
+            const advisoryIcon = document.getElementById('advisoryIcon');
+
+            if (stats.maxTac > tacLimit) {
+                tacStatusBadge.innerText = `Exceeds limit (${tacLimit}%)`;
+                tacStatusBadge.className = 'text-[10px] font-bold text-red-400 mt-2';
+
+                advisoryCard.classList.remove('hidden');
+                advisoryTitle.innerText = 'Peringatan Pre-Press: Tinta Melebihi Batas TAC!';
+                advisoryBody.innerText = `Ditemukan area dengan tumpukan tinta hingga ${stats.maxTac}% (melebihi batas ${tacLimit}%). Ada ${stats.overTacCount} sampel piksel berisiko tinta lambat kering atau meleber. Disarankan melakukan UCR/GCR di RIP Software.`;
+                advisoryIcon.className = 'w-10 h-10 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-400 shrink-0 mt-0.5';
+            } else {
+                tacStatusBadge.innerText = `Aman (<${tacLimit}%)`;
+                tacStatusBadge.className = 'text-[10px] font-bold text-emerald-400 mt-2';
+
+                advisoryCard.classList.remove('hidden');
+                advisoryTitle.innerText = 'Status Pre-Press: Lapisan Tinta Aman';
+                advisoryBody.innerText = `Tumpukan tinta maksimum (${stats.maxTac}%) berada dalam batas aman standar cetak (${tacLimit}%). Gambar siap untuk proses cetak tanpa risiko ink set-off.`;
+                advisoryIcon.className = 'w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0 mt-0.5';
+            }
+
+            if (cmykPieChart) {
+                cmykPieChart.data.datasets[0].data = [
+                    parseFloat(stats.avgC),
+                    parseFloat(stats.avgM),
+                    parseFloat(stats.avgY),
+                    parseFloat(stats.avgK)
+                ];
+                cmykPieChart.update();
+            }
+
+            calculateInkWeight();
+        }
+
+        function analyzeImage() {
+            if (!currentImage) return;
+
+            const bannerW = parseFloat(document.getElementById('bannerWidth').value) || 3;
+            const bannerH = parseFloat(document.getElementById('bannerHeight').value) || 1;
+            const fitMode = bannerFitModeSelect ? bannerFitModeSelect.value : 'crop';
+
+            // Calculate target dimension ratio based on banner dimensions
+            let targetW = currentImage.width;
+            let targetH = currentImage.height;
+
+            if (fitMode !== 'original' && bannerW > 0 && bannerH > 0) {
+                const targetRatio = bannerW / bannerH;
+                
+                if (fitMode === 'crop') {
+                    // Maintain max resolution matching target aspect ratio
+                    if (currentImage.width / currentImage.height > targetRatio) {
+                        targetH = currentImage.height;
+                        targetW = Math.round(targetH * targetRatio);
+                    } else {
+                        targetW = currentImage.width;
+                        targetH = Math.round(targetW / targetRatio);
+                    }
+                } else if (fitMode === 'stretch') {
+                    targetW = currentImage.width;
+                    targetH = Math.round(currentImage.width / targetRatio);
+                }
+            }
+
+            imgWidth = targetW;
+            imgHeight = targetH;
+
+            document.getElementById('dimensionLabel').innerHTML = `<i class="fa-solid fa-ruler-combined"></i> ${imgWidth} x ${imgHeight} px <span class="text-cyan-400 font-semibold">(${bannerW}m x ${bannerH}m)</span>`;
+
+            // Prepare hidden canvas scaled/cropped to banner ratio
+            hiddenCanvas.width = imgWidth;
+            hiddenCanvas.height = imgHeight;
+            hiddenCtx.clearRect(0, 0, imgWidth, imgHeight);
+
+            if (fitMode === 'crop') {
+                // Center Crop
+                const sourceRatio = currentImage.width / currentImage.height;
+                const targetRatio = bannerW / bannerH;
+                let srcX = 0, srcY = 0, srcW = currentImage.width, srcH = currentImage.height;
+
+                if (sourceRatio > targetRatio) {
+                    srcW = currentImage.height * targetRatio;
+                    srcX = (currentImage.width - srcW) / 2;
+                } else {
+                    srcH = currentImage.width / targetRatio;
+                    srcY = (currentImage.height - srcH) / 2;
+                }
+                hiddenCtx.drawImage(currentImage, srcX, srcY, srcW, srcH, 0, 0, imgWidth, imgHeight);
+            } else if (fitMode === 'stretch') {
+                hiddenCtx.drawImage(currentImage, 0, 0, currentImage.width, currentImage.height, 0, 0, imgWidth, imgHeight);
+            } else {
+                hiddenCtx.drawImage(currentImage, 0, 0);
+            }
+
+            // Get Raw Pixel Data
+            const imgData = hiddenCtx.getImageData(0, 0, imgWidth, imgHeight);
+            imagePixelData = imgData.data;
+
+            const sampling = parseInt(samplingSelect.value) || 2;
+            const tacThreshold = parseInt(tacLimitInput.value) || 300;
+
+            let sumC = 0, sumM = 0, sumY = 0, sumK = 0, sumTotal = 0;
+            let maxTac = 0;
+            let overTacCount = 0;
+            let count = 0;
+
+            // Iterate over pixels based on sampling rate and apply CMYK boost adjustments
+            for (let y = 0; y < imgHeight; y += sampling) {
+                for (let x = 0; x < imgWidth; x += sampling) {
+                    const idx = (y * imgWidth + x) * 4;
+                    const r = imagePixelData[idx];
+                    const g = imagePixelData[idx + 1];
+                    const b = imagePixelData[idx + 2];
+                    const a = imagePixelData[idx + 3];
+
+                    if (a < 10) continue; // Skip transparent background
+
+                    const cmyk = rgbToCmyk(r, g, b);
+
+                    // Apply active user CMYK boosts
+                    let c_adj = Math.max(0, Math.min(100, cmyk.c + boostC));
+                    let m_adj = Math.max(0, Math.min(100, cmyk.m + boostM));
+                    let y_adj = Math.max(0, Math.min(100, cmyk.y + boostY));
+                    let k_adj = Math.max(0, Math.min(100, cmyk.k + boostK));
+                    let total_adj = c_adj + m_adj + y_adj + k_adj;
+
+                    sumC += c_adj;
+                    sumM += m_adj;
+                    sumY += y_adj;
+                    sumK += k_adj;
+                    sumTotal += total_adj;
+
+                    if (total_adj > maxTac) maxTac = total_adj;
+                    if (total_adj > tacThreshold) overTacCount++;
+
+                    count++;
+                }
+            }
+
+            if (count > 0) {
+                stats.avgC = (sumC / count).toFixed(1);
+                stats.avgM = (sumM / count).toFixed(1);
+                stats.avgY = (sumY / count).toFixed(1);
+                stats.avgK = (sumK / count).toFixed(1);
+                stats.avgTotal = (sumTotal / count).toFixed(1);
+                stats.maxTac = maxTac;
+                stats.overTacCount = overTacCount;
+                stats.totalPixelsAnalyzed = count;
+            }
+
+            updateUI();
+            renderChannelView();
+        }
+
+        function renderChannelView() {
+            if (!currentImage) return;
+
+            mainCanvas.width = imgWidth;
+            mainCanvas.height = imgHeight;
+
+            const frameData = hiddenCtx.getImageData(0, 0, imgWidth, imgHeight);
+            const pixels = frameData.data;
+            const outData = mainCtx.createImageData(imgWidth, imgHeight);
+            const outPixels = outData.data;
+            const tacThreshold = parseInt(tacLimitInput.value) || 300;
+
+            // Check if any ink adjustment is active
+            const hasBoost = boostC !== 0 || boostM !== 0 || boostY !== 0 || boostK !== 0;
+
+            for (let i = 0; i < pixels.length; i += 4) {
+                const r = pixels[i];
+                const g = pixels[i + 1];
+                const b = pixels[i + 2];
+                const a = pixels[i + 3];
+
+                if (a < 10) {
+                    outPixels[i + 3] = 0;
+                    continue;
+                }
+
+                const cmyk = rgbToCmyk(r, g, b);
+
+                // Adjusted CMYK values
+                const c_adj = Math.max(0, Math.min(100, cmyk.c + boostC));
+                const m_adj = Math.max(0, Math.min(100, cmyk.m + boostM));
+                const y_adj = Math.max(0, Math.min(100, cmyk.y + boostY));
+                const k_adj = Math.max(0, Math.min(100, cmyk.k + boostK));
+                const total_adj = c_adj + m_adj + y_adj + k_adj;
+
+                if (activeView === 'all') {
+                    if (!hasBoost) {
+                        // Original RGB
+                        outPixels[i] = r;
+                        outPixels[i + 1] = g;
+                        outPixels[i + 2] = b;
+                        outPixels[i + 3] = a;
+                    } else {
+                        // Re-synthesize RGB from adjusted CMYK to display ink change visually
+                        const adjustedRgb = cmykToRgb(c_adj, m_adj, y_adj, k_adj);
+                        outPixels[i] = adjustedRgb.r;
+                        outPixels[i + 1] = adjustedRgb.g;
+                        outPixels[i + 2] = adjustedRgb.b;
+                        outPixels[i + 3] = a;
+                    }
+                } else if (activeView === 'cyan') {
+                    // Render Cyan component in Cyan tint
+                    const val = 255 * (1 - c_adj / 100);
+                    outPixels[i] = val;
+                    outPixels[i + 1] = 255;
+                    outPixels[i + 2] = 255;
+                    outPixels[i + 3] = 255;
+                } else if (activeView === 'magenta') {
+                    // Render Magenta component in Magenta tint
+                    const val = 255 * (1 - m_adj / 100);
+                    outPixels[i] = 255;
+                    outPixels[i + 1] = val;
+                    outPixels[i + 2] = 255;
+                    outPixels[i + 3] = 255;
+                } else if (activeView === 'yellow') {
+                    // Render Yellow component in Yellow tint
+                    const val = 255 * (1 - y_adj / 100);
+                    outPixels[i] = 255;
+                    outPixels[i + 1] = 255;
+                    outPixels[i + 2] = val;
+                    outPixels[i + 3] = 255;
+                } else if (activeView === 'black') {
+                    // Render Black component in Grayscale
+                    const val = 255 * (1 - k_adj / 100);
+                    outPixels[i] = val;
+                    outPixels[i + 1] = val;
+                    outPixels[i + 2] = val;
+                    outPixels[i + 3] = 255;
+                } else if (activeView === 'tac') {
+                    // Highlight High TAC Map in bright red based on adjusted total ink
+                    if (total_adj > tacThreshold) {
+                        outPixels[i] = 239;     // Red
+                        outPixels[i + 1] = 68;  // Green
+                        outPixels[i + 2] = 68;  // Blue
+                        outPixels[i + 3] = 255;
+                    } else {
+                        // Desaturate non-overloaded pixels
+                        const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+                        outPixels[i] = gray * 0.3;
+                        outPixels[i + 1] = gray * 0.3;
+                        outPixels[i + 2] = gray * 0.3;
+                        outPixels[i + 3] = 255;
+                    }
+                }
+            }
+
+            mainCtx.putImageData(outData, 0, 0);
+        }
+
+        // Image Load Handler
+        function loadImage(src) {
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.onload = function () {
+                currentImage = img;
+                emptyState.classList.add('hidden');
+                analyzeImage();
+            };
+            img.src = src;
+        }
+
+        // Create Sample Test Pattern (Graphic Poster with High CMYK variation)
+        function generateSampleImage() {
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = 1200;
+            tempCanvas.height = 800;
+            const ctx = tempCanvas.getContext('2d');
+
+            // Background Gradient
+            const grad = ctx.createLinearGradient(0, 0, 1200, 800);
+            grad.addColorStop(0, '#009EE3'); // Cyan
+            grad.addColorStop(0.33, '#E5007D'); // Magenta
+            grad.addColorStop(0.66, '#FFF100'); // Yellow
+            grad.addColorStop(1, '#000000'); // Rich Black
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 1200, 800);
+
+            // Rich Black Circles (High TAC Area for testing warnings)
+            ctx.fillStyle = 'rgb(10, 5, 5)';
+            ctx.beginPath();
+            ctx.arc(300, 400, 180, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Pure Color Blocks
+            ctx.fillStyle = '#00FFFF'; ctx.fillRect(600, 100, 200, 200);
+            ctx.fillStyle = '#FF00FF'; ctx.fillRect(850, 100, 200, 200);
+            ctx.fillStyle = '#FFFF00'; ctx.fillRect(600, 350, 200, 200);
+            ctx.fillStyle = '#000000'; ctx.fillRect(850, 350, 200, 200);
+
+            // Text
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = 'bold 48px sans-serif';
+            ctx.fillText('SAMPLE CMYK TEST CHART', 100, 120);
+            ctx.font = '24px sans-serif';
+            ctx.fillText('Pre-Press Ink Coverage & TAC Analyzer', 100, 170);
+
+            loadImage(tempCanvas.toDataURL());
+        }
+
+        // Event Listeners
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (evt) => loadImage(evt.target.result);
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Drag and drop setup
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropZone.classList.add('border-cyan-400', 'bg-slate-800');
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('border-cyan-400', 'bg-slate-800');
+            }, false);
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files && files[0]) {
+                const reader = new FileReader();
+                reader.onload = (evt) => loadImage(evt.target.result);
+                reader.readAsDataURL(files[0]);
+            }
+        });
+
+        btnSampleGen.addEventListener('click', generateSampleImage);
+
+        // View Tabs switching
+        document.querySelectorAll('.view-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.view-btn').forEach(b => {
+                    b.classList.remove('bg-slate-700', 'text-white');
+                    b.classList.add('text-slate-400');
+                });
+                btn.classList.add('bg-slate-700', 'text-white');
+                btn.classList.remove('text-slate-400');
+
+                activeView = btn.getAttribute('data-view');
+                renderChannelView();
+            });
+        });
+
+        // Dynamic Settings Adjustments
+        tacLimitInput.addEventListener('input', (e) => {
+            tacLimitValue.innerText = `${e.target.value}%`;
+            if (currentImage) analyzeImage();
+        });
+
+        samplingSelect.addEventListener('change', () => {
+            if (currentImage) analyzeImage();
+        });
+
+        // CMYK Boost Slider Event Handlers
+        function handleBoostChange() {
+            boostC = parseInt(sliderBoostC.value) || 0;
+            boostM = parseInt(sliderBoostM.value) || 0;
+            boostY = parseInt(sliderBoostY.value) || 0;
+            boostK = parseInt(sliderBoostK.value) || 0;
+
+            txtBoostC.innerText = (boostC >= 0 ? `+${boostC}` : boostC) + '%';
+            txtBoostM.innerText = (boostM >= 0 ? `+${boostM}` : boostM) + '%';
+            txtBoostY.innerText = (boostY >= 0 ? `+${boostY}` : boostY) + '%';
+            txtBoostK.innerText = (boostK >= 0 ? `+${boostK}` : boostK) + '%';
+
+            if (currentImage) {
+                analyzeImage();
+            }
+        }
+
+        sliderBoostC.addEventListener('input', handleBoostChange);
+        sliderBoostM.addEventListener('input', handleBoostChange);
+        sliderBoostY.addEventListener('input', handleBoostChange);
+        sliderBoostK.addEventListener('input', handleBoostChange);
+
+        btnResetInkBoost.addEventListener('click', () => {
+            sliderBoostC.value = 0;
+            sliderBoostM.value = 0;
+            sliderBoostY.value = 0;
+            sliderBoostK.value = 0;
+            handleBoostChange();
+        });
+
+        // Event listener for banner dimensions change (triggers real-time canvas aspect ratio update & recalculation)
+        function handleBannerDimensionChange() {
+            calculateInkWeight();
+            if (currentImage) {
+                analyzeImage();
+            }
+        }
+
+        document.getElementById('bannerWidth').addEventListener('input', handleBannerDimensionChange);
+        document.getElementById('bannerHeight').addEventListener('input', handleBannerDimensionChange);
+        document.getElementById('bannerFitMode').addEventListener('change', handleBannerDimensionChange);
+        document.getElementById('printQuantity').addEventListener('input', calculateInkWeight);
+        document.getElementById('inkRate').addEventListener('input', calculateInkWeight);
+
+        // Pixel Inspector Loupe Hover Logic
+        mainCanvas.addEventListener('mousemove', (e) => {
+            if (!currentImage || !imagePixelData) return;
+
+            const rect = mainCanvas.getBoundingClientRect();
+            const scaleX = imgWidth / rect.width;
+            const scaleY = imgHeight / rect.height;
+
+            const canvasX = Math.floor((e.clientX - rect.left) * scaleX);
+            const canvasY = Math.floor((e.clientY - rect.top) * scaleY);
+
+            if (canvasX >= 0 && canvasX < imgWidth && canvasY >= 0 && canvasY < imgHeight) {
+                const idx = (canvasY * imgWidth + canvasX) * 4;
+                const r = imagePixelData[idx];
+                const g = imagePixelData[idx + 1];
+                const b = imagePixelData[idx + 2];
+
+                const cmyk = rgbToCmyk(r, g, b);
+
+                // Show adjusted CMYK values in loupe
+                const c_adj = Math.max(0, Math.min(100, cmyk.c + boostC));
+                const m_adj = Math.max(0, Math.min(100, cmyk.m + boostM));
+                const y_adj = Math.max(0, Math.min(100, cmyk.y + boostY));
+                const k_adj = Math.max(0, Math.min(100, cmyk.k + boostK));
+                const total_adj = c_adj + m_adj + y_adj + k_adj;
+
+                const inspectedRgb = cmykToRgb(c_adj, m_adj, y_adj, k_adj);
+
+                document.getElementById('inspectCoord').innerText = `X:${canvasX} Y:${canvasY}`;
+                document.getElementById('inspC').innerText = `${c_adj}%`;
+                document.getElementById('inspM').innerText = `${m_adj}%`;
+                document.getElementById('inspY').innerText = `${y_adj}%`;
+                document.getElementById('inspK').innerText = `${k_adj}%`;
+                document.getElementById('inspTAC').innerText = `${total_adj}%`;
+                document.getElementById('inspectColorSwatch').style.backgroundColor = `rgb(${inspectedRgb.r},${inspectedRgb.g},${inspectedRgb.b})`;
+
+                // Position tooltip
+                loupeTooltip.style.left = `${e.clientX - rect.left + 15}px`;
+                loupeTooltip.style.top = `${e.clientY - rect.top + 15}px`;
+                loupeTooltip.classList.remove('hidden');
+            }
+        });
+
+        mainCanvas.addEventListener('mouseleave', () => {
+            loupeTooltip.classList.add('hidden');
+        });
+
+        // Print Report Action
+        document.getElementById('btnPrintReport').addEventListener('click', () => {
+            window.print();
+        });
+
+        // Init App on Load
+        window.onload = function () {
+            initChart();
+            generateSampleImage(); // Auto load demo chart on start
+        };
+    </script>
+</body>
+</html>
