@@ -1,0 +1,23 @@
+const express = require('express');
+const app = express();
+app.use(express.json());
+
+// Endpoint Callback / Webhook yang dipanggil oleh QRIS Payment Gateway
+app.post('/webhook/dana', (req, res) => {
+    const data = req.body;
+
+    // Verifikasi pembayaran berhasil
+    if (data.status === 'PAID') {
+        const nominalUangMasuk = data.amount;
+        const idTransaksi = data.transaction_id;
+
+        console.log(`Uang masuk sebesar Rp ${nominalUangMasuk} dari transaksi ID: ${idTransaksi}`);
+
+        // TODO: Simpan nominal ke Database / Kirim Notifikasi ke Aplikasi User
+    }
+
+    // Berikan respons sukses 200 ke server Payment Gateway
+    res.status(200).json({ status: 'success' });
+});
+
+app.listen(3000, () => console.log('Server Webhook berjalan di port 3000'));
