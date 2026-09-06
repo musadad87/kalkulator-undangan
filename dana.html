@@ -16,19 +16,6 @@
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
         }
-        .qris-red {
-            background-color: #ed1c24;
-        }
-        .qris-red-text {
-            color: #ed1c24;
-        }
-        @keyframes soundWave {
-            0%, 100% { transform: scale(1); opacity: 0.8; }
-            50% { transform: scale(1.15); opacity: 1; }
-        }
-        .animate-wave {
-            animation: soundWave 1.2s infinite ease-in-out;
-        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col relative">
@@ -55,10 +42,10 @@
     </div>
 
     <!-- Header / Navbar -->
-    <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center space-x-3">
-                <div class="bg-red-600 text-white p-2 rounded-xl shadow-md shadow-red-500/20">
+                <div class="bg-red-600 text-white p-2.5 rounded-xl shadow-md shadow-red-500/20">
                     <i data-lucide="qr-code" class="w-6 h-6"></i>
                 </div>
                 <div>
@@ -73,36 +60,32 @@
                     <span class="hidden sm:inline">Tes Suara Kasir</span>
                 </button>
                 <!-- Toggle Suara -->
-                <button id="voiceToggleBtn" onclick="toggleVoice()" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors">
-                    <i data-lucide="volume-2" id="voiceIcon" class="w-4 h-4"></i>
+                <button id="voiceToggleBtn" onclick="toggleVoice()" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition-colors">
+                    <i data-lucide="volume-x" id="voiceIcon" class="w-4 h-4"></i>
                     <span id="voiceStatusText">Suara: ON</span>
                 </button>
-                <button onclick="toggleGuideModal()" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors">
-                    <i data-lucide="smartphone" class="w-4 h-4 text-slate-500"></i>
-                    <span class="hidden md:inline">Panduan Merchant</span>
+                <button onclick="toggleQRModal()" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-red-600 text-white shadow-sm hover:bg-red-700 transition-colors">
+                    <i data-lucide="qr-code" class="w-4 h-4"></i>
+                    <span class="hidden sm:inline">Tampilkan QRIS</span>
                 </button>
-                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    <span class="w-2 h-2 mr-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                    Soundbox Active
-                </span>
             </div>
         </div>
     </header>
 
     <!-- Main Container -->
-    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
         <!-- Stat Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
             <!-- Card Total Saldo -->
-            <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow">
+            <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Pembayaran Masuk</span>
-                    <div class="p-2 bg-red-50 text-red-600 rounded-lg">
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Uang Masuk</span>
+                    <div class="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
                         <i data-lucide="wallet" class="w-5 h-5"></i>
                     </div>
                 </div>
-                <div class="mt-4">
+                <div class="mt-3">
                     <h2 class="text-3xl font-extrabold text-slate-900" id="totalAmount">Rp 0</h2>
                     <p class="text-xs text-emerald-600 font-medium mt-1 flex items-center">
                         <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 mr-0.5"></i>
@@ -112,91 +95,106 @@
             </div>
 
             <!-- Card Total Transaksi -->
-            <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow">
+            <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Frekuensi Transaksi</span>
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Transaksi</span>
                     <div class="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
-                        <i data-lucide="receipt" class="w-5 h-5"></i>
+                        <i data-lucide="arrow-down-left" class="w-5 h-5"></i>
                     </div>
                 </div>
-                <div class="mt-4">
+                <div class="mt-3">
                     <h2 class="text-3xl font-extrabold text-slate-900" id="totalCount">0</h2>
-                    <p class="text-xs text-slate-500 mt-1">
-                        Termasuk scan QRIS & E-Wallet
-                    </p>
+                    <p class="text-xs text-slate-500 mt-1">Hari ini</p>
                 </div>
             </div>
 
             <!-- Card Rata-rata Uang Masuk -->
-            <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow">
+            <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm">
                 <div class="flex items-center justify-between">
                     <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Rata-Rata Nominal</span>
-                    <div class="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
+                    <div class="p-2 bg-sky-50 text-sky-600 rounded-lg">
                         <i data-lucide="trending-up" class="w-5 h-5"></i>
                     </div>
                 </div>
-                <div class="mt-4">
+                <div class="mt-3">
                     <h2 class="text-3xl font-extrabold text-slate-900" id="avgAmount">Rp 0</h2>
-                    <p class="text-xs text-slate-500 mt-1">Per transaksi pelanggan</p>
+                    <p class="text-xs text-slate-500 mt-1">Per transaksi</p>
                 </div>
             </div>
         </div>
 
-        <!-- Action Panel & Webhook Guide -->
+        <!-- Tombol Quick Nominal Kasir (Paling Mudah) -->
+        <div class="bg-gradient-to-r from-red-600 to-rose-700 text-white rounded-2xl p-5 shadow-lg">
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center space-x-2">
+                    <i data-lucide="zap" class="w-5 h-5 text-yellow-300"></i>
+                    <h3 class="font-bold text-sm">Tombol Bunyi Cepat Kasir</h3>
+                </div>
+                <span class="text-[11px] bg-white/20 px-2.5 py-0.5 rounded-full font-medium">Klik 1x Suara Berbunyi</span>
+            </div>
+            <p class="text-xs text-red-100 mb-4">Tekan nominal di bawah ini untuk membunyikan suara notifikasi kasir secara langsung:</p>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2.5">
+                <button onclick="quickPay(5000)" class="bg-white/10 hover:bg-white/20 border border-white/20 py-2.5 px-3 rounded-xl font-bold text-sm transition-all text-center active:scale-95">
+                    Rp 5.000
+                </button>
+                <button onclick="quickPay(10000)" class="bg-white/10 hover:bg-white/20 border border-white/20 py-2.5 px-3 rounded-xl font-bold text-sm transition-all text-center active:scale-95">
+                    Rp 10.000
+                </button>
+                <button onclick="quickPay(15000)" class="bg-white/10 hover:bg-white/20 border border-white/20 py-2.5 px-3 rounded-xl font-bold text-sm transition-all text-center active:scale-95">
+                    Rp 15.000
+                </button>
+                <button onclick="quickPay(20000)" class="bg-white/10 hover:bg-white/20 border border-white/20 py-2.5 px-3 rounded-xl font-bold text-sm transition-all text-center active:scale-95">
+                    Rp 20.000
+                </button>
+                <button onclick="quickPay(50000)" class="bg-white/10 hover:bg-white/20 border border-white/20 py-2.5 px-3 rounded-xl font-bold text-sm transition-all text-center active:scale-95">
+                    Rp 50.000
+                </button>
+                <button onclick="quickPay(100000)" class="bg-white/10 hover:bg-white/20 border border-white/20 py-2.5 px-3 rounded-xl font-bold text-sm transition-all text-center active:scale-95">
+                    Rp 100.000
+                </button>
+            </div>
+        </div>
+
+        <!-- Action Panel & Tabel -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            <!-- Simulasi Pembayaran QRIS Musadad.com -->
+            <!-- Input Manual / Simulator -->
             <div class="lg:col-span-1 bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm flex flex-col justify-between">
                 <div>
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="font-bold text-slate-900 flex items-center gap-2">
-                            <i data-lucide="play-circle" class="w-5 h-5 text-red-600"></i>
-                            Simulator Pembayaran QRIS
+                            <i data-lucide="plus-circle" class="w-5 h-5 text-red-600"></i>
+                            Input Transaksi Manual
                         </h3>
-                        <span class="text-xs bg-red-100 text-red-700 font-semibold px-2 py-0.5 rounded">Live Demo</span>
                     </div>
                     <p class="text-xs text-slate-500 mb-4">
-                        Setiap transaksi masuk ke QRIS <b>Musadad.com</b> akan membunyikan suara soundbox otomatis di speaker toko Anda.
+                        Masukkan nominal kustom jika tidak ada di tombol cepat.
                     </p>
 
                     <form id="simForm" class="space-y-4" onsubmit="event.preventDefault(); simulateIncomingPayment();">
                         <div>
-                            <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Pembayar / Pelanggan</label>
-                            <input type="text" id="simSender" required value="Budi Santoso" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all">
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Pengirim</label>
+                            <input type="text" id="simSender" required value="Pelanggan Musadad" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500 transition-all">
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-slate-700 mb-1">Nominal Uang Masuk (Rp)</label>
-                            <input type="number" id="simAmount" required min="1000" step="1000" value="50000" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all">
+                            <input type="number" id="simAmount" required min="1000" step="1000" value="25000" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500 transition-all">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-slate-700 mb-1">Aplikasi Pembayaran Pelanggan</label>
-                            <select id="simMethod" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all">
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Metode Pembayaran</label>
+                            <select id="simMethod" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500 transition-all">
+                                <option value="QRIS Musadad.com">QRIS Musadad.com</option>
                                 <option value="QRIS DANA">QRIS DANA</option>
-                                <option value="QRIS BCA Mobile">QRIS BCA Mobile</option>
-                                <option value="QRIS Mandiri Livin">QRIS Mandiri Livin</option>
-                                <option value="QRIS GoPay">QRIS GoPay / OVO</option>
-                                <option value="QRIS ShopeePay">QRIS ShopeePay</option>
+                                <option value="QRIS BCA/Mandiri">QRIS Bank (BCA/Mandiri)</option>
+                                <option value="QRIS GoPay/Shopee">QRIS e-Wallet (GoPay/Shopee)</option>
                             </select>
                         </div>
                         <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 px-4 rounded-xl shadow-md shadow-red-500/20 transition-all flex items-center justify-center gap-2 text-sm">
                             <i data-lucide="volume-2" class="w-4 h-4"></i>
-                            Simulasi & Bunyikan Suara
+                            Proses & Bunyikan Suara
                         </button>
                     </form>
-                </div>
-
-                <!-- Card QRIS Musadad.com Preview -->
-                <div class="mt-6 pt-5 border-t border-slate-100 flex items-center justify-between">
-                    <div class="text-left">
-                        <p class="text-xs font-bold text-slate-800">Musadad.com</p>
-                        <p class="text-[11px] text-slate-400">NMID: ID1026492236181 (A01)</p>
-                    </div>
-                    <div class="flex gap-2">
-                        <button onclick="toggleQRModal()" class="text-xs bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-3 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1">
-                            <i data-lucide="qr-code" class="w-3.5 h-3.5"></i>
-                            Lihat QRIS Poster
-                        </button>
-                    </div>
                 </div>
             </div>
 
@@ -206,7 +204,7 @@
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                         <h3 class="font-bold text-slate-900 flex items-center gap-2">
                             <i data-lucide="list-ordered" class="w-5 h-5 text-red-600"></i>
-                            Riwayat Pembayaran QRIS Musadad.com
+                            Riwayat Transaksi Musadad.com
                         </h3>
                         <div class="flex items-center gap-2">
                             <div class="relative">
@@ -226,7 +224,7 @@
                                 <tr class="border-b border-slate-100 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
                                     <th class="py-3 px-2">Waktu</th>
                                     <th class="py-3 px-2">ID Transaksi</th>
-                                    <th class="py-3 px-2">Pembayar</th>
+                                    <th class="py-3 px-2">Pengirim</th>
                                     <th class="py-3 px-2">Metode</th>
                                     <th class="py-3 px-2 text-right">Nominal</th>
                                     <th class="py-3 px-2 text-center">Status</th>
@@ -238,303 +236,184 @@
                         </table>
                         <div id="emptyState" class="hidden py-12 text-center text-slate-400">
                             <i data-lucide="inbox" class="w-10 h-10 mx-auto mb-2 stroke-1"></i>
-                            <p class="text-sm">Belum ada data pembayaran QRIS masuk.</p>
+                            <p class="text-sm">Belum ada data uang masuk.</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Footer Info -->
-                <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
-                    <span>Merchant: <b>Musadad.com</b> (NMID: ID1026492236181)</span>
-                    <span>Data tersimpan otomatis di browser kasir</span>
+                <div class="mt-4 pt-3 border-t border-slate-100 text-right">
+                    <span class="text-[11px] text-slate-400">Musadad.com Soundbox System</span>
                 </div>
             </div>
-        </div>
-
-        <!-- Integration Webhook Guide Section -->
-        <div class="bg-slate-900 text-slate-100 rounded-2xl p-6 shadow-xl">
-            <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center space-x-3">
-                    <div class="p-2 bg-slate-800 rounded-lg text-red-400">
-                        <i data-lucide="code-2" class="w-5 h-5"></i>
-                    </div>
-                    <div>
-                        <h3 class="font-bold text-sm text-white">Webhook Integration Payload (Musadad.com)</h3>
-                        <p class="text-xs text-slate-400">Format Callback JSON otomatis saat QRIS memicu suara di aplikasi kasir</p>
-                    </div>
-                </div>
-                <button onclick="copyPayload()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors">
-                    <i data-lucide="copy" class="w-3.5 h-3.5"></i>
-                    <span>Salin Payload</span>
-                </button>
-            </div>
-            
-            <pre class="bg-slate-950 p-4 rounded-xl text-xs font-mono text-emerald-400 overflow-x-auto border border-slate-800" id="jsonPayload">{
-  "event": "qris.payment.success",
-  "merchant_name": "Musadad.com",
-  "nmid": "ID1026492236181",
-  "terminal_id": "A01",
-  "transaction_id": "TRX-QRIS-20260906-8812",
-  "amount": 50000,
-  "currency": "IDR",
-  "payment_method": "QRIS_DANA",
-  "sender_name": "Budi Santoso",
-  "status": "SUCCESS",
-  "timestamp": "2026-09-06T21:30:00Z"
-}</pre>
         </div>
 
     </main>
 
-    <!-- Modal Notification Pop-up Soundbox -->
-    <div id="notifModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity">
-        <div class="bg-white rounded-3xl p-6 max-w-sm w-full mx-4 shadow-2xl text-center transform transition-all scale-95 border border-slate-100" id="modalContent">
-            <div class="relative w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-wave">
-                <i data-lucide="volume-2" class="w-10 h-10 text-red-600"></i>
-                <span class="absolute -top-1 -right-1 flex h-4 w-4">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-4 w-4 bg-red-500"></span>
-                </span>
+    <!-- Modal Notification Pop-up -->
+    <div id="notifModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity">
+        <div class="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl text-center transform transition-all scale-95">
+            <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
+                <i data-lucide="volume-2" class="w-10 h-10"></i>
             </div>
-            <span class="text-[11px] font-bold text-red-600 uppercase tracking-wider bg-red-50 px-3 py-1 rounded-full inline-block mb-2">QRIS Musadad.com Soundbox</span>
-            <h3 class="text-xl font-extrabold text-slate-900">Uang Masuk Terdeteksi!</h3>
+            <h3 class="text-lg font-bold text-slate-900">Uang Masuk Terdeteksi!</h3>
             <p class="text-xs text-slate-500 mt-1" id="notifTime">Baru saja</p>
             
-            <div class="my-5 p-4 bg-slate-50 rounded-2xl border border-slate-200/80">
-                <span class="text-xs font-semibold text-slate-400 block mb-1">Nominal Pembayaran Diterima</span>
-                <span class="text-3xl font-black text-emerald-600 block" id="notifAmount">Rp 50.000</span>
+            <div class="my-5 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                <span class="text-xs font-medium text-slate-400 block mb-1">Musadad.com QRIS</span>
+                <span class="text-3xl font-extrabold text-emerald-600 block" id="notifAmount">Rp 50.000</span>
                 <div class="mt-3 pt-3 border-t border-slate-200/60 text-xs text-slate-600 flex justify-between">
-                    <span>Pelanggan:</span>
-                    <span class="font-bold text-slate-900" id="notifSender">Budi Santoso</span>
+                    <span>Pengirim:</span>
+                    <span class="font-semibold text-slate-800" id="notifSender">Budi Santoso</span>
                 </div>
             </div>
 
-            <button onclick="closeNotifModal()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl text-xs transition-colors shadow-lg">
-                Tutup Notifikasi Kasir
+            <button onclick="closeNotifModal()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-medium py-2.5 rounded-xl text-sm transition-colors">
+                Tutup Notifikasi
             </button>
         </div>
     </div>
 
-    <!-- Modal Official QRIS Poster Musadad.com -->
-    <div id="qrModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4 overflow-y-auto">
-        <div class="bg-white rounded-3xl p-6 max-w-sm w-full mx-auto shadow-2xl relative border-4 border-red-600 text-center">
-            <button onclick="toggleQRModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1 bg-slate-100 rounded-full">
+    <!-- Modal QR Code Musadad.com -->
+    <div id="qrModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl text-center relative">
+            <button onclick="toggleQRModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
                 <i data-lucide="x" class="w-5 h-5"></i>
             </button>
 
-            <!-- QRIS Header Logos -->
-            <div class="flex items-center justify-between mb-4 border-b pb-3">
-                <div class="text-left">
-                    <span class="font-black text-2xl text-slate-900 tracking-tighter block leading-none">QRIS</span>
-                    <span class="text-[9px] text-slate-500 font-semibold block leading-tight">QR Code Standar Pembayaran Nasional</span>
-                </div>
-                <div>
-                    <!-- GPN Logo Styled -->
-                    <div class="flex items-center space-x-1">
-                        <span class="font-extrabold text-red-600 text-lg italic">GPN</span>
-                        <i data-lucide="shield-check" class="w-5 h-5 text-red-600"></i>
-                    </div>
-                </div>
+            <!-- Poster QRIS Musadad.com Header -->
+            <div class="flex items-center justify-between mb-3 border-b pb-2">
+                <div class="font-extrabold text-xl tracking-tight text-slate-900">QRIS</div>
+                <div class="text-xs font-bold text-red-600">GPN</div>
             </div>
 
-            <!-- Merchant Title & NMID from image -->
-            <div class="my-3">
-                <h2 class="text-2xl font-black text-slate-900 tracking-tight" id="displayStoreName">Musadad.com</h2>
-                <p class="text-xs font-bold text-slate-700 mt-1" id="displayNmid">NMID : ID1026492236181</p>
-                <p class="text-xs font-semibold text-slate-500 mt-0.5">A01</p>
+            <h3 class="font-extrabold text-slate-900 text-lg">Musadad.com</h3>
+            <p class="text-xs font-semibold text-slate-500 mb-3">NMID: ID1026492236181 • A01</p>
+
+            <div id="qrcode" class="flex justify-center my-3 p-3 bg-white border border-slate-200 rounded-xl shadow-inner"></div>
+
+            <div class="mt-3 pt-2 border-t border-slate-100">
+                <p class="text-[11px] font-bold text-slate-800">SATU QRIS UNTUK SEMUA</p>
+                <p class="text-[10px] text-slate-400 mt-0.5">DANA, GoPay, OVO, ShopeePay, BCA, Livin, dll</p>
             </div>
-
-            <!-- QR Code Canvas Container -->
-            <div id="qrcode" class="flex justify-center my-4 p-4 bg-white border-2 border-slate-800 rounded-2xl shadow-inner mx-auto w-fit"></div>
-
-            <div class="mt-4 pt-2 border-t border-slate-100">
-                <p class="text-xs font-extrabold text-slate-800 uppercase tracking-wide">SATU QRIS UNTUK SEMUA</p>
-                <p class="text-[10px] text-slate-500 mt-1">Cek aplikasi penyelenggara di: <br><a href="https://www.aspi-qris.id" target="_blank" class="text-red-600 font-semibold underline">www.aspi-qris.id</a></p>
-            </div>
-
-            <div class="mt-4 text-[10px] text-slate-400 flex justify-between border-t pt-2">
-                <span>Dicetak oleh: 93600915</span>
-                <span>Versi cetak: 1.0.06.09.26</span>
-            </div>
-        </div>
-    </div>
-
-    <div id="guideModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden">
-        <div class="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl relative max-h-[90vh] overflow-y-auto">
-            <button onclick="toggleGuideModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
-                <i data-lucide="x" class="w-5 h-5"></i>
-            </button>
-
-            <div class="flex items-center space-x-2 text-red-600 mb-3">
-                <i data-lucide="volume-2" class="w-6 h-6"></i>
-                <h3 class="font-bold text-slate-900 text-lg">Cara Kerja Soundbox QRIS Kasir</h3>
-            </div>
-
-            <div class="space-y-4 text-xs text-slate-600 leading-relaxed">
-                <div class="p-3 bg-red-50 rounded-xl border border-red-100">
-                    <h4 class="font-bold text-red-900 mb-1 flex items-center gap-1.5">
-                        <span class="w-5 h-5 bg-red-600 text-white rounded-full flex items-center justify-center text-[10px]">1</span>
-                        Prinsip Notifikasi Suara Pembayaran
-                    </h4>
-                    <p class="pl-6">Sama seperti Soundbox EDC fisik di toko retail, aplikasi ini mendengarkan sinyal callback Webhook dari sistem QRIS <b>Musadad.com</b> (NMID: ID1026492236181). Setiap ada transaksi masuk, browser kasir langsung membunyikan lonceng dan menyebutkan nominal uang secara otomatis.</p>
-                </div>
-
-                <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-100">
-                    <h4 class="font-bold text-emerald-900 mb-1 flex items-center gap-1.5">
-                        <span class="w-5 h-5 bg-emerald-500 text-white rounded-full flex items-center justify-center text-[10px]">2</span>
-                        Tes & Hubungkan ke Speaker Toko
-                    </h4>
-                    <p class="pl-6">1. Hubungkan HP / Laptop Kasir ini ke speaker Bluetooth toko Anda.<br>2. Klik tombol <b>"Tes Suara Kasir"</b> di kanan atas untuk memastikan volume suara terdengar jelas oleh kasir dan pembeli.</p>
-                </div>
-
-                <div class="p-3 bg-amber-50 rounded-xl border border-amber-100">
-                    <h4 class="font-bold text-amber-900 mb-1 flex items-center gap-1.5">
-                        <span class="w-5 h-5 bg-amber-500 text-white rounded-full flex items-center justify-center text-[10px]">3</span>
-                        Integrasi dengan Webhook Server
-                    </h4>
-                    <p class="pl-6">Kirimkan request HTTP POST ke endpoint backend Anda dengan payload JSON yang telah disediakan di bagian bawah halaman ini untuk mengotomatisasi pencatatan kasir secara realtime.</p>
-                </div>
-            </div>
-
-            <button onclick="toggleGuideModal()" class="mt-5 w-full bg-slate-900 hover:bg-slate-800 text-white font-medium py-2 rounded-xl text-xs transition-colors">
-                Saya Mengerti
-            </button>
         </div>
     </div>
 
     <!-- JavaScript Logic -->
     <script>
-        // Official Store Data according to user uploaded image
-        let myStoreName = "Musadad.com";
-        let myNmid = "ID1026492236181";
-        let myQrText = "00020101021126580016ID.CO.QRIS.WWW011893600915000000000002100000000003039365802ID5911Musadad.com6007JAKARTA61051234562070703A01";
-
-        let transactions = [
-            {
-                id: "TRX-QRIS-849201",
-                time: "21:15",
-                sender: "Ahmad Subagja",
-                method: "QRIS DANA",
-                amount: 50000,
-                status: "SUCCESS"
-            },
-            {
-                id: "TRX-QRIS-730192",
-                time: "20:40",
-                sender: "Siti Rahma",
-                method: "QRIS BCA Mobile",
-                amount: 25000,
-                status: "SUCCESS"
-            }
-        ];
         let isVoiceEnabled = true;
+        let transactions = [
+            { id: "TRX-880192", time: "19:42", sender: "Siti Rahma", method: "QRIS Musadad.com", amount: 150000, status: "SUCCESS" },
+            { id: "TRX-880191", time: "18:15", sender: "Ahmad Dani", method: "QRIS DANA", amount: 25000, status: "SUCCESS" }
+        ];
 
-        // Sound Engine using Web Audio API for Chime Bell + SpeechSynthesis
-        function playChimeSound() {
-            try {
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                if (!AudioContext) return;
-                const ctx = new AudioContext();
+        window.onload = function() {
+            lucide.createIcons();
+            renderTable();
+            updateStats();
+            initQRCode();
+            checkUrlParameters();
+        };
 
-                // Note 1: High crisp ding
-                const osc1 = ctx.createOscillator();
-                const gain1 = ctx.createGain();
-                osc1.type = 'sine';
-                osc1.frequency.setValueAtTime(880, ctx.currentTime); // A5
-                gain1.gain.setValueAtTime(0.3, ctx.currentTime);
-                gain1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
-                osc1.connect(gain1);
-                gain1.connect(ctx.destination);
-                osc1.start(ctx.currentTime);
-                osc1.stop(ctx.currentTime + 0.5);
+        // Otomatisasi pemicu dari URL Parameter (Misal: ?nominal=50000&nama=Ahmad)
+        function checkUrlParameters() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const nominal = urlParams.get('nominal') || urlParams.get('amount');
+            const nama = urlParams.get('nama') || urlParams.get('sender') || "Pelanggan";
 
-                // Note 2: Higher chime
-                const osc2 = ctx.createOscillator();
-                const gain2 = ctx.createGain();
-                osc2.type = 'sine';
-                osc2.frequency.setValueAtTime(1318.51, ctx.currentTime + 0.15); // E6
-                gain2.gain.setValueAtTime(0.4, ctx.currentTime + 0.15);
-                gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
-                osc2.connect(gain2);
-                gain2.connect(ctx.destination);
-                osc2.start(ctx.currentTime + 0.15);
-                osc2.stop(ctx.currentTime + 0.8);
-            } catch (e) {
-                console.log("AudioContext chime not supported or blocked");
+            if (nominal) {
+                const amount = parseInt(nominal);
+                if (!isNaN(amount) && amount > 0) {
+                    setTimeout(() => {
+                        processPayment(amount, nama, "QRIS Musadad.com");
+                    }, 800);
+                }
             }
         }
 
-        // Speech Notification Function
-        function speakNotification(amount, sender) {
+        // Quick Pay Button
+        function quickPay(amount) {
+            processPayment(amount, "Pelanggan Kasir", "QRIS Musadad.com");
+        }
+
+        // Play Chime Sound + Speech
+        function playChimeAndSpeak(amount, sender) {
             if (!isVoiceEnabled) return;
 
-            // Bunyikan chime lonceng kasir dulu
-            playChimeSound();
+            // Simple Web Audio API Synthesizer for "Ding-Dong" Chime Sound
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                const ctx = new AudioContext();
 
-            if (!('speechSynthesis' in window)) return;
+                const playNote = (freq, duration, delay) => {
+                    setTimeout(() => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.value = freq;
+                        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start();
+                        osc.stop(ctx.currentTime + duration);
+                    }, delay);
+                };
 
-            // Beri jeda 350ms setelah chime sebelum mengucapkan kalimat
+                // Play Ding-Dong
+                playNote(880, 0.4, 0);   // A5
+                playNote(1174.66, 0.6, 200); // D6
+            } catch (e) {
+                console.log("Audio Context Error: ", e);
+            }
+
+            // Speak Notification after chime
             setTimeout(() => {
-                window.speechSynthesis.cancel(); // Hentikan antrean suara sebelumnya
-
-                const formattedAmount = new Intl.NumberFormat('id-ID').format(amount);
-                const textToSpeak = `Pembayaran QRIS Musadad.com sebesar ${formattedAmount} rupiah dari ${sender} telah diterima.`;
-                
-                const utterance = new SpeechSynthesisUtterance(textToSpeak);
-                utterance.lang = 'id-ID';
-                utterance.rate = 0.95; // Kecepatan bicara alami
-                utterance.pitch = 1.0;
-
-                window.speechSynthesis.speak(utterance);
-            }, 350);
+                if ('speechSynthesis' in window) {
+                    window.speechSynthesis.cancel();
+                    const formattedAmount = new Intl.NumberFormat('id-ID').format(amount);
+                    const textToSpeak = `Pembayaran QRIS Musadad.com sebesar ${formattedAmount} rupiah dari ${sender} telah diterima.`;
+                    
+                    const utterance = new SpeechSynthesisUtterance(textToSpeak);
+                    utterance.lang = 'id-ID';
+                    utterance.rate = 0.95;
+                    window.speechSynthesis.speak(utterance);
+                }
+            }, 600);
         }
 
         function testSpeakerSound() {
-            showToast("Memutar suara tes Soundbox kasir...");
-            speakNotification(50000, "Pembeli Tes");
+            playChimeAndSpeak(10000, "Tes Suara");
+            showToast("Memutar tes suara kasir...");
         }
 
         function toggleVoice() {
             isVoiceEnabled = !isVoiceEnabled;
-            const voiceStatusText = document.getElementById("voiceStatusText");
-            const voiceToggleBtn = document.getElementById("voiceToggleBtn");
-
+            const btnText = document.getElementById("voiceStatusText");
             if (isVoiceEnabled) {
-                voiceStatusText.innerText = "Suara: ON";
-                voiceToggleBtn.classList.remove("bg-slate-100", "text-slate-500", "border-slate-200");
-                voiceToggleBtn.classList.add("bg-red-50", "text-red-700", "border-red-200");
-                showToast("Notifikasi suara soundbox diaktifkan");
+                btnText.innerText = "Suara: ON";
+                showToast("Notifikasi Suara diaktifkan");
             } else {
-                voiceStatusText.innerText = "Suara: OFF";
-                voiceToggleBtn.classList.remove("bg-red-50", "text-red-700", "border-red-200");
-                voiceToggleBtn.classList.add("bg-slate-100", "text-slate-500", "border-slate-200");
-                showToast("Notifikasi suara soundbox dinonaktifkan");
+                btnText.innerText = "Suara: OFF";
+                showToast("Notifikasi Suara dimatikan");
             }
         }
 
-        // Initialize QR Code Generator
         function initQRCode() {
             document.getElementById("qrcode").innerHTML = "";
             new QRCode(document.getElementById("qrcode"), {
-                text: myQrText,
-                width: 200,
-                height: 200,
+                text: "00020101021126580016ID.CO.DANA.WWW011893600911000000000002100000000003039365802ID5910STORE DANA6007JAKARTA61051234562070703A01",
+                width: 180,
+                height: 180,
                 colorDark : "#0f172a",
                 colorLight : "#ffffff",
                 correctLevel : QRCode.CorrectLevel.H
             });
         }
 
-        function toggleGuideModal() {
-            document.getElementById("guideModal").classList.toggle("hidden");
-        }
-
-        // Format Currency IDR
         function formatIDR(amount) {
             return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount);
         }
 
-        // Render Table Data
         function renderTable(data = transactions) {
             const tbody = document.getElementById("transactionTable");
             const emptyState = document.getElementById("emptyState");
@@ -566,7 +445,6 @@
             });
         }
 
-        // Update Statistics Summary
         function updateStats() {
             const successTrx = transactions.filter(t => t.status === "SUCCESS");
             const totalSum = successTrx.reduce((acc, curr) => acc + curr.amount, 0);
@@ -578,15 +456,10 @@
             document.getElementById("avgAmount").innerText = formatIDR(avgSum);
         }
 
-        // Simulate New Incoming Payment
-        function simulateIncomingPayment() {
-            const sender = document.getElementById("simSender").value.trim() || "Pelanggan";
-            const amount = parseInt(document.getElementById("simAmount").value) || 10000;
-            const method = document.getElementById("simMethod").value;
-            
+        function processPayment(amount, sender, method) {
             const now = new Date();
             const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-            const trxId = "TRX-QRIS-" + Math.floor(100000 + Math.random() * 900000);
+            const trxId = "TRX-MSD-" + Math.floor(100000 + Math.random() * 900000);
 
             const newTrx = {
                 id: trxId,
@@ -597,19 +470,20 @@
                 status: "SUCCESS"
             };
 
-            // Add to top of list
             transactions.unshift(newTrx);
             renderTable();
             updateStats();
-
-            // Speak Speech Notification
-            speakNotification(amount, sender);
-
-            // Trigger Pop-up Modal
+            playChimeAndSpeak(amount, sender);
             showNotifModal(newTrx);
         }
 
-        // Show Notification Modal
+        function simulateIncomingPayment() {
+            const sender = document.getElementById("simSender").value.trim() || "Pelanggan";
+            const amount = parseInt(document.getElementById("simAmount").value) || 10000;
+            const method = document.getElementById("simMethod").value;
+            processPayment(amount, sender, method);
+        }
+
         function showNotifModal(trx) {
             document.getElementById("notifAmount").innerText = formatIDR(trx.amount);
             document.getElementById("notifSender").innerText = trx.sender;
@@ -623,7 +497,6 @@
             document.getElementById("notifModal").classList.add("hidden");
         }
 
-        // Filter Function
         function filterTransactions() {
             const query = document.getElementById("searchInput").value.toLowerCase();
             const filtered = transactions.filter(t => 
@@ -633,7 +506,6 @@
             renderTable(filtered);
         }
 
-        // Clear Logs Confirmation
         function clearLogs() {
             document.getElementById("confirmModal").classList.remove("hidden");
         }
@@ -650,13 +522,11 @@
             showToast("Riwayat transaksi berhasil dibersihkan!");
         }
 
-        // Toggle QR Modal
         function toggleQRModal() {
             const modal = document.getElementById("qrModal");
             modal.classList.toggle("hidden");
         }
 
-        // Custom Toast Notification
         function showToast(message) {
             const toast = document.getElementById("toast");
             const toastMsg = document.getElementById("toastMessage");
@@ -667,40 +537,6 @@
                 toast.classList.add("opacity-0", "pointer-events-none", "translate-y-2");
             }, 3000);
         }
-
-        // Copy Payload safely inside iframe
-        function copyPayload() {
-            const payloadText = document.getElementById("jsonPayload").innerText;
-            
-            const textarea = document.createElement("textarea");
-            textarea.value = payloadText;
-            textarea.style.position = "fixed";
-            textarea.style.opacity = "0";
-            document.body.appendChild(textarea);
-            textarea.select();
-
-            try {
-                const successful = document.execCommand('copy');
-                if (successful) {
-                    showToast("Payload JSON berhasil disalin!");
-                } else {
-                    showToast("Gagal menyalin payload.");
-                }
-            } catch (err) {
-                showToast("Terjadi kesalahan saat menyalin.");
-            } finally {
-                document.body.removeChild(textarea);
-            }
-        }
-
-        window.onload = function() {
-            if (window.lucide) {
-                lucide.createIcons();
-            }
-            initQRCode();
-            renderTable();
-            updateStats();
-        };
     </script>
 </body>
 </html>
