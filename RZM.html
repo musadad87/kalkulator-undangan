@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RZM ZITU KAOS - POS & Barcode System</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- JsBarcode Library -->
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        
+        /* Custom Print Styling */
+        @media print {
+            body * { visibility: hidden; }
+            #print-area, #print-area * { visibility: visible; }
+            #print-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            .no-print { display: none !important; }
+        }
+
+        /* Toast Animation */
+        @keyframes slideIn {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .animate-slide-in {
+            animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col md:flex-row">
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+    <!-- SIDEBAR NAVIGATION -->
+    <aside class="w-full md:w-64 bg-slate-900 text-white flex-shrink-0 no-print flex flex-col justify-between">
+        <div>
+            <!-- Logo Header -->
+            <div class="p-5 border-b border-slate-800 flex items-center space-x-3">
+                <div class="bg-indigo-600 text-white p-2.5 rounded-xl shadow-lg shadow-indigo-600/40">
+                    <i class="fa-solid fa-shirt text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight tracking-wide text-white">RZM ZITU KAOS</h1>
+                    <p class="text-xs text-indigo-400 font-medium">POS & Barcode System</p>
+                </div>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="p-4 space-y-1">
+                <button onclick="switchTab('kasir')" id="nav-kasir" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition text-left bg-indigo-600 text-white shadow-lg shadow-indigo-600/30">
+                    <i class="fa-solid fa-cash-register w-5"></i>
+                    <span>Kasir & Nota</span>
+                </button>
+
+                <button onclick="switchTab('kaos')" id="nav-kaos" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition text-left text-slate-400 hover:bg-slate-800 hover:text-white">
+                    <i class="fa-solid fa-barcode w-5"></i>
+                    <span>Stok Kaos & Barcode</span>
+                </button>
+
+                <button onclick="switchTab('dtf')" id="nav-dtf" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition text-left text-slate-400 hover:bg-slate-800 hover:text-white">
+                    <i class="fa-solid fa-fill-drip w-5"></i>
+                    <span>Stok Bahan DTF</span>
+                </button>
+
+                <button onclick="switchTab('riwayat')" id="nav-riwayat" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition text-left text-slate-400 hover:bg-slate-800 hover:text-white">
+                    <i class="fa-solid fa-receipt w-5"></i>
+                    <span>Riwayat Penjualan</span>
+                </button>
+            </nav>
+        </div>
+
+        <!-- System Connection Info Footer -->
+        <div class="p-4 m-4 bg-slate-800/60 rounded-xl border border-slate-700/50">
+            <div class="text-[11px] text-slate-400 mb-1 flex justify-between items-center">
+                <span>Database Firebase</span>
+                <span id="db-status-badge" class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">Menghubungkan</span>
+            </div>
+            <div class="flex items-center text-xs font-semibold text-emerald-400 mt-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 mr-2 animate-pulse"></span>
+                <span id="db-status-text">Scanner USB Ready</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-1 flex flex-col h-screen overflow-hidden no-print">
+
+        <!-- TOP BAR -->
+        <header class="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center flex-shrink-0">
+            <div class="flex items-center space-x-3">
+                <h2 id="page-title" class="text-xl font-bold text-slate-800">Kasir & Transaksi Nota</h2>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <div class="hidden sm:block text-xs font-semibold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100">
+                    <i class="fa-solid fa-store mr-1.5"></i> RZM ZITU KAOS & DTF
+                </div>
+                <!-- Today's Date -->
+                <div class="text-sm font-medium text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
+                    <i class="fa-regular fa-calendar mr-1.5"></i>
+                    <span id="current-date"></span>
+                </div>
+            </div>
+        </header>
+
+        <!-- VIEW CONTAINER -->
+        <div class="flex-1 overflow-y-auto p-6 bg-slate-50">
+
+            <!-- 1. KASIR & NOTA VIEW -->
+            <section id="view-kasir" class="tab-content grid grid-cols-1 lg:grid-cols-12 gap-6 h-full">
+                <!-- Left Panel: Product Selection & Barcode Scan -->
+                <div class="lg:col-span-7 flex flex-col space-y-4">
+                    
+                    <!-- Barcode Scanner Input Card -->
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                            <i class="fa-solid fa-barcode mr-1 text-indigo-600"></i> Scan Barcode Baju / Input Kode SKU
+                        </label>
+                        <div class="relative">
+                            <input type="text" id="barcode-scan-input" autocomplete="off" placeholder="Arahkan scanner / ketik kode barcode di sini lalu tekan Enter..." 
+                                class="w-full pl-11 pr-4 py-3 bg-slate-50 border-2 border-indigo-200 rounded-xl focus:border-indigo-600 focus:bg-white focus:outline-none transition font-mono text-sm">
+                            <i class="fa-solid fa-qrcode absolute left-4 top-3.5 text-slate-400 text-lg"></i>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-1.5">*Mendukung USB Scanner otomatis (otomatis tekan Enter saat scan baju).</p>
+                    </div>
+
+                    <!-- Input DTF Cetak Custom Meteran -->
+                    <div class="bg-gradient-to-r from-indigo-900 to-slate-900 text-white p-5 rounded-2xl shadow-md">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="font-bold flex items-center">
+                                <i class="fa-solid fa-print text-indigo-400 mr-2"></i> Tambah Jasa Cetak DTF (Per Meter)
+                            </h3>
+                            <span class="text-xs bg-indigo-500/30 border border-indigo-400/30 text-indigo-200 px-2.5 py-1 rounded-full">Potong Stok Bahan Otomatis</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-3 items-end">
+                            <div class="col-span-1">
+                                <label class="block text-xs text-slate-300 mb-1">Panjang (Meter)</label>
+                                <input type="number" id="dtf-length-input" step="0.1" min="0.1" value="1.0" 
+                                    class="w-full px-3 py-2 bg-slate-800 text-white border border-slate-700 rounded-lg focus:outline-none focus:border-indigo-400 font-semibold">
+                            </div>
+                            <div class="col-span-1">
+                                <label class="block text-xs text-slate-300 mb-1">Harga / Meter (Rp)</label>
+                                <input type="number" id="dtf-price-input" value="60000" 
+                                    class="w-full px-3 py-2 bg-slate-800 text-white border border-slate-700 rounded-lg focus:outline-none focus:border-indigo-400 font-semibold">
+                            </div>
+                            <div class="col-span-1">
+                                <button onclick="addDtfToCart()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-lg shadow-md transition flex justify-center items-center">
+                                    <i class="fa-solid fa-plus mr-2"></i> Tambah DTF
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Catalogue / Quick Pick Items -->
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex-1 flex flex-col">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="font-bold text-slate-800 text-sm">Pilih Manual Kaos Polos</h3>
+                            <input type="text" id="search-product" onkeyup="filterQuickProducts()" placeholder="Cari kaos..." class="px-3 py-1.5 text-xs border rounded-lg focus:outline-none focus:border-indigo-500">
+                        </div>
+                        <div id="quick-product-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3 overflow-y-auto max-h-[280px] p-1">
+                            <!-- Dynamically Loaded Products -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Panel: Active Cart & Nota Checkout -->
+                <div class="lg:col-span-5 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col h-full">
+                    <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-2xl">
+                        <h3 class="font-bold text-slate-800 flex items-center">
+                            <i class="fa-solid fa-receipt text-indigo-600 mr-2"></i> Cart / Nota Belanja
+                        </h3>
+                        <button onclick="clearCart()" class="text-xs text-red-500 hover:underline font-medium">Kosongkan</button>
+                    </div>
+
+                    <!-- Cart Item List -->
+                    <div id="cart-items" class="flex-1 overflow-y-auto p-4 space-y-3 divide-y divide-slate-100">
+                        <div class="text-center py-12 text-slate-400">
+                            <i class="fa-solid fa-basket-shopping text-4xl mb-2 stroke-1"></i>
+                            <p class="text-sm">Scan barcode atau pilih barang untuk masuk ke nota</p>
+                        </div>
+                    </div>
+
+                    <!-- Payment & Totals Footer -->
+                    <div class="p-4 border-t border-slate-100 bg-slate-50/50 rounded-b-2xl space-y-3">
+                        <div class="flex justify-between text-sm text-slate-600">
+                            <span>Subtotal</span>
+                            <span id="cart-subtotal" class="font-semibold text-slate-800">Rp 0</span>
+                        </div>
+                        <div class="flex justify-between text-lg font-bold text-slate-900 pt-2 border-t border-slate-200">
+                            <span>Total Tagihan</span>
+                            <span id="cart-total" class="text-indigo-600">Rp 0</span>
+                        </div>
+
+                        <!-- Customer Details Input -->
+                        <div class="pt-2">
+                            <input type="text" id="customer-name" placeholder="Nama Pelanggan (Opsional)" class="w-full px-3 py-2 text-xs border rounded-lg mb-2 focus:outline-none focus:border-indigo-500">
+                        </div>
+
+                        <button onclick="processCheckout()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-600/30 transition flex justify-center items-center text-sm">
+                            <i class="fa-solid fa-print mr-2"></i> Cetak Nota & Selesaikan
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. STOK KAOS & BARCODE VIEW -->
+            <section id="view-kaos" class="tab-content hidden space-y-6">
+                <!-- Action bar -->
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center space-x-2">
+                        <input type="text" id="search-kaos-inventory" onkeyup="renderKaosInventory()" placeholder="Cari nama, warna, atau barcode..." 
+                            class="px-4 py-2 border rounded-xl text-sm w-64 focus:outline-none focus:border-indigo-600">
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <button onclick="openAddKaosModal()" class="px-4 py-2 bg-indigo-600 text-white font-semibold rounded-xl text-sm shadow hover:bg-indigo-500 transition">
+                            <i class="fa-solid fa-plus mr-1.5"></i> Tambah Kaos Baru
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Products Table -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider font-semibold border-b">
+                                    <th class="p-4">Kode / Barcode</th>
+                                    <th class="p-4">Nama Produk</th>
+                                    <th class="p-4">Warna</th>
+                                    <th class="p-4">Ukuran</th>
+                                    <th class="p-4">Harga Jual</th>
+                                    <th class="p-4">Stok Saat Ini</th>
+                                    <th class="p-4 text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="kaos-table-body" class="divide-y divide-slate-100 text-sm">
+                                <!-- Dynamic Render -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. STOK BAHAN DTF VIEW -->
+            <section id="view-dtf" class="tab-content hidden space-y-6">
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="text-lg font-bold text-slate-800 mb-2">Pemantauan Stok Bahan Baku DTF</h3>
+                    <p class="text-sm text-slate-500 mb-6">Stok bahan baku ini otomatis berkurang secara real-time saat transaksi cetak DTF diproses di Kasir.</p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Film Roll Meter Card -->
+                        <div class="bg-indigo-50/50 p-5 rounded-2xl border border-indigo-100 relative overflow-hidden">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <p class="text-xs font-bold uppercase text-indigo-500">PET Film Roll</p>
+                                    <h4 class="text-2xl font-bold text-slate-800 mt-1" id="stock-film-meter">0 m</h4>
+                                </div>
+                                <div class="bg-indigo-600 text-white p-3 rounded-xl">
+                                    <i class="fa-solid fa-scroll text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="text-xs text-slate-500">Kebutuhan: ~1 meter per meter cetak</div>
+                            <button onclick="openRestockModal('film')" class="mt-4 w-full py-2 bg-white text-indigo-600 font-semibold rounded-lg border border-indigo-200 text-xs hover:bg-indigo-50 transition">
+                                + Restok Film Roll
+                            </button>
+                        </div>
+
+                        <!-- Tinta (Ink) Card -->
+                        <div class="bg-emerald-50/50 p-5 rounded-2xl border border-emerald-100 relative overflow-hidden">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <p class="text-xs font-bold uppercase text-emerald-600">Total Stok Tinta</p>
+                                    <h4 class="text-2xl font-bold text-slate-800 mt-1" id="stock-ink-ml">0 ml</h4>
+                                </div>
+                                <div class="bg-emerald-600 text-white p-3 rounded-xl">
+                                    <i class="fa-solid fa-fill-drip text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="text-xs text-slate-500">Est. konsumsi ~20ml tinta per meter</div>
+                            <button onclick="openRestockModal('ink')" class="mt-4 w-full py-2 bg-white text-emerald-600 font-semibold rounded-lg border border-emerald-200 text-xs hover:bg-emerald-50 transition">
+                                + Restok Tinta
+                            </button>
+                        </div>
+
+                        <!-- Powder Lem Card -->
+                        <div class="bg-amber-50/50 p-5 rounded-2xl border border-amber-100 relative overflow-hidden">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <p class="text-xs font-bold uppercase text-amber-600">Powder / Bubuk Lem</p>
+                                    <h4 class="text-2xl font-bold text-slate-800 mt-1" id="stock-powder-gram">0 gram</h4>
+                                </div>
+                                <div class="bg-amber-500 text-white p-3 rounded-xl">
+                                    <i class="fa-solid fa-box-archive text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="text-xs text-slate-500">Est. konsumsi ~25g bubuk per meter</div>
+                            <button onclick="openRestockModal('powder')" class="mt-4 w-full py-2 bg-white text-amber-600 font-semibold rounded-lg border border-amber-200 text-xs hover:bg-amber-50 transition">
+                                + Restok Bubuk
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. RIWAYAT PENJUALAN VIEW -->
+            <section id="view-riwayat" class="tab-content hidden space-y-6">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="p-4 border-b border-slate-100 font-bold text-slate-800">Daftar Transaksi Database</div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider font-semibold border-b">
+                                    <th class="p-4">No. Transaksi</th>
+                                    <th class="p-4">Tanggal & Waktu</th>
+                                    <th class="p-4">Pelanggan</th>
+                                    <th class="p-4">Items</th>
+                                    <th class="p-4">Total Pembayaran</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sales-history-body" class="divide-y divide-slate-100 text-sm">
+                                <!-- Dynamic Render -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- MODAL: ADD / EDIT KAOS -->
+    <div id="modal-kaos" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+            <h3 class="text-lg font-bold text-slate-800 mb-4" id="modal-title">Tambah Produk Kaos Polos</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Kode Barcode (SKU)</label>
+                    <div class="flex space-x-2">
+                        <input type="text" id="input-sku" class="flex-1 px-3 py-2 border rounded-xl text-sm uppercase font-mono" placeholder="Contoh: KSB-BLK-L">
+                        <button onclick="generateRandomSku()" class="px-3 py-2 bg-slate-100 text-slate-700 text-xs rounded-xl font-semibold border hover:bg-slate-200">Auto Generate</button>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Barang</label>
+                    <input type="text" id="input-nama" class="w-full px-3 py-2 border rounded-xl text-sm" placeholder="misal: Cotton Combed 30s">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Warna</label>
+                        <input type="text" id="input-warna" class="w-full px-3 py-2 border rounded-xl text-sm" placeholder="misal: Hitam">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Ukuran</label>
+                        <select id="input-ukuran" class="w-full px-3 py-2 border rounded-xl text-sm">
+                            <option value="S">S</option>
+                            <option value="M">M</option>
+                            <option value="L" selected>L</option>
+                            <option value="XL">XL</option>
+                            <option value="XXL">XXL</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Harga Jual (Rp)</label>
+                        <input type="number" id="input-harga" class="w-full px-3 py-2 border rounded-xl text-sm" placeholder="35000">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Jumlah Stok Initial</label>
+                        <input type="number" id="input-stok" class="w-full px-3 py-2 border rounded-xl text-sm" placeholder="50">
+                    </div>
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end space-x-3">
+                <button onclick="closeModal('modal-kaos')" class="px-4 py-2 border text-slate-600 rounded-xl text-sm font-semibold hover:bg-slate-50">Batal</button>
+                <button onclick="saveKaosProduct()" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-500 shadow-md">Simpan Produk</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL RESTOCK MATERIAL DTF -->
+    <div id="modal-restock" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl relative">
+            <h3 class="text-md font-bold text-slate-800 mb-1" id="restock-modal-title">Restok Bahan DTF</h3>
+            <p class="text-xs text-slate-500 mb-4" id="restock-modal-desc">Tambah jumlah persediaan ke database</p>
+            
+            <input type="hidden" id="restock-material-type">
+            <div class="mb-4">
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Jumlah Tambahan</label>
+                <input type="number" id="restock-amount-input" step="0.1" min="0.1" class="w-full px-3 py-2 border rounded-xl text-sm" placeholder="Masukkan jumlah...">
+            </div>
+
+            <div class="flex justify-end space-x-3">
+                <button onclick="closeModal('modal-restock')" class="px-4 py-2 border text-slate-600 rounded-xl text-sm font-semibold">Batal</button>
+                <button onclick="saveRestockMaterial()" class="px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm font-semibold hover:bg-emerald-500">
+                    Simpan Restok
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PRINT BARCODE STICKER -->
+    <div id="modal-print-barcode" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center">
+            <h3 class="text-md font-bold text-slate-800 mb-1">Cetak Label Barcode Baju</h3>
+            <p class="text-xs text-indigo-600 font-semibold mb-3">RZM ZITU KAOS</p>
+            
+            <!-- Barcode Preview Tag Container -->
+            <div id="barcode-sticker-preview" class="border-2 border-dashed border-slate-300 p-4 rounded-xl mb-4 bg-white flex flex-col items-center">
+                <!-- SVG Barcode rendered dynamically -->
+            </div>
+
+            <div class="flex justify-center space-x-3">
+                <button onclick="closeModal('modal-print-barcode')" class="px-4 py-2 border text-slate-600 rounded-xl text-sm font-semibold">Tutup</button>
+                <button onclick="triggerPrintSticker()" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-500">
+                    <i class="fa-solid fa-print mr-1"></i> Cetak Stiker
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PRINT OUT ONLY AREA (RECEIPTS & BARCODE LABELS) -->
+    <div id="print-area" class="p-4 bg-white"></div>
+
+    <!-- FIREBASE MODULE & APPLICATION JS -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // FIREBASE CONFIG FROM USER
+        const firebaseConfig = {
+          apiKey: "AIzaSyDRFJlcKNPAVc-rBF8UsWuB4UbEvCTOFQw",
+          authDomain: "rzm1-613a5.firebaseapp.com",
+          projectId: "rzm1-613a5",
+          storageBucket: "rzm1-613a5.firebasestorage.app",
+          messagingSenderId: "83288394989",
+          appId: "1:83288394989:web:3cb6037270e3e2f05f50e4",
+          measurementId: "G-8GND0L4CBC"
+        };
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'rzm-zitu-kaos';
+        
+        let app, auth, db;
+        let currentUser = null;
+
+        // APPLICATION STATE
+        let products = [];
+        let dtfMaterials = {
+            filmRollMeters: 50.0,
+            inkMl: 1000,
+            powderGrams: 1000
+        };
+        let cart = [];
+        let salesHistory = [];
+
+        // TOAST NOTIFICATION UTILITY
+        function showToast(msg, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const bgClass = type === 'success' ? 'bg-emerald-600' : (type === 'error' ? 'bg-red-600' : 'bg-slate-800');
+            toast.className = `${bgClass} text-white px-4 py-2.5 rounded-xl text-xs font-semibold shadow-xl flex items-center space-x-2 pointer-events-auto animate-slide-in`;
+            toast.innerHTML = `
+                <i class="fa-solid ${type === 'success' ? 'fa-circle-check' : (type === 'error' ? 'fa-triangle-exclamation' : 'fa-circle-info')}"></i>
+                <span>${msg}</span>
+            `;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // INITIALIZE FIREBASE & AUTH
+        async function initFirebase() {
+            try {
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        currentUser = user;
+                        document.getElementById('db-status-badge').innerText = 'Connected';
+                        document.getElementById('db-status-badge').className = 'px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+                        document.getElementById('db-status-text').innerText = 'Firebase Real-Time Ready';
+                        setupRealtimeListeners();
+                    } else {
+                        document.getElementById('db-status-badge').innerText = 'Offline';
+                        document.getElementById('db-status-badge').className = 'px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-500/20 text-red-400 border border-red-500/30';
+                    }
+                });
+            } catch (err) {
+                console.error("Firebase Auth Error:", err);
+                showToast("Gagal menghubungkan ke Firebase", "error");
+            }
+        }
+
+        // REAL-TIME FIRESTORE LISTENERS
+        function setupRealtimeListeners() {
+            if (!currentUser) return;
+
+            // 1. Products Collection Listener
+            const productsRef = collection(db, 'artifacts', appId, 'public', 'data', 'products');
+            onSnapshot(productsRef, (snapshot) => {
+                if (snapshot.empty) {
+                    seedInitialProducts();
+                    return;
+                }
+                products = [];
+                snapshot.forEach(docSnap => {
+                    products.push({ id: docSnap.id, ...docSnap.data() });
+                });
+                renderQuickProducts();
+                renderKaosInventory();
+            }, (error) => {
+                console.error("Error reading products:", error);
+            });
+
+            // 2. DTF Materials Listener
+            const materialsRef = collection(db, 'artifacts', appId, 'public', 'data', 'dtf_materials');
+            onSnapshot(materialsRef, (snapshot) => {
+                if (snapshot.empty) {
+                    seedInitialMaterials();
+                    return;
+                }
+                snapshot.forEach(docSnap => {
+                    if (docSnap.id === 'materials_status') {
+                        dtfMaterials = docSnap.data();
+                        renderDtfStock();
+                    }
+                });
+            }, (error) => {
+                console.error("Error reading DTF materials:", error);
+            });
+
+            // 3. Sales History Listener
+            const salesRef = collection(db, 'artifacts', appId, 'public', 'data', 'sales_history');
+            onSnapshot(salesRef, (snapshot) => {
+                salesHistory = [];
+                snapshot.forEach(docSnap => {
+                    salesHistory.push({ id: docSnap.id, ...docSnap.data() });
+                });
+                // Sort by timestamp in memory (RULE 2)
+                salesHistory.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+                renderSalesHistory();
+            }, (error) => {
+                console.error("Error reading sales history:", error);
+            });
+        }
+
+        // SEED INITIAL DATA IF DB IS EMPTY
+        async function seedInitialProducts() {
+            if (!currentUser) return;
+            const initialList = [
+                { sku: 'KSB-BLK-M', name: 'Cotton Combed 30s', color: 'Hitam', size: 'M', price: 35000, stock: 45 },
+                { sku: 'KSB-BLK-L', name: 'Cotton Combed 30s', color: 'Hitam', size: 'L', price: 35000, stock: 32 },
+                { sku: 'KSB-WHT-L', name: 'Cotton Combed 30s', color: 'Putih', size: 'L', price: 35000, stock: 20 },
+                { sku: 'KSB-RED-XL', name: 'Cotton Combed 30s', color: 'Merah', size: 'XL', price: 38000, stock: 15 }
+            ];
+
+            for (const item of initialList) {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'products', item.sku);
+                await setDoc(docRef, item);
+            }
+        }
+
+        async function seedInitialMaterials() {
+            if (!currentUser) return;
+            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'dtf_materials', 'materials_status');
+            await setDoc(docRef, dtfMaterials);
+        }
+
+        // TAB NAVIGATION
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-indigo-600', 'text-white', 'shadow-lg', 'shadow-indigo-600/30');
+                btn.classList.add('text-slate-400');
+            });
+
+            document.getElementById(`view-${tabId}`).classList.remove('hidden');
+            const activeNav = document.getElementById(`nav-${tabId}`);
+            activeNav.classList.add('bg-indigo-600', 'text-white', 'shadow-lg', 'shadow-indigo-600/30');
+            activeNav.classList.remove('text-slate-400');
+
+            const titles = {
+                'kasir': 'Kasir & Transaksi Nota',
+                'kaos': 'Manajemen Stok Kaos & Cetak Barcode',
+                'dtf': 'Stok Bahan Baku DTF Printing',
+                'riwayat': 'Riwayat Penjualan & Transaksi'
+            };
+            document.getElementById('page-title').innerText = titles[tabId];
+
+            if (tabId === 'kaos') renderKaosInventory();
+            if (tabId === 'dtf') renderDtfStock();
+            if (tabId === 'riwayat') renderSalesHistory();
+        }
+
+        // KASIR & QUICK PICK
+        function renderQuickProducts() {
+            const grid = document.getElementById('quick-product-grid');
+            grid.innerHTML = '';
+            products.forEach(p => {
+                const card = document.createElement('div');
+                card.className = "border rounded-xl p-3 hover:border-indigo-500 cursor-pointer transition bg-slate-50 hover:bg-indigo-50/30 flex flex-col justify-between";
+                card.onclick = () => addToCartBySku(p.sku);
+                card.innerHTML = `
+                    <div>
+                        <div class="font-bold text-xs text-slate-800">${p.name}</div>
+                        <div class="text-[11px] text-slate-500">${p.color} - Size ${p.size}</div>
+                        <div class="font-mono text-[10px] text-indigo-600 mt-1">${p.sku}</div>
+                    </div>
+                    <div class="mt-2 flex justify-between items-center">
+                        <span class="font-bold text-xs">Rp ${p.price.toLocaleString()}</span>
+                        <span class="text-[10px] px-1.5 py-0.5 rounded ${p.stock > 5 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'} font-medium">Stok ${p.stock}</span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function filterQuickProducts() {
+            const query = document.getElementById('search-product').value.toLowerCase();
+            const filtered = products.filter(p => 
+                p.name.toLowerCase().includes(query) || 
+                p.sku.toLowerCase().includes(query) ||
+                p.color.toLowerCase().includes(query)
+            );
+            
+            const grid = document.getElementById('quick-product-grid');
+            grid.innerHTML = '';
+            filtered.forEach(p => {
+                const card = document.createElement('div');
+                card.className = "border rounded-xl p-3 hover:border-indigo-500 cursor-pointer transition bg-slate-50 hover:bg-indigo-50/30 flex flex-col justify-between";
+                card.onclick = () => addToCartBySku(p.sku);
+                card.innerHTML = `
+                    <div>
+                        <div class="font-bold text-xs text-slate-800">${p.name}</div>
+                        <div class="text-[11px] text-slate-500">${p.color} - Size ${p.size}</div>
+                        <div class="font-mono text-[10px] text-indigo-600 mt-1">${p.sku}</div>
+                    </div>
+                    <div class="mt-2 flex justify-between items-center">
+                        <span class="font-bold text-xs">Rp ${p.price.toLocaleString()}</span>
+                        <span class="text-[10px] px-1.5 py-0.5 rounded ${p.stock > 5 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'} font-medium">Stok ${p.stock}</span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function addToCartBySku(sku) {
+            const product = products.find(p => p.sku.toUpperCase() === sku.toUpperCase());
+            if (!product) {
+                showToast("Produk dengan Barcode SKU ini tidak ditemukan!", "error");
+                return;
+            }
+            if (product.stock <= 0) {
+                showToast("Stok barang ini sudah habis!", "error");
+                return;
+            }
+
+            const existing = cart.find(item => item.sku === product.sku);
+            if (existing) {
+                if (existing.qty + 1 > product.stock) {
+                    showToast("Jumlah melebihi stok yang tersedia!", "error");
+                    return;
+                }
+                existing.qty += 1;
+            } else {
+                cart.push({
+                    type: 'kaos',
+                    sku: product.sku,
+                    name: `${product.name} (${product.color} - ${product.size})`,
+                    price: product.price,
+                    qty: 1
+                });
+            }
+            renderCart();
+            playBeep();
+        }
+
+        function addDtfToCart() {
+            const lengthMeters = parseFloat(document.getElementById('dtf-length-input').value);
+            const pricePerMeter = parseFloat(document.getElementById('dtf-price-input').value);
+
+            if (!lengthMeters || lengthMeters <= 0) {
+                showToast("Masukkan panjang meter cetak DTF yang valid.", "error");
+                return;
+            }
+
+            if (dtfMaterials.filmRollMeters < lengthMeters) {
+                showToast(`Stok Film PET DTF tidak cukup! Sisa: ${dtfMaterials.filmRollMeters.toFixed(1)} Meter.`, "error");
+                return;
+            }
+
+            cart.push({
+                type: 'dtf',
+                sku: 'DTF-PRINT',
+                name: `Cetak Sablon DTF (${lengthMeters} Meter)`,
+                price: pricePerMeter * lengthMeters,
+                qty: 1,
+                dtfLength: lengthMeters
+            });
+
+            renderCart();
+            playBeep();
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            renderCart();
+        }
+
+        function renderCart() {
+            const cartContainer = document.getElementById('cart-items');
+            if (cart.length === 0) {
+                cartContainer.innerHTML = `
+                    <div class="text-center py-12 text-slate-400">
+                        <i class="fa-solid fa-basket-shopping text-4xl mb-2 stroke-1"></i>
+                        <p class="text-sm">Scan barcode atau pilih barang untuk masuk ke nota</p>
+                    </div>`;
+                document.getElementById('cart-subtotal').innerText = 'Rp 0';
+                document.getElementById('cart-total').innerText = 'Rp 0';
+                return;
+            }
+
+            cartContainer.innerHTML = '';
+            let total = 0;
+
+            cart.forEach((item, idx) => {
+                const itemTotal = item.price * item.qty;
+                total += itemTotal;
+
+                const div = document.createElement('div');
+                div.className = "flex justify-between items-center pt-2";
+                div.innerHTML = `
+                    <div class="flex-1">
+                        <div class="font-semibold text-xs text-slate-800">${item.name}</div>
+                        <div class="text-[11px] text-slate-400">@ Rp ${item.price.toLocaleString()} x ${item.qty}</div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <span class="font-bold text-xs text-slate-800">Rp ${itemTotal.toLocaleString()}</span>
+                        <button onclick="removeFromCart(${idx})" class="text-red-400 hover:text-red-600 text-xs">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                `;
+                cartContainer.appendChild(div);
+            });
+
+            document.getElementById('cart-subtotal').innerText = `Rp ${total.toLocaleString()}`;
+            document.getElementById('cart-total').innerText = `Rp ${total.toLocaleString()}`;
+        }
+
+        function clearCart() {
+            cart = [];
+            renderCart();
+        }
+
+        // CHECKOUT & UPDATE FIREBASE
+        async function processCheckout() {
+            if (cart.length === 0) {
+                showToast("Cart belanjaan masih kosong!", "error");
+                return;
+            }
+
+            if (!currentUser) {
+                showToast("Menunggu koneksi database...", "error");
+                return;
+            }
+
+            const customerName = document.getElementById('customer-name').value || 'Pelanggan Umum';
+            const transactionId = 'TRX-' + Date.now().toString().slice(-6);
+            const dateStr = new Date().toLocaleString('id-ID');
+            const timestampNow = Date.now();
+
+            try {
+                // 1. Update Database Stocks
+                let updatedDtf = { ...dtfMaterials };
+
+                for (const item of cart) {
+                    if (item.type === 'kaos') {
+                        const prod = products.find(p => p.sku === item.sku);
+                        if (prod) {
+                            const newStock = Math.max(0, prod.stock - item.qty);
+                            const prodRef = doc(db, 'artifacts', appId, 'public', 'data', 'products', prod.id);
+                            await updateDoc(prodRef, { stock: newStock });
+                        }
+                    } else if (item.type === 'dtf') {
+                        const meters = item.dtfLength;
+                        updatedDtf.filmRollMeters = Math.max(0, updatedDtf.filmRollMeters - meters);
+                        updatedDtf.inkMl = Math.max(0, updatedDtf.inkMl - (meters * 20));
+                        updatedDtf.powderGrams = Math.max(0, updatedDtf.powderGrams - (meters * 25));
+                    }
+                }
+
+                // Update DTF Status in Firebase
+                const matRef = doc(db, 'artifacts', appId, 'public', 'data', 'dtf_materials', 'materials_status');
+                await setDoc(matRef, updatedDtf);
+
+                // 2. Save Transaction to Sales History Collection
+                const grandTotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+                const salesRef = collection(db, 'artifacts', appId, 'public', 'data', 'sales_history');
+                await addDoc(salesRef, {
+                    trxId: transactionId,
+                    date: dateStr,
+                    timestamp: timestampNow,
+                    customer: customerName,
+                    items: [...cart],
+                    total: grandTotal
+                });
+
+                // 3. Print Receipt
+                generatePrintReceipt(transactionId, dateStr, customerName, cart, grandTotal);
+
+                // 4. Clean up
+                cart = [];
+                document.getElementById('customer-name').value = '';
+                renderCart();
+                showToast("Transaksi Berhasil Disimpan ke Database!", "success");
+
+                // Trigger Print Window
+                window.print();
+            } catch (err) {
+                console.error("Checkout Error:", err);
+                showToast("Gagal menyimpan transaksi ke database.", "error");
+            }
+        }
+
+        function generatePrintReceipt(trxId, date, customer, items, total) {
+            const printArea = document.getElementById('print-area');
+            let itemsHtml = items.map(item => `
+                <tr class="border-b text-xs">
+                    <td class="py-1">${item.name}</td>
+                    <td class="py-1 text-center">${item.qty}</td>
+                    <td class="py-1 text-right">Rp ${(item.price * item.qty).toLocaleString()}</td>
+                </tr>
+            `).join('');
+
+            printArea.innerHTML = `
+                <div class="max-w-xs mx-auto border p-4 text-slate-800 font-mono">
+                    <div class="text-center mb-3">
+                        <h2 class="font-bold text-base tracking-wider">RZM ZITU KAOS</h2>
+                        <p class="text-[10px]">Pusat Kaos Polos & Sablon DTF Meteran</p>
+                        <p class="text-[9px] text-slate-500">Nota Otomatis POS System</p>
+                    </div>
+                    <div class="text-[10px] border-b pb-2 mb-2">
+                        <div>No TRX : ${trxId}</div>
+                        <div>Tgl    : ${date}</div>
+                        <div>Pelanggan: ${customer}</div>
+                    </div>
+                    <table class="w-full mb-3">
+                        <thead>
+                            <tr class="border-b text-[10px] text-left">
+                                <th class="py-1">Item</th>
+                                <th class="py-1 text-center">Qty</th>
+                                <th class="py-1 text-right">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>${itemsHtml}</tbody>
+                    </table>
+                    <div class="border-t pt-2 text-xs font-bold flex justify-between">
+                        <span>GRAND TOTAL</span>
+                        <span>Rp ${total.toLocaleString()}</span>
+                    </div>
+                    <div class="text-center mt-6 text-[10px] text-slate-500">
+                        Terima kasih telah berbelanja di RZM ZITU KAOS!
+                    </div>
+                </div>
+            `;
+        }
+
+        // STOK KAOS & BARCODE MANAGEMENT
+        function renderKaosInventory() {
+            const tbody = document.getElementById('kaos-table-body');
+            const query = (document.getElementById('search-kaos-inventory')?.value || '').toLowerCase();
+            tbody.innerHTML = '';
+
+            const filtered = products.filter(p => 
+                p.sku.toLowerCase().includes(query) || 
+                p.name.toLowerCase().includes(query) ||
+                p.color.toLowerCase().includes(query)
+            );
+
+            filtered.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 border-b border-slate-100";
+                tr.innerHTML = `
+                    <td class="p-4 font-mono font-bold text-indigo-600">${p.sku}</td>
+                    <td class="p-4 font-semibold text-slate-800">${p.name}</td>
+                    <td class="p-4 text-slate-600">${p.color}</td>
+                    <td class="p-4"><span class="px-2 py-0.5 bg-slate-100 border text-xs font-bold rounded">${p.size}</span></td>
+                    <td class="p-4 font-semibold">Rp ${p.price.toLocaleString()}</td>
+                    <td class="p-4">
+                        <span class="px-2.5 py-1 text-xs font-bold rounded-full ${p.stock > 10 ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">
+                            ${p.stock} Pcs
+                        </span>
+                    </td>
+                    <td class="p-4 text-right space-x-2">
+                        <button onclick="openPrintBarcodeModal('${p.sku}')" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-medium">
+                            <i class="fa-solid fa-barcode mr-1"></i> Cetak Label
+                        </button>
+                        <button onclick="deleteKaosProduct('${p.id}')" class="px-2.5 py-1.5 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg text-xs font-medium">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openAddKaosModal() {
+            document.getElementById('input-sku').value = '';
+            document.getElementById('input-nama').value = 'Cotton Combed 30s';
+            document.getElementById('input-warna').value = '';
+            document.getElementById('input-harga').value = '35000';
+            document.getElementById('input-stok').value = '50';
+            document.getElementById('modal-kaos').classList.remove('hidden');
+        }
+
+        function generateRandomSku() {
+            const randomCode = 'RZM-' + Math.floor(1000 + Math.random() * 9000);
+            document.getElementById('input-sku').value = randomCode;
+        }
+
+        async function saveKaosProduct() {
+            if (!currentUser) return;
+
+            const sku = document.getElementById('input-sku').value.trim().toUpperCase();
+            const name = document.getElementById('input-nama').value.trim();
+            const color = document.getElementById('input-warna').value.trim();
+            const size = document.getElementById('input-ukuran').value;
+            const price = parseFloat(document.getElementById('input-harga').value);
+            const stock = parseInt(document.getElementById('input-stok').value);
+
+            if (!sku || !name || isNaN(price) || isNaN(stock)) {
+                showToast("Harap isi semua formulir produk dengan benar!", "error");
+                return;
+            }
+
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'products', sku);
+                await setDoc(docRef, { sku, name, color, size, price, stock });
+                closeModal('modal-kaos');
+                showToast("Produk kaos berhasil tersimpan di Database!", "success");
+            } catch (err) {
+                console.error("Save product error:", err);
+                showToast("Gagal menyimpan produk kaos ke database.", "error");
+            }
+        }
+
+        async function deleteKaosProduct(id) {
+            if (!currentUser) return;
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'products', id);
+                await deleteDoc(docRef);
+                showToast("Produk berhasil dihapus dari database.", "success");
+            } catch (err) {
+                console.error("Delete error:", err);
+                showToast("Gagal menghapus produk.", "error");
+            }
+        }
+
+        function openPrintBarcodeModal(sku) {
+            const product = products.find(p => p.sku === sku);
+            if (!product) return;
+
+            const previewContainer = document.getElementById('barcode-sticker-preview');
+            previewContainer.innerHTML = `
+                <div class="text-center font-bold text-slate-800 text-xs uppercase">RZM ZITU KAOS</div>
+                <div class="text-[11px] font-semibold text-indigo-600">${product.name}</div>
+                <div class="text-[10px] text-slate-500 mb-1">${product.color} | Size: ${product.size}</div>
+                <svg id="barcode-svg-element"></svg>
+                <div class="text-xs font-bold text-slate-900 mt-1">Rp ${product.price.toLocaleString()}</div>
+            `;
+
+            JsBarcode("#barcode-svg-element", product.sku, {
+                format: "CODE128",
+                width: 1.8,
+                height: 45,
+                displayValue: true,
+                fontSize: 12
+            });
+
+            // Prepare Print Area
+            const printArea = document.getElementById('print-area');
+            printArea.innerHTML = `
+                <div class="flex flex-wrap gap-4 p-4">
+                    <div class="border p-3 text-center w-48 font-sans">
+                        <div class="font-bold text-xs uppercase">RZM ZITU KAOS</div>
+                        <div class="text-[11px] font-semibold">${product.name}</div>
+                        <div class="text-[10px]">${product.color} - Size ${product.size}</div>
+                        <svg id="print-barcode-svg"></svg>
+                        <div class="font-bold text-xs mt-1">Rp ${product.price.toLocaleString()}</div>
+                    </div>
+                </div>
+            `;
+            JsBarcode("#print-barcode-svg", product.sku, { format: "CODE128", width: 1.5, height: 40, displayValue: true, fontSize: 10 });
+
+            document.getElementById('modal-print-barcode').classList.remove('hidden');
+        }
+
+        function triggerPrintSticker() {
+            window.print();
+        }
+
+        // STOK BAHAN DTF MANAGEMENT
+        function renderDtfStock() {
+            document.getElementById('stock-film-meter').innerText = `${(dtfMaterials.filmRollMeters || 0).toFixed(1)} m`;
+            document.getElementById('stock-ink-ml').innerText = `${dtfMaterials.inkMl || 0} ml`;
+            document.getElementById('stock-powder-gram').innerText = `${dtfMaterials.powderGrams || 0} gram`;
+        }
+
+        function openRestockModal(type) {
+            const titles = { 'film': 'Restok PET Film Roll (Meter)', 'ink': 'Restok Tinta DTF (ml)', 'powder': 'Restok Bubuk Lem (Gram)' };
+            document.getElementById('restock-modal-title').innerText = titles[type];
+            document.getElementById('restock-material-type').value = type;
+            document.getElementById('restock-amount-input').value = '';
+            document.getElementById('modal-restock').classList.remove('hidden');
+        }
+
+        async function saveRestockMaterial() {
+            if (!currentUser) return;
+            const type = document.getElementById('restock-material-type').value;
+            const amount = parseFloat(document.getElementById('restock-amount-input').value);
+
+            if (!amount || amount <= 0) {
+                showToast("Masukkan jumlah restok yang valid!", "error");
+                return;
+            }
+
+            let updated = { ...dtfMaterials };
+            if (type === 'film') updated.filmRollMeters = (updated.filmRollMeters || 0) + amount;
+            if (type === 'ink') updated.inkMl = (updated.inkMl || 0) + amount;
+            if (type === 'powder') updated.powderGrams = (updated.powderGrams || 0) + amount;
+
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'dtf_materials', 'materials_status');
+                await setDoc(docRef, updated);
+                closeModal('modal-restock');
+                showToast("Stok bahan DTF berhasil ditambahkan!", "success");
+            } catch (err) {
+                console.error("Restock error:", err);
+                showToast("Gagal memperbarui stok di database.", "error");
+            }
+        }
+
+        // SALES HISTORY RENDER
+        function renderSalesHistory() {
+            const tbody = document.getElementById('sales-history-body');
+            tbody.innerHTML = '';
+            if (salesHistory.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-400 text-xs">Belum ada riwayat transaksi tersimpan</td></tr>`;
+                return;
+            }
+
+            salesHistory.forEach(s => {
+                const itemsStr = (s.items || []).map(i => `${i.name} (x${i.qty})`).join(', ');
+                const tr = document.createElement('tr');
+                tr.className = "border-b border-slate-100 hover:bg-slate-50";
+                tr.innerHTML = `
+                    <td class="p-4 font-mono font-semibold text-slate-800">${s.trxId || s.id}</td>
+                    <td class="p-4 text-xs text-slate-500">${s.date || '-'}</td>
+                    <td class="p-4 font-medium text-slate-700">${s.customer || 'Pelanggan Umum'}</td>
+                    <td class="p-4 text-xs text-slate-600 max-w-xs truncate" title="${itemsStr}">${itemsStr}</td>
+                    <td class="p-4 font-bold text-indigo-600">Rp ${(s.total || 0).toLocaleString()}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // UTILITY FUNCTIONS
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        function playBeep() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, ctx.currentTime);
+                osc.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.08);
+            } catch (e) {}
+        }
+
+        // GLOBAL SCOPE EXPOSURE FOR HTML EVENT LISTENERS
+        window.switchTab = switchTab;
+        window.addToCartBySku = addToCartBySku;
+        window.filterQuickProducts = filterQuickProducts;
+        window.addDtfToCart = addDtfToCart;
+        window.removeFromCart = removeFromCart;
+        window.clearCart = clearCart;
+        window.processCheckout = processCheckout;
+        window.renderKaosInventory = renderKaosInventory;
+        window.openAddKaosModal = openAddKaosModal;
+        window.deleteKaosProduct = deleteKaosProduct;
+        window.generateRandomSku = generateRandomSku;
+        window.saveKaosProduct = saveKaosProduct;
+        window.openPrintBarcodeModal = openPrintBarcodeModal;
+        window.triggerPrintSticker = triggerPrintSticker;
+        window.openRestockModal = openRestockModal;
+        window.saveRestockMaterial = saveRestockMaterial;
+        window.closeModal = closeModal;
+
+        // ON LOAD INITIALIZATION
+        window.onload = function() {
+            document.getElementById('current-date').innerText = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            
+            // Barcode Gun Auto Listen (Enter Key listener)
+            const scanInput = document.getElementById('barcode-scan-input');
+            if (scanInput) {
+                scanInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const sku = scanInput.value.trim();
+                        if (sku) {
+                            addToCartBySku(sku);
+                            scanInput.value = '';
+                        }
+                    }
+                });
+            }
+
+            // Init Firebase Cloud Database
+            initFirebase();
+        };
+    </script>
+</body>
+</html>
