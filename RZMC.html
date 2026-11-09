@@ -65,6 +65,9 @@
                 <button onclick="switchTab('riwayat')" id="tab-riwayat" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 text-slate-300 hover:bg-slate-700 hover:text-white">
                     <i class="fa-solid fa-clock-rotate-left"></i> Riwayat Penjualan
                 </button>
+                <button onclick="switchTab('piutang')" id="tab-piutang" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 text-slate-300 hover:bg-slate-700 hover:text-white">
+                    <i class="fa-solid fa-hand-holding-dollar"></i> Data Hutang Customer
+                </button>
             </div>
         </div>
     </header>
@@ -150,6 +153,11 @@
 
                     <!-- SUMMARY -->
                     <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-3 mb-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Customer / Pelanggan</label>
+                            <input type="text" id="customerNameInput" placeholder="cth: Mas Budi / Umum..."
+                                class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-medium bg-white">
+                        </div>
                         <div class="flex justify-between text-sm text-slate-600">
                             <span>Total Tagihan:</span>
                             <span id="cartTotalText" class="font-bold text-slate-800 text-lg">Rp 0</span>
@@ -157,7 +165,17 @@
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">Jumlah Uang Pembayaran (Rp)</label>
                             <input type="number" id="bayarInput" placeholder="Masukkan nominal bayar..."
-                                class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-semibold">
+                                class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-semibold bg-white">
+                        </div>
+                        <!-- HUTANG OPTION -->
+                        <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" id="isHutangCheckbox" onchange="toggleHutangOption()" class="w-4 h-4 text-amber-600 rounded focus:ring-amber-500">
+                                <span class="text-xs font-bold text-amber-900"><i class="fa-solid fa-file-invoice-dollar me-1"></i> Transaksi Hutang / Bon (Belum Lunas)</span>
+                            </label>
+                            <p id="hutangInfoText" class="text-[11px] text-amber-700 mt-1 hidden">
+                                Sisa tagihan akan dicatat sebagai hutang customer di sistem.
+                            </p>
                         </div>
                     </div>
 
@@ -297,12 +315,67 @@
                         <thead>
                             <tr class="bg-slate-50 text-slate-500 text-xs font-semibold uppercase tracking-wider border-y border-slate-200">
                                 <th class="p-3">Waktu Transaksi</th>
+                                <th class="p-3">Customer</th>
                                 <th class="p-3">Detail Item</th>
                                 <th class="p-3">Total Tagihan</th>
-                                <th class="p-3">Bayar / Kembalian</th>
+                                <th class="p-3">Bayar / Kembalian / Status</th>
                             </tr>
                         </thead>
                         <tbody id="historyTableBody" class="divide-y divide-slate-100 text-sm">
+                            <!-- Items rendered dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- TAB 5: DATA HUTANG CUSTOMER (PIUTANG) -->
+        <section id="sec-piutang" class="tab-content hidden space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div class="bg-amber-500 text-white p-5 rounded-2xl shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-wider text-amber-100">Total Piutang Usaha (Belum Lunas)</p>
+                        <h3 id="totalPiutangDisplay" class="text-2xl font-extrabold mt-1">Rp 0</h3>
+                    </div>
+                    <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-2xl">
+                        <i class="fa-solid fa-hand-holding-dollar"></i>
+                    </div>
+                </div>
+                <div class="bg-slate-800 text-white p-5 rounded-2xl shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Jumlah Transaksi Hutang</p>
+                        <h3 id="countPiutangDisplay" class="text-2xl font-extrabold mt-1">0 Transaksi</h3>
+                    </div>
+                    <div class="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center text-2xl text-amber-400">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+                    <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-file-invoice-dollar text-amber-600"></i> Kelompok Data Customer Berhutang
+                    </h2>
+                    <input type="text" id="searchHutangInput" onkeyup="filterHutangTable()" placeholder="Cari nama customer..." class="px-3 py-1.5 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500 w-full sm:w-64">
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-500 text-xs font-semibold uppercase tracking-wider border-y border-slate-200">
+                                <th class="p-3">Tanggal</th>
+                                <th class="p-3">Nama Customer</th>
+                                <th class="p-3">Item Dibeli</th>
+                                <th class="p-3">Total Belanja</th>
+                                <th class="p-3">Sudah Dibayar</th>
+                                <th class="p-3">Sisa Hutang</th>
+                                <th class="p-3">Status</th>
+                                <th class="p-3 text-right">Aksi Pelunasan</th>
+                            </tr>
+                        </thead>
+                        <tbody id="piutangTableBody" class="divide-y divide-slate-100 text-sm">
                             <!-- Items rendered dynamically -->
                         </tbody>
                     </table>
@@ -442,16 +515,16 @@
             </div>
             <div class="space-y-3">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Tambah PET Film (Meter)</label>
-                    <input type="number" id="restockPetInput" placeholder="+ Meter" class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm">
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Tambah PET Film Roll (Meter)</label>
+                    <input type="number" id="restockPetInput" step="0.1" placeholder="cth: 50" class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Tambah Tinta (ml)</label>
-                    <input type="number" id="restockTintaInput" placeholder="+ ml" class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm">
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Tambah Tinta DTF (ml)</label>
+                    <input type="number" id="restockTintaInput" placeholder="cth: 1000" class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Tambah Bubuk Lem (Gram)</label>
-                    <input type="number" id="restockLemInput" placeholder="+ Gram" class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm">
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Tambah Bubuk Lem TPU (Gram)</label>
+                    <input type="number" id="restockLemInput" placeholder="cth: 1000" class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
                 </div>
             </div>
             <div class="flex justify-end gap-2 pt-3 border-t">
@@ -462,10 +535,35 @@
     </div>
 
 
+    <!-- MODAL: PELUNASAN HUTANG CUSTOMER -->
+    <div id="payDebtModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white w-full max-w-sm rounded-2xl p-6 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-slate-800 text-lg">Pelunasan Hutang</h3>
+                <button onclick="closeModal('payDebtModal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <input type="hidden" id="payDebtTransId">
+            <div>
+                <p id="payDebtCustomerName" class="text-sm font-bold text-slate-800"></p>
+                <p id="payDebtSisaText" class="text-xs text-red-600 font-semibold mt-1"></p>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Nominal Bayar Pelunasan (Rp)</label>
+                <input type="number" id="payDebtInput" placeholder="Masukkan nominal..." class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold">
+            </div>
+            <div class="flex justify-end gap-2 pt-3 border-t">
+                <button onclick="closeModal('payDebtModal')" class="px-4 py-2 rounded-lg text-slate-600 text-sm font-medium">Batal</button>
+                <button onclick="saveDebtPayment()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium shadow">Simpan Pembayaran</button>
+            </div>
+        </div>
+    </div>
+
+
     <!-- PRINTABLE STRUK CONTAINER (HIDDEN ON SCREEN) -->
     <div id="printableStrukArea" class="hidden p-4 bg-white text-black font-mono text-xs max-w-xs mx-auto">
         <div class="text-center font-bold text-sm">RZM ZITU KAOS</div>
         <div class="text-center text-[10px]">Jl. Sablon DTF & Kaos Polos</div>
+        <div id="strukCustomerName" class="text-center font-bold mt-1 text-xs"></div>
         <div class="border-b border-dashed border-black my-2"></div>
         <div id="strukItemsList" class="space-y-1"></div>
         <div class="border-b border-dashed border-black my-2"></div>
@@ -610,7 +708,7 @@
                 renderDtfMaterials();
             });
 
-            // Firestore Snapshot: Sales History
+            // Firestore Snapshot: Sales History & Piutang
             onSnapshot(collection(db, "transactions"), (snapshot) => {
                 salesHistory = [];
                 snapshot.forEach(docSnap => {
@@ -618,6 +716,7 @@
                 });
                 salesHistory.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
                 renderSalesHistory();
+                renderPiutang();
             });
 
         } catch (e) {
@@ -802,30 +901,49 @@
             renderCart();
         }
 
-        // CHECKOUT & PROCESS SALE
+        // TOGGLE HUTANG OPTION IN KASIR
+        function toggleHutangOption() {
+            const isHutang = document.getElementById('isHutangCheckbox').checked;
+            const info = document.getElementById('hutangInfoText');
+            if (info) {
+                info.classList.toggle('hidden', !isHutang);
+            }
+        }
+
+        // CHECKOUT & PROCESS SALE WITH CUSTOMER NAME & HUTANG SUPPORT
         async function processCheckout() {
             if (cartItems.length === 0) {
                 showToast("Keranjang belanja masih kosong!", "error");
                 return;
             }
 
+            const customerNameInput = document.getElementById('customerNameInput');
+            const customerName = customerNameInput ? (customerNameInput.value.trim() || 'Umum') : 'Umum';
+
             const bayarInput = document.getElementById('bayarInput');
             const jumlahBayar = parseFloat(bayarInput.value) || 0;
             const totalHarga = cartItems.reduce((sum, item) => sum + item.subtotal, 0);
+            const isHutang = document.getElementById('isHutangCheckbox').checked;
 
-            if (jumlahBayar < totalHarga) {
-                showToast("Jumlah pembayaran kurang!", "error");
+            if (!isHutang && jumlahBayar < totalHarga) {
+                showToast("Jumlah pembayaran kurang! (Centang Transaksi Hutang jika ingin bon)", "error");
                 return;
             }
 
-            const kembalian = jumlahBayar - totalHarga;
+            const sisaHutang = isHutang ? Math.max(0, totalHarga - jumlahBayar) : 0;
+            const kembalian = !isHutang ? Math.max(0, jumlahBayar - totalHarga) : 0;
+            const statusHutang = (isHutang && sisaHutang > 0) ? 'BELUM LUNAS' : 'LUNAS';
 
             try {
                 const transactionData = {
+                    customerName: customerName,
                     items: cartItems,
                     total: totalHarga,
                     bayar: jumlahBayar,
                     kembalian: kembalian,
+                    isHutang: isHutang,
+                    sisaHutang: sisaHutang,
+                    statusHutang: statusHutang,
                     timestamp: serverTimestamp(),
                     tanggalStr: new Date().toLocaleString('id-ID')
                 };
@@ -857,7 +975,10 @@
                 cartItems = [];
                 renderCart();
                 bayarInput.value = '';
-                showToast("Transaksi berhasil & nota dicetak!", "success");
+                if (customerNameInput) customerNameInput.value = '';
+                document.getElementById('isHutangCheckbox').checked = false;
+                toggleHutangOption();
+                showToast(isHutang ? "Transaksi hutang berhasil dicatat!" : "Transaksi berhasil & nota dicetak!", "success");
 
             } catch (err) {
                 console.error("Checkout error:", err);
@@ -865,11 +986,16 @@
             }
         }
 
-        // PRINT RECEIPT STRUK
+        // PRINT RECEIPT STRUK WITH CUSTOMER NAME
         function printStruk(data) {
             const strukArea = document.getElementById('printableStrukArea');
             const itemsList = document.getElementById('strukItemsList');
             const summary = document.getElementById('strukSummary');
+            const custEl = document.getElementById('strukCustomerName');
+
+            if (custEl) {
+                custEl.innerText = `Customer: ${data.customerName || 'Umum'}`;
+            }
 
             itemsList.innerHTML = data.items.map(i => `
                 <div class="flex justify-between">
@@ -881,7 +1007,9 @@
             summary.innerHTML = `
                 <div class="flex justify-between font-bold"><span>Total:</span><span>Rp ${Number(data.total).toLocaleString('id-ID')}</span></div>
                 <div class="flex justify-between"><span>Bayar:</span><span>Rp ${Number(data.bayar).toLocaleString('id-ID')}</span></div>
-                <div class="flex justify-between"><span>Kembali:</span><span>Rp ${Number(data.kembalian).toLocaleString('id-ID')}</span></div>
+                ${data.isHutang && data.sisaHutang > 0 ? 
+                    `<div class="flex justify-between font-bold text-red-600"><span>Sisa Hutang:</span><span>Rp ${Number(data.sisaHutang).toLocaleString('id-ID')}</span></div>` : 
+                    `<div class="flex justify-between"><span>Kembali:</span><span>Rp ${Number(data.kembalian).toLocaleString('id-ID')}</span></div>`}
             `;
 
             strukArea.classList.remove('hidden');
@@ -1072,19 +1200,20 @@
             }
         }
 
-        // RENDER SALES HISTORY
+        // RENDER SALES HISTORY WITH CUSTOMER COLUMN
         function renderSalesHistory() {
             const tbody = document.getElementById('historyTableBody');
             if (!tbody) return;
 
             if (salesHistory.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400">Belum ada riwayat penjualan.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">Belum ada riwayat penjualan.</td></tr>`;
                 return;
             }
 
             tbody.innerHTML = salesHistory.map(t => `
                 <tr class="hover:bg-slate-50 transition border-b border-slate-100">
                     <td class="p-3 text-xs text-slate-500 font-medium">${t.tanggalStr || '-'}</td>
+                    <td class="p-3 font-semibold text-slate-800">${t.customerName || 'Umum'}</td>
                     <td class="p-3">
                         <ul class="list-disc list-inside text-xs space-y-0.5">
                             ${(t.items || []).map(i => `<li><span class="font-semibold text-slate-800">${i.nama}</span> x${i.qty}</li>`).join('')}
@@ -1093,10 +1222,109 @@
                     <td class="p-3 font-bold text-slate-800">Rp ${Number(t.total || 0).toLocaleString('id-ID')}</td>
                     <td class="p-3 text-xs">
                         <span class="text-slate-600">Bayar: Rp ${Number(t.bayar || 0).toLocaleString('id-ID')}</span><br>
-                        <span class="text-emerald-600 font-medium">Kembali: Rp ${Number(t.kembalian || 0).toLocaleString('id-ID')}</span>
+                        ${t.isHutang && t.sisaHutang > 0 ? 
+                            `<span class="text-red-600 font-bold">Hutang: Rp ${Number(t.sisaHutang).toLocaleString('id-ID')}</span>` : 
+                            `<span class="text-emerald-600 font-medium">Kembali: Rp ${Number(t.kembalian || 0).toLocaleString('id-ID')}</span>`}
                     </td>
                 </tr>
             `).join('');
+        }
+
+        // RENDER DATA HUTANG CUSTOMER (PIUTANG)
+        function renderPiutang() {
+            const tbody = document.getElementById('piutangTableBody');
+            const totalPiutangDisplay = document.getElementById('totalPiutangDisplay');
+            const countPiutangDisplay = document.getElementById('countPiutangDisplay');
+            if (!tbody) return;
+
+            const hutangList = salesHistory.filter(t => t.isHutang && (t.sisaHutang > 0 || t.statusHutang === 'BELUM LUNAS'));
+            let totalPiutang = 0;
+
+            if (hutangList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-slate-400">Tidak ada customer yang memiliki hutang saat ini.</td></tr>`;
+                if (totalPiutangDisplay) totalPiutangDisplay.innerText = "Rp 0";
+                if (countPiutangDisplay) countPiutangDisplay.innerText = "0 Transaksi";
+                return;
+            }
+
+            tbody.innerHTML = hutangList.map(t => {
+                totalPiutang += (t.sisaHutang || 0);
+                const isBelumLunas = t.sisaHutang > 0;
+                return `
+                    <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+                        <td class="p-3 text-xs text-slate-500">${t.tanggalStr || '-'}</td>
+                        <td class="p-3 font-bold text-slate-800">${t.customerName || 'Tanpa Nama'}</td>
+                        <td class="p-3 text-xs">
+                            ${(t.items || []).map(i => `${i.nama} (${i.qty}x)`).join(', ')}
+                        </td>
+                        <td class="p-3 font-semibold text-slate-800">Rp ${Number(t.total || 0).toLocaleString('id-ID')}</td>
+                        <td class="p-3 text-emerald-700 font-medium">Rp ${Number(t.bayar || 0).toLocaleString('id-ID')}</td>
+                        <td class="p-3 font-extrabold text-red-600">Rp ${Number(t.sisaHutang || 0).toLocaleString('id-ID')}</td>
+                        <td class="p-3">
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold ${isBelumLunas ? 'bg-red-100 text-red-700 border border-red-200' : 'bg-emerald-100 text-emerald-700 border border-emerald-200'}">
+                                ${isBelumLunas ? 'BELUM LUNAS' : 'LUNAS'}
+                            </span>
+                        </td>
+                        <td class="p-3 text-right">
+                            ${isBelumLunas ? `
+                                <button onclick="openPayDebtModal('${t.id}')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow transition flex items-center gap-1.5 ml-auto">
+                                    <i class="fa-solid fa-money-bill-wave"></i> Bayar / Pelunasan
+                                </button>
+                            ` : `<span class="text-xs text-emerald-600 font-bold"><i class="fa-solid fa-circle-check"></i> Lunas</span>`}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            if (totalPiutangDisplay) totalPiutangDisplay.innerText = `Rp ${Number(totalPiutang).toLocaleString('id-ID')}`;
+            if (countPiutangDisplay) countPiutangDisplay.innerText = `${hutangList.length} Transaksi`;
+        }
+
+        function filterHutangTable() {
+            const q = document.getElementById('searchHutangInput').value.toLowerCase();
+            const rows = document.querySelectorAll('#piutangTableBody tr');
+            rows.forEach(r => {
+                const text = r.innerText.toLowerCase();
+                r.style.display = text.includes(q) ? '' : 'none';
+            });
+        }
+
+        function openPayDebtModal(transId) {
+            const trans = salesHistory.find(t => t.id === transId);
+            if (!trans) return;
+
+            document.getElementById('payDebtTransId').value = transId;
+            document.getElementById('payDebtCustomerName').innerText = `Pelunasan: ${trans.customerName || 'Customer'}`;
+            document.getElementById('payDebtSisaText').innerText = `Sisa Hutang: Rp ${Number(trans.sisaHutang).toLocaleString('id-ID')}`;
+            document.getElementById('payDebtInput').value = trans.sisaHutang;
+            document.getElementById('payDebtModal').classList.remove('hidden');
+        }
+
+        async function saveDebtPayment() {
+            const transId = document.getElementById('payDebtTransId').value;
+            const payAmount = parseFloat(document.getElementById('payDebtInput').value) || 0;
+            const trans = salesHistory.find(t => t.id === transId);
+
+            if (!trans || payAmount <= 0) {
+                showToast("Masukkan nominal pelunasan yang valid!", 'error');
+                return;
+            }
+
+            const newBayar = (trans.bayar || 0) + payAmount;
+            const newSisa = Math.max(0, (trans.sisaHutang || 0) - payAmount);
+            const newStatus = newSisa === 0 ? 'LUNAS' : 'BELUM LUNAS';
+
+            try {
+                await updateDoc(doc(db, "transactions", transId), {
+                    bayar: newBayar,
+                    sisaHutang: newSisa,
+                    statusHutang: newStatus
+                });
+                closeModal('payDebtModal');
+                showToast(newSisa === 0 ? "Hutang berhasil dilunasi!" : `Pembayaran dicatat. Sisa: Rp ${Number(newSisa).toLocaleString('id-ID')}`, 'success');
+            } catch (err) {
+                showToast("Gagal memproses pembayaran: " + err.message, 'error');
+            }
         }
 
         // CAMERA SCANNER HANDLER
@@ -1171,6 +1399,7 @@
         window.changeCartQty = changeCartQty;
         window.removeFromCart = removeFromCart;
         window.clearCart = clearCart;
+        window.toggleHutangOption = toggleHutangOption;
         window.processCheckout = processCheckout;
         window.renderKaosInventory = renderKaosInventory;
         window.openAddKaosModal = openAddKaosModal;
@@ -1186,6 +1415,10 @@
         window.openCameraScanner = openCameraScanner;
         window.closeCameraScanner = closeCameraScanner;
         window.searchKaosInStok = searchKaosInStok;
+        window.renderPiutang = renderPiutang;
+        window.filterHutangTable = filterHutangTable;
+        window.openPayDebtModal = openPayDebtModal;
+        window.saveDebtPayment = saveDebtPayment;
     </script>
 </body>
 </html>
