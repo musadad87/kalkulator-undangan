@@ -7,6 +7,9 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
+    <!-- HTML2CANVAS LIBRARY UNTUK SCREENSHOT NOTA -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
     <!-- FIREBASE SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -45,7 +48,7 @@
         // --- AUTHENTICATION ---
         signInAnonymously(auth).catch((error) => {
             console.error("Gagal Login:", error);
-            alert("Gagal koneksi ke server.");
+            showToast("Gagal koneksi ke server.", "bg-danger");
         });
 
         onAuthStateChanged(auth, (user) => {
@@ -102,32 +105,33 @@
         window.restoreData = async (input) => {
             const file = input.files[0];
             if (!file) return;
-            if(!confirm("Gabungkan data dari file JSON ini?")) return;
-            const reader = new FileReader();
-            reader.onload = async function(e) {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    let count = 0;
-                    const importCollection = async (collName, items) => {
-                        if (!items || items.length === 0) return;
-                        const colRef = collection(db, `data_toko/${appId}/${collName}`);
-                        for (const item of items) {
-                            const { docId, id, ...cleanItem } = item; 
-                            await addDoc(colRef, cleanItem);
-                            count++;
-                        }
-                    };
-                    document.getElementById('statusKoneksi').innerHTML = '<span class="badge bg-warning text-dark">Mengupload...</span>';
-                    await importCollection('produk', data.produk);
-                    await importCollection('nota', data.nota);
-                    await importCollection('pengeluaran', data.pengeluaran);
-                    await importCollection('pemasukanLain', data.pemasukanLain);
-                    alert(`Berhasil merestore ${count} data!`);
-                    input.value = ''; 
-                    document.getElementById('statusKoneksi').innerHTML = '<span class="badge bg-success"><i class="fas fa-wifi"></i> Online</span>';
-                } catch (err) { alert("Gagal baca file: " + err.message); }
-            };
-            reader.readAsText(file);
+            customConfirm("Gabungkan data dari file JSON ini?", async () => {
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        let count = 0;
+                        const importCollection = async (collName, items) => {
+                            if (!items || items.length === 0) return;
+                            const colRef = collection(db, `data_toko/${appId}/${collName}`);
+                            for (const item of items) {
+                                const { docId, id, ...cleanItem } = item; 
+                                await addDoc(colRef, cleanItem);
+                                count++;
+                            }
+                        };
+                        document.getElementById('statusKoneksi').innerHTML = '<span class="badge bg-warning text-dark">Mengupload...</span>';
+                        await importCollection('produk', data.produk);
+                        await importCollection('nota', data.nota);
+                        await importCollection('pengeluaran', data.pengeluaran);
+                        await importCollection('pemasukanLain', data.pemasukanLain);
+                        showToast(`Berhasil merestore ${count} data!`, "bg-success");
+                        input.value = ''; 
+                        document.getElementById('statusKoneksi').innerHTML = '<span class="badge bg-success"><i class="fas fa-wifi"></i> Online</span>';
+                    } catch (err) { showToast("Gagal baca file: " + err.message, "bg-danger"); }
+                };
+                reader.readAsText(file);
+            });
         };
 
         // --- FUNGSI HUTANG ---
@@ -166,35 +170,38 @@
         }
 
         window.lunasiHutang = async (docId, totalTagihan, kekurangan) => {
-            if(!confirm(`Pelanggan akan melunasi sisa tagihan sebesar Rp ${kekurangan.toLocaleString()}?\n\nKlik OK jika uang sudah diterima.`)) return;
-            try {
-                await updateDoc(doc(db, `data_toko/${appId}/nota`, docId), { dp: totalTagihan, sisaInfo: 'LUNAS' });
-                alert("Berhasil dilunasi! Data otomatis pindah ke Laporan.");
-            } catch (e) { alert("Gagal update: " + e.message); }
+            customConfirm(`Pelanggan akan melunasi sisa tagihan sebesar Rp ${kekurangan.toLocaleString()}?\n\nUang sudah diterima?`, async () => {
+                try {
+                    await updateDoc(doc(db, `data_toko/${appId}/nota`, docId), { dp: totalTagihan, sisaInfo: 'LUNAS' });
+                    showToast("Berhasil dilunasi! Data otomatis pindah ke Laporan.", "bg-success");
+                } catch (e) { showToast("Gagal update: " + e.message, "bg-danger"); }
+            });
         }
 
-        // --- FUNGSI GUDANG & TRANSAKSI (SAMA SEPERTI SEBELUMNYA) ---
+        // --- FUNGSI GUDANG & TRANSAKSI ---
         window.simpanProduk = async () => {
             const nama = document.getElementById('prodNama').value;
             const harga = Number(document.getElementById('prodHarga').value);
             const stok = Number(document.getElementById('prodStok').value);
             const min = Number(document.getElementById('prodMin').value);
-            if(!nama) return alert("Nama wajib diisi!");
+            if(!nama) return showToast("Nama wajib diisi!", "bg-warning");
             const btn = document.getElementById('btnSimpanProduk'); btn.disabled = true; btn.innerText = "Menyimpan...";
             try {
                 if (window.editProdukId) await updateDoc(doc(db, `data_toko/${appId}/produk`, window.editProdukId), { nama, harga, stok, min });
                 else await addDoc(collection(db, `data_toko/${appId}/produk`), { nama, harga, stok, min, createdAt: Date.now() });
                 resetFormGudang();
-            } catch (e) { alert("Gagal: " + e.message); } finally { btn.disabled = false; }
+                showToast("Produk berhasil disimpan!", "bg-success");
+            } catch (e) { showToast("Gagal: " + e.message, "bg-danger"); } finally { btn.disabled = false; }
         };
 
         window.hapusProduk = async (docId) => {
-            if(!confirm("Hapus barang ini?")) return;
-            try { await deleteDoc(doc(db, `data_toko/${appId}/produk`, docId)); } catch(e) { alert("Gagal: " + e.message); }
+            customConfirm("Hapus barang ini dari database?", async () => {
+                try { await deleteDoc(doc(db, `data_toko/${appId}/produk`, docId)); showToast("Barang dihapus!", "bg-success"); } catch(e) { showToast("Gagal: " + e.message, "bg-danger"); }
+            });
         };
 
         window.simpanDanCetak = async () => {
-            if(window.keranjang.length === 0) return alert("Keranjang kosong!");
+            if(window.keranjang.length === 0) return showToast("Keranjang kosong!", "bg-warning");
             const btn = document.getElementById('btnSimpan'); btn.innerText = "Memproses..."; btn.disabled = true;
             try {
                 const colProdukPath = `data_toko/${appId}/produk`;
@@ -202,8 +209,10 @@
                     const oldNota = window.localCache.nota.find(n => n.docId === window.activeNotaId);
                     if (oldNota) {
                         for (const item of oldNota.items) {
-                            const prodRef = window.localCache.produk.find(p => p.docId == item.id); 
-                            if (prodRef) await updateDoc(doc(db, colProdukPath, prodRef.docId), { stok: prodRef.stok + item.qty });
+                            if (!String(item.id).startsWith('manual_') && !String(item.id).startsWith('pulsa_')) {
+                                const prodRef = window.localCache.produk.find(p => p.docId == item.id); 
+                                if (prodRef) await updateDoc(doc(db, colProdukPath, prodRef.docId), { stok: prodRef.stok + item.qty });
+                            }
                         }
                     }
                 }
@@ -227,12 +236,12 @@
                 };
                 if (window.activeNotaId) {
                     await updateDoc(doc(db, `data_toko/${appId}/nota`, window.activeNotaId), notaData);
-                    alert("Nota berhasil diupdate!");
+                    showToast("Nota berhasil diupdate!", "bg-success");
                 } else {
                     await addDoc(collection(db, `data_toko/${appId}/nota`), notaData);
                 }
                 document.body.classList.add('print-nota'); window.print(); document.body.classList.remove('print-nota'); resetNota();
-            } catch (e) { console.error(e); alert("Error: " + e.message); } finally { btn.disabled = false; }
+            } catch (e) { console.error(e); showToast("Error: " + e.message, "bg-danger"); } finally { btn.disabled = false; }
         };
 
         // --- FUNGSI INPUT KEUANGAN ---
@@ -248,7 +257,8 @@
                         document.getElementById('btnSimpanExp').classList.replace('btn-warning', 'btn-danger');
                     } else await addDoc(collection(db, `data_toko/${appId}/pengeluaran`), { tglStr: tgl, ket, jml });
                     document.getElementById('expKet').value=''; document.getElementById('expJml').value='';
-                } catch(e) { alert(e.message); } finally { btn.innerText = "Simpan Pengeluaran"; btn.disabled = false; }
+                    showToast("Pengeluaran disimpan!", "bg-success");
+                } catch(e) { showToast(e.message, "bg-danger"); } finally { btn.innerText = "Simpan Pengeluaran"; btn.disabled = false; }
             }
         };
 
@@ -264,7 +274,8 @@
                         document.getElementById('btnSimpanIn').classList.replace('btn-warning', 'btn-success');
                     } else await addDoc(collection(db, `data_toko/${appId}/pemasukanLain`), { tglStr: tgl, ket, jml });
                     document.getElementById('inKet').value=''; document.getElementById('inJml').value='';
-                } catch(e) { alert(e.message); } finally { btn.innerText = "Simpan Pemasukan"; btn.disabled = false; }
+                    showToast("Pemasukan disimpan!", "bg-success");
+                } catch(e) { showToast(e.message, "bg-danger"); } finally { btn.innerText = "Simpan Pemasukan"; btn.disabled = false; }
             }
         };
         
@@ -356,8 +367,8 @@
             <div id="statusKoneksi" class="small">Menghubungkan...</div>
         </div>
         <div class="d-flex gap-2">
-            <button class="btn btn-warning btn-sm text-dark fw-bold shadow" onclick="document.getElementById('jsonFile').click()">📂 Restore Data Offline</button>
-            <button onclick="alert('Data sudah otomatis tersimpan di Cloud!')" class="btn btn-success btn-sm fw-bold shadow"><i class="fas fa-check-circle"></i> Auto-Save On</button>
+            <button class="btn btn-warning btn-sm text-dark fw-bold shadow" onclick="document.getElementById('jsonFile').click()"><i class="fas fa-upload"></i> Restore Data Offline</button>
+            <button onclick="showToast('Data otomatis tersimpan di Cloud!', 'bg-info')" class="btn btn-success btn-sm fw-bold shadow"><i class="fas fa-check-circle"></i> Auto-Save On</button>
         </div>
     </div>
 </div>
@@ -368,7 +379,7 @@
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabGudang">📦 Gudang</button></li>
         <li class="nav-item position-relative">
             <button class="nav-link text-danger" data-bs-toggle="tab" data-bs-target="#tabHutang">
-                📒 Hutang <span id="badgeHutang" class="badge bg-danger rounded-pill ms-1"></span>
+                📕 Hutang <span id="badgeHutang" class="badge bg-danger rounded-pill ms-1"></span>
             </button>
         </li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabLaporan">📊 Laporan</button></li>
@@ -384,29 +395,44 @@
                         <input type="text" id="pulsaKet" class="form-control form-control-sm mb-2" placeholder="Ket (Cth: Tsel 10k / Token 20k)">
                         <input type="number" id="pulsaNo" class="form-control form-control-sm mb-2" placeholder="No HP / ID Pelanggan">
                         <input type="number" id="pulsaHarga" class="form-control form-control-sm mb-2" placeholder="Harga Jual">
-                        <button onclick="tambahPulsa()" class="btn btn-primary btn-sm w-100 fw-bold"><i class="fas fa-plus-circle"></i> MASUKKAN KE NOTA</button>
-						<a href="https://musadad87.github.io/kalkulator-undangan/haraga_riza.html" target="_blank" style="display: inline-block; padding: 12px 24px; background-color: #001add; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; font-family: sans-serif;">
-							HITUNGAN SEPANDUK
-						</a>
-						<a href="https://musadad87.github.io/kalkulator-undangan/Teransaksi.html" target="_blank" style="display: inline-block; padding: 12px 24px; background-color: #dc3545; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; font-family: sans-serif;">
-							INPIT PRODUKSI
-						</a>
-
+                        <button onclick="tambahPulsa()" class="btn btn-primary btn-sm w-100 fw-bold mb-2"><i class="fas fa-plus-circle"></i> MASUKKAN KE NOTA</button>
+                        <div class="d-flex gap-2">
+                            <button type="button" onclick="openModalSpanduk()" class="btn btn-primary btn-sm w-50 fw-bold text-center text-truncate" style="background-color: #001add;">
+                                <i class="fas fa-calculator"></i> HITUNG SPANDUK
+                            </button>
+                            <a href="https://musadad87.github.io/kalkulator-undangan/Teransaksi.html" target="_blank" class="btn btn-danger btn-sm w-50 fw-bold text-center text-truncate">
+                                INPUT PRODUKSI
+                            </a>
+                        </div>
                     </div>
 
+                    <!-- CARD INPUT BARANG / JASA (DENGAN MODE MANUAL NON-STOK) -->
                     <div class="card p-3 shadow-sm mb-3 border-0">
                         <h6 class="fw-bold text-dark">Input Barang / Jasa</h6>
                         <input type="text" id="custNama" class="form-control form-control-sm mb-2" placeholder="Nama Pelanggan">
                         <input type="text" id="custTelp" class="form-control form-control-sm mb-2" placeholder="No HP/WA">
                         <hr class="my-2">
-                        <label class="small text-muted">Cari Barang:</label>
+                        <label class="small text-muted">Cari / Input Barang:</label>
                         <input list="listBarang" id="inputBarang" class="form-control mb-2" placeholder="Ketik nama..." onchange="updateHarga()" autocomplete="off">
                         <datalist id="listBarang"></datalist>
-                        <div class="row g-2">
-                            <div class="col-8"><input type="number" id="hargaBarang" class="form-control form-control-sm" placeholder="Harga" readonly></div>
-                            <div class="col-4"><input type="number" id="qtyBarang" class="form-control form-control-sm" value="1"></div>
+
+                        <!-- CHECKBOX FITUR BARANG MANUAL / TANPA POTONG STOK -->
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="chkManualItem" onchange="toggleManualInput()">
+                            <label class="form-check-label small fw-bold text-primary" for="chkManualItem">
+                                <i class="fas fa-hand-holding-usd"></i> Barang Manual / Jasa (Tanpa Potong Stok)
+                            </label>
                         </div>
-                        <button onclick="tambahItem()" class="btn btn-dark btn-sm w-100 mt-3 fw-bold">➕ MASUKKAN BARANG</button>
+
+                        <div class="row g-2">
+                            <div class="col-8">
+                                <input type="number" id="hargaBarang" class="form-control form-control-sm" placeholder="Harga" readonly>
+                            </div>
+                            <div class="col-4">
+                                <input type="number" id="qtyBarang" class="form-control form-control-sm" value="1">
+                            </div>
+                        </div>
+                        <button onclick="tambahItem()" class="btn btn-dark btn-sm w-100 mt-3 fw-bold">📥 MASUKKAN BARANG</button>
                     </div>
 
                     <div class="card p-3 shadow-sm border-0">
@@ -457,6 +483,10 @@
                     
                     <div class="d-grid gap-2 mt-3 no-print">
                         <button onclick="simpanDanCetak()" id="btnSimpan" class="btn btn-primary btn-lg fw-bold"><i class="fas fa-print"></i> SIMPAN & CETAK</button>
+                        
+                        <!-- TOMBOL SCREENSHOT NOTA DIBAWAH SIMPAN/UPDATE DATABASE -->
+                        <button onclick="screenshotNota()" id="btnScreenshot" class="btn btn-success btn-lg fw-bold"><i class="fas fa-camera"></i> SCREENSHOT NOTA & KIRIM WA</button>
+                        
                         <button onclick="resetNota()" class="btn btn-secondary">Reset / Batal</button>
                     </div>
                 </div>
@@ -617,9 +647,242 @@
     </div>
 </div>
 
+<!-- MODAL POPUP SCREENSHOT NOTA -->
+<div class="modal fade no-print" id="modalScreenshot" tabindex="-1" aria-labelledby="modalScreenshotLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title fw-bold" id="modalScreenshotLabel"><i class="fas fa-image"></i> Screenshot Nota & Kirim WA</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center bg-light">
+        <p class="text-muted small mb-2">Gambar nota berhasil dibuat! Anda bisa mengunduh gambar atau langsung menyalinnya untuk dikirimkan ke WhatsApp pelanggan.</p>
+        <div class="p-2 bg-white rounded shadow-sm border mb-3 d-inline-block text-center" style="max-width: 100%;">
+            <img id="modalPreviewImg" src="" class="img-fluid rounded" style="max-height: 450px; border: 1px solid #ddd;" alt="Preview Nota">
+        </div>
+        <div class="alert alert-info small text-start mb-0">
+            <i class="fas fa-info-circle"></i> <b>Petunjuk Kirim WA:</b>
+            <ol class="mb-0 ps-3">
+                <li>Klik <b>"Unduh Gambar Nota"</b> atau <b>"Salin Gambar"</b>.</li>
+                <li>Klik <b>"Buka WA Customer"</b> untuk langsung membuka chat WhatsApp pelanggan.</li>
+                <li>Lampirkan atau Paste (Ctrl+V) gambar nota ke chat pelanggan.</li>
+            </ol>
+        </div>
+      </div>
+      <div class="modal-footer justify-content-between">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+        <div class="d-flex gap-2">
+            <button onclick="salinGambarNota()" class="btn btn-outline-primary fw-bold"><i class="fas fa-copy"></i> Salin Gambar</button>
+            <a id="btnDownloadImg" href="#" class="btn btn-success fw-bold"><i class="fas fa-download"></i> Unduh Gambar Nota</a>
+            <a id="btnOpenWA" href="#" target="_blank" class="btn btn-primary fw-bold"><i class="fab fa-whatsapp"></i> Buka WA Customer</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST NOTIFIKASI APP -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3 no-print" style="z-index: 1090;">
+  <div id="appToast" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body" id="toastMessage">Notifikasi...</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRMATION MODAL -->
+<div class="modal fade no-print" id="confirmModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content">
+      <div class="modal-header py-2 bg-dark text-white">
+        <h6 class="modal-title fw-bold">Konfirmasi</h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body small" id="confirmBody">Apakah Anda yakin?</div>
+      <div class="modal-footer py-1">
+        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Batal</button>
+        <button type="button" class="btn btn-sm btn-primary fw-bold" id="btnConfirmOk">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL KALKULATOR SPANDUK / BAHAN (INTEGRASI HITUNG RIZA) -->
+<div class="modal fade no-print" id="modalSpanduk" tabindex="-1" aria-labelledby="modalSpandukLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-xl">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header text-white" style="background-color: #1e3c72;">
+        <h5 class="modal-title fw-bold" id="modalSpandukLabel"><i class="fas fa-calculator me-2"></i>Kalkulator Harga Bahan / Spanduk</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4 bg-light">
+        <div class="row g-4">
+            <!-- Left Column: Kalkulator -->
+            <div class="col-lg-6">
+                <div class="card p-3 shadow-sm border-0">
+                    <h6 class="fw-bold text-primary mb-3"><i class="fas fa-ruler-combined me-1"></i> Hitung Harga Bahan</h6>
+                    
+                    <div class="mb-2">
+                        <label class="form-label small font-medium text-muted mb-1">No ID</label>
+                        <input type="text" id="spndNoId" class="form-control form-control-sm" placeholder="Masukkan No ID">
+                    </div>
+                    
+                    <div class="mb-2">
+                        <label class="form-label small font-medium text-muted mb-1">Nama Bahan</label>
+                        <div class="input-group input-group-sm">
+                            <select id="spndNamaBahan" class="form-select" onchange="updateHargaBahan()">
+                                <option value="">Pilih Bahan</option>
+                            </select>
+                            <button onclick="openFormHargaBahan()" class="btn btn-primary fw-bold" type="button" title="Tambah / Kelola Bahan">+</button>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-2">
+                        <label class="form-label small font-medium text-muted mb-1">Harga Bahan (per meter)</label>
+                        <input type="text" id="spndHargaBahan" class="form-control form-control-sm bg-white" readonly placeholder="Rp 0">
+                    </div>
+                    
+                    <div class="row g-2 mb-2">
+                        <div class="col-6">
+                            <label class="form-label small font-medium text-muted mb-1">Panjang (CM)</label>
+                            <input type="number" id="spndPanjangCm" class="form-control form-control-sm" placeholder="0" oninput="hitungHargaBahan()">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small font-medium text-muted mb-1">Lebar (CM)</label>
+                            <input type="number" id="spndLebarCm" class="form-control form-control-sm" placeholder="0" oninput="hitungHargaBahan()">
+                        </div>
+                    </div>
+                    
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small font-medium text-muted mb-1">Meter Panjang</label>
+                            <input type="text" id="spndMeterPanjang" class="form-control form-control-sm bg-light" readonly placeholder="0 m">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small font-medium text-muted mb-1">Meter Lebar</label>
+                            <input type="text" id="spndMeterLebar" class="form-control form-control-sm bg-light" readonly placeholder="0 m">
+                        </div>
+                    </div>
+                    
+                    <div class="bg-danger bg-opacity-10 p-3 rounded border border-danger border-opacity-25 mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="form-label small fw-bold text-danger mb-0">Harga Cetak</label>
+                            <button onclick="copyHargaCetak()" class="btn btn-primary btn-sm py-0 px-2 small">Copy</button>
+                        </div>
+                        <div id="spndHargaCetak" class="h3 fw-bold text-danger mb-2" data-val="0">Rp 0</div>
+                        
+                        <div class="bg-white p-2 rounded border">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label class="small text-muted mb-0">Detail Perhitungan</label>
+                                <button onclick="copySummaryText()" class="btn btn-success btn-sm py-0 px-2 small">Copy</button>
+                            </div>
+                            <div id="spndSummaryText" class="small text-dark fw-bold user-select-all p-1 bg-light rounded" onclick="copySummaryText()" style="cursor: pointer;" title="Klik untuk copy">
+                                Pilih bahan dan masukkan ukuran untuk melihat detail
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="masukkanSpandukKeNota()" class="btn btn-success w-100 fw-bold shadow-sm">
+                        <i class="fas fa-cart-plus me-1"></i> MASUKKAN SPANDUK KE NOTA
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Right Column: Data Bahan -->
+            <div class="col-lg-6">
+                <div class="card p-3 shadow-sm border-0 h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold text-dark mb-0"><i class="fas fa-list me-1"></i> Data Harga Bahan</h6>
+                        <button onclick="openFormHargaBahan()" class="btn btn-sm btn-outline-primary fw-bold"><i class="fas fa-plus"></i> Tambah Bahan</button>
+                    </div>
+                    
+                    <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
+                        <table class="table table-sm table-hover align-middle small">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th width="10%">No</th>
+                                    <th>Nama Bahan</th>
+                                    <th class="text-end">Harga/m</th>
+                                    <th class="text-center" width="25%">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="spndDataBahan">
+                                <tr><td colspan="4" class="text-center text-muted py-3">Memuat data bahan...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FORM MODAL TAMBAH / EDIT BAHAN SPANDUK -->
+<div class="modal fade no-print" id="modalFormHargaBahan" tabindex="-1" aria-hidden="true" style="z-index: 1080;">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content shadow border-0">
+      <div class="modal-header py-2 bg-dark text-white">
+        <h6 class="modal-title fw-bold" id="formHargaBahanTitle">Form Harga Bahan</h6>
+        <button type="button" class="btn-close btn-close-white" onclick="closeFormHargaBahan()"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-2">
+            <label class="form-label small mb-1">No Urut</label>
+            <input type="number" id="spndFormNo" class="form-control form-control-sm">
+        </div>
+        <div class="mb-2">
+            <label class="form-label small mb-1">Nama Bahan</label>
+            <input type="text" id="spndFormNamaBahan" class="form-control form-control-sm" placeholder="Cth: BAHAN 280">
+        </div>
+        <div class="mb-2">
+            <label class="form-label small mb-1">Harga Per Meter</label>
+            <input type="number" id="spndFormHargaMeter" class="form-control form-control-sm" placeholder="Rp">
+        </div>
+      </div>
+      <div class="modal-footer py-2 flex-wrap gap-1 justify-content-between">
+        <button onclick="simpanBahan()" class="btn btn-sm btn-success fw-bold flex-fill">Simpan</button>
+        <button onclick="newBahan()" class="btn btn-sm btn-primary flex-fill">New</button>
+        <button onclick="hapusBahan()" class="btn btn-sm btn-danger flex-fill">Hapus</button>
+        <button onclick="closeFormHargaBahan()" class="btn btn-sm btn-secondary flex-fill">Tutup</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
+    // --- HELPER TOAST & CONFIRM MODAL ---
+    window.showToast = (msg, bgClass = 'bg-primary') => {
+        const toastEl = document.getElementById('appToast');
+        toastEl.className = `toast align-items-center text-white border-0 ${bgClass}`;
+        document.getElementById('toastMessage').innerText = msg;
+        const toast = new bootstrap.Toast(toastEl, { delay: 3500 });
+        toast.show();
+    };
+
+    window.customConfirm = (msg, callback) => {
+        document.getElementById('confirmBody').innerText = msg;
+        const confirmModalEl = document.getElementById('confirmModal');
+        const modal = new bootstrap.Modal(confirmModalEl);
+        const okBtn = document.getElementById('btnConfirmOk');
+        
+        const newOkBtn = okBtn.cloneNode(true);
+        okBtn.parentNode.replaceChild(newOkBtn, okBtn);
+        
+        newOkBtn.addEventListener('click', () => {
+            modal.hide();
+            callback();
+        });
+        modal.show();
+    };
+
     // --- UI HELPERS ---
     function updateAutoNoNota() {
         if(window.activeNotaId) return; 
@@ -634,18 +897,42 @@
         window.localCache.produk.forEach(p => dl.innerHTML += `<option value="${p.nama}">Stok: ${p.stok} | Rp ${p.harga}</option>`);
     }
 
-    // --- TRANSAKSI LOGIC ---
+    // --- LOGIKA INPUT MANUAL BARANG / JASA ---
+    window.toggleManualInput = () => {
+        const isManual = document.getElementById('chkManualItem').checked;
+        const hargaInput = document.getElementById('hargaBarang');
+        if (isManual) {
+            hargaInput.removeAttribute('readonly');
+            hargaInput.placeholder = "Harga (Manual)";
+            hargaInput.focus();
+        } else {
+            hargaInput.setAttribute('readonly', 'true');
+            hargaInput.placeholder = "Harga";
+            updateHarga();
+        }
+    }
+
     window.updateHarga = () => {
         let val = document.getElementById('inputBarang').value;
+        let isManual = document.getElementById('chkManualItem').checked;
         let p = window.localCache.produk.find(x => x.nama === val);
-        if(p) { document.getElementById('hargaBarang').value = p.harga; document.getElementById('qtyBarang').focus(); }
+        
+        if (p && !isManual) {
+            document.getElementById('hargaBarang').value = p.harga;
+            document.getElementById('qtyBarang').focus();
+        } else if (!p && val.trim() !== '') {
+            // Otomatis aktifkan mode manual jika barang tidak ada di gudang
+            document.getElementById('chkManualItem').checked = true;
+            document.getElementById('hargaBarang').removeAttribute('readonly');
+            document.getElementById('hargaBarang').placeholder = "Harga (Manual)";
+        }
     }
 
     window.tambahPulsa = () => {
         let ket = document.getElementById('pulsaKet').value;
         let no = document.getElementById('pulsaNo').value;
         let harga = Number(document.getElementById('pulsaHarga').value);
-        if(!ket || !harga) return alert("Keterangan dan Harga wajib diisi!");
+        if(!ket || !harga) return showToast("Keterangan dan Harga wajib diisi!", "bg-warning");
         let namaItem = `PULSA/TOKEN: ${ket} (${no ? no : '-'})`;
         let idItem = 'pulsa_' + Date.now();
         window.keranjang.push({ id: idItem, nama: namaItem, harga: harga, qty: 1, total: harga });
@@ -656,22 +943,33 @@
     window.tambahItem = () => {
         let val = document.getElementById('inputBarang').value;
         let qty = Number(document.getElementById('qtyBarang').value);
+        let isManual = document.getElementById('chkManualItem').checked;
         let p = window.localCache.produk.find(x => x.nama === val);
-        let harga = 0, idItem = '';
+        let harga = Number(document.getElementById('hargaBarang').value) || 0;
+        let idItem = '';
 
-        if(!p) {
-             harga = Number(document.getElementById('hargaBarang').value) || 0;
-             if(!val || !harga) return alert("Barang tidak ditemukan atau harga kosong!");
-             idItem = 'manual_'+Date.now();
+        if (!val || harga <= 0) return showToast("Nama barang dan harga wajib diisi!", "bg-warning");
+
+        if (isManual || !p) {
+            // Barang Manual / Non-Stok
+            idItem = 'manual_' + Date.now();
         } else {
-            if(p.stok < qty) alert(`Perhatian: Stok sistem tinggal ${p.stok}`);
-            harga = p.harga; 
+            // Ambil dari stok Gudang
+            if (p.stok < qty) showToast(`Perhatian: Stok sistem tinggal ${p.stok}`, "bg-warning");
             idItem = p.docId; 
         }
 
         window.keranjang.push({ id: idItem, nama: val, harga: harga, qty: qty, total: harga * qty });
         renderNotaIsi();
-        document.getElementById('inputBarang').value = ""; document.getElementById('hargaBarang').value = ""; document.getElementById('qtyBarang').value = "1"; document.getElementById('inputBarang').focus();
+        
+        // Reset Form Input Barang
+        document.getElementById('inputBarang').value = ""; 
+        document.getElementById('hargaBarang').value = ""; 
+        document.getElementById('qtyBarang').value = "1"; 
+        document.getElementById('chkManualItem').checked = false;
+        document.getElementById('hargaBarang').setAttribute('readonly', 'true');
+        document.getElementById('hargaBarang').placeholder = "Harga";
+        document.getElementById('inputBarang').focus();
     }
 
     function renderNotaIsi() {
@@ -726,6 +1024,85 @@
         renderNotaIsi();
         updateAutoNoNota();
     }
+
+    // --- FUNGSI SCREENSHOT NOTA & WA ---
+    window.screenshotNota = async () => {
+        if (window.keranjang.length === 0) {
+            return showToast("Nota masih kosong!", "bg-warning");
+        }
+        
+        const areaNota = document.getElementById('areaNota');
+        const noNota = document.getElementById('notaNo').innerText || 'INV';
+        const custNama = document.getElementById('custNama').value || document.getElementById('notaYth').innerText || 'Pelanggan';
+        let rawTelp = document.getElementById('custTelp').value || document.getElementById('notaHp').innerText || '';
+        
+        const btnSs = document.getElementById('btnScreenshot');
+        const origText = btnSs.innerHTML;
+        btnSs.disabled = true;
+        btnSs.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses Gambar...';
+
+        try {
+            const canvas = await html2canvas(areaNota, {
+                scale: 2,
+                backgroundColor: '#ffffff',
+                useCORS: true,
+                logging: false
+            });
+
+            const imageBase64 = canvas.toDataURL("image/png");
+
+            // Format nomor HP ke 62... untuk WA
+            let formattedTelp = rawTelp.replace(/[^0-9]/g, '');
+            if (formattedTelp.startsWith('0')) {
+                formattedTelp = '62' + formattedTelp.substring(1);
+            }
+
+            // Set gambar ke modal preview
+            document.getElementById('modalPreviewImg').src = imageBase64;
+            
+            // Set link unduh gambar
+            const downloadBtn = document.getElementById('btnDownloadImg');
+            downloadBtn.href = imageBase64;
+            downloadBtn.download = `Nota_${noNota.replace(/\//g, '-')}_${custNama}.png`;
+
+            // Set URL pesan WhatsApp
+            const waMessage = encodeURIComponent(
+                `Halo ${custNama},\nBerikut nota transaksi Anda di *MUSADAD.COM* (${noNota}).\n\n*Total Tagihan:* Rp ${document.getElementById('notaTotal').innerText}\nTerima kasih telah berbelanja!`
+            );
+            
+            const btnSendWA = document.getElementById('btnOpenWA');
+            if (formattedTelp) {
+                btnSendWA.href = `https://wa.me/${formattedTelp}?text=${waMessage}`;
+            } else {
+                btnSendWA.href = `https://api.whatsapp.com/send?text=${waMessage}`;
+            }
+
+            // Tampilkan Modal Screenshot
+            const modal = new bootstrap.Modal(document.getElementById('modalScreenshot'));
+            modal.show();
+
+        } catch (err) {
+            console.error("Gagal screenshot:", err);
+            showToast("Gagal screenshot nota: " + err.message, "bg-danger");
+        } finally {
+            btnSs.disabled = false;
+            btnSs.innerHTML = origText;
+        }
+    };
+
+    window.salinGambarNota = async () => {
+        try {
+            const img = document.getElementById('modalPreviewImg');
+            const response = await fetch(img.src);
+            const blob = await response.blob();
+            await navigator.clipboard.write([
+                new ClipboardItem({ 'image/png': blob })
+            ]);
+            showToast("Gambar nota berhasil disalin! Tinggal Paste (Ctrl+V) di WhatsApp.", "bg-success");
+        } catch (e) {
+            showToast("Penyalinan otomatis tidak didukung browser ini. Silakan unduh gambar.", "bg-warning");
+        }
+    };
 
     // --- SORT GUDANG ---
     window.aturSort = (column) => {
@@ -795,7 +1172,7 @@
     window.cetakBelanja = () => {
         let tbody = document.getElementById('isiBelanja'); tbody.innerHTML = ''; let no=1;
         window.localCache.produk.forEach(p => { if(p.stok <= p.min) tbody.innerHTML += `<tr><td>${no++}</td><td>${p.nama}</td><td>${p.stok}</td><td>[ ]</td></tr>`; });
-        if(no>1) { document.body.classList.add('print-belanja'); window.print(); document.body.classList.remove('print-belanja'); } else alert("Stok Aman");
+        if(no>1) { document.body.classList.add('print-belanja'); window.print(); document.body.classList.remove('print-belanja'); } else showToast("Stok Aman!", "bg-success");
     }
 
     window.renderRiwayatNota = () => {
@@ -922,7 +1299,6 @@
             }
             
             if (window.currentFilter === 'bulan') {
-                // format YYYY-MM
                 let dStr = d.toISOString().substring(0, 7);
                 return dStr === targetBulan;
             }
@@ -932,7 +1308,6 @@
             }
 
             if (window.currentFilter === 'minggu') {
-                // Mingguan masih pakai "Minggu Ini" relative ke real time
                 let todayZero = new Date(); todayZero.setHours(0,0,0,0);
                 let diff = Math.ceil(Math.abs(todayZero - d) / (1000 * 60 * 60 * 24)); 
                 return diff <= 7; 
@@ -997,6 +1372,242 @@
         document.getElementById('totKeluar').innerText = totKeluar.toLocaleString(); 
         document.getElementById('totProfit').innerText = (totMasuk - totKeluar).toLocaleString();
     }
+
+    // --- LOGIKA KALKULATOR SPANDUK (HITUNG RIZA INTEGRATED) ---
+    window.dataBahanList = JSON.parse(localStorage.getItem('dataBahan')) || [
+        { no: 1, nama: 'TERANSPARAN DOFF', harga: 0 },
+        { no: 2, nama: 'TERANSPARAN GLOSYY', harga: 0 },
+        { no: 3, nama: '3D', harga: 0 },
+        { no: 4, nama: 'Canvas', harga: 100000 },
+        { no: 5, nama: 'KANPAS', harga: 0 },
+        { no: 6, nama: 'BAHAN_280', harga: 25000 },
+        { no: 7, nama: 'BAHAN_330', harga: 35000 },
+        { no: 8, nama: 'TETOTON', harga: 42000 },
+        { no: 9, nama: 'SATIN TC', harga: 50000 },
+        { no: 10, nama: 'SATIN TCs', harga: 50000 },
+        { no: 11, nama: 'KOREA', harga: 50000 },
+        { no: 12, nama: 'SATIN BSW PRINT', harga: 71000 },
+        { no: 13, nama: 'GRAFTACK', harga: 70000 },
+        { no: 14, nama: 'oneway', harga: 75000 },
+        { no: 15, nama: 'WANWAY', harga: 80000 },
+        { no: 16, nama: 'SUPERSETIK', harga: 60000 },
+        { no: 17, nama: 'BACKLITE', harga: 80000 },
+        { no: 18, nama: 'RITRAMA', harga: 85000 },
+        { no: 19, nama: 'DRILL', harga: 86000 },
+        { no: 20, nama: 'BLUSTER', harga: 5 }
+    ];
+    window.editingBahanIndex = -1;
+
+    window.openModalSpanduk = () => {
+        if (!localStorage.getItem('dataBahan')) {
+            localStorage.setItem('dataBahan', JSON.stringify(window.dataBahanList));
+        }
+        loadDataBahan();
+        updateComboBoxBahan();
+        const modal = new bootstrap.Modal(document.getElementById('modalSpanduk'));
+        modal.show();
+    };
+
+    window.openFormHargaBahan = () => {
+        const modalEl = document.getElementById('modalFormHargaBahan');
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+    };
+
+    window.closeFormHargaBahan = () => {
+        const modalEl = document.getElementById('modalFormHargaBahan');
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if(modal) modal.hide();
+        newBahan();
+    };
+
+    window.newBahan = () => {
+        document.getElementById('spndFormNo').value = '';
+        document.getElementById('spndFormNamaBahan').value = '';
+        document.getElementById('spndFormHargaMeter').value = '';
+        window.editingBahanIndex = -1;
+    };
+
+    window.simpanBahan = () => {
+        const no = document.getElementById('spndFormNo').value;
+        const nama = document.getElementById('spndFormNamaBahan').value;
+        const harga = document.getElementById('spndFormHargaMeter').value;
+
+        if (!no || !nama || !harga) {
+            return showToast('Semua field harus diisi!', 'bg-warning');
+        }
+
+        const bahanData = {
+            no: parseInt(no),
+            nama: nama,
+            harga: parseFloat(harga)
+        };
+
+        if (window.editingBahanIndex >= 0) {
+            window.dataBahanList[window.editingBahanIndex] = bahanData;
+        } else {
+            window.dataBahanList.push(bahanData);
+        }
+
+        localStorage.setItem('dataBahan', JSON.stringify(window.dataBahanList));
+        loadDataBahan();
+        updateComboBoxBahan();
+        closeFormHargaBahan();
+        showToast('Data bahan disimpan!', 'bg-success');
+    };
+
+    window.hapusBahan = () => {
+        if (window.editingBahanIndex >= 0) {
+            customConfirm('Yakin ingin menghapus data bahan ini?', () => {
+                window.dataBahanList.splice(window.editingBahanIndex, 1);
+                localStorage.setItem('dataBahan', JSON.stringify(window.dataBahanList));
+                loadDataBahan();
+                updateComboBoxBahan();
+                closeFormHargaBahan();
+                showToast('Data bahan dihapus!', 'bg-success');
+            });
+        } else {
+            showToast('Pilih data yang ingin dihapus terlebih dahulu!', 'bg-warning');
+        }
+    };
+
+    window.editBahan = (index) => {
+        const bahan = window.dataBahanList[index];
+        document.getElementById('spndFormNo').value = bahan.no;
+        document.getElementById('spndFormNamaBahan').value = bahan.nama;
+        document.getElementById('spndFormHargaMeter').value = bahan.harga;
+        window.editingBahanIndex = index;
+        openFormHargaBahan();
+    };
+
+    window.deleteBahan = (index) => {
+        customConfirm('Yakin ingin menghapus data ini?', () => {
+            window.dataBahanList.splice(index, 1);
+            localStorage.setItem('dataBahan', JSON.stringify(window.dataBahanList));
+            loadDataBahan();
+            updateComboBoxBahan();
+            showToast('Data bahan dihapus!', 'bg-success');
+        });
+    };
+
+    window.loadDataBahan = () => {
+        const tbody = document.getElementById('spndDataBahan');
+        tbody.innerHTML = '';
+
+        window.dataBahanList.forEach((bahan, index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${bahan.no}</td>
+                <td class="fw-bold">${bahan.nama}</td>
+                <td class="text-end">Rp ${bahan.harga.toLocaleString('id-ID')}</td>
+                <td class="text-center">
+                    <button onclick="editBahan(${index})" class="btn btn-sm btn-outline-primary py-0 me-1 text-xs">Edit</button>
+                    <button onclick="deleteBahan(${index})" class="btn btn-sm btn-outline-danger py-0 text-xs">Hapus</button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    };
+
+    window.updateComboBoxBahan = () => {
+        const select = document.getElementById('spndNamaBahan');
+        select.innerHTML = '<option value="">Pilih Bahan</option>';
+
+        window.dataBahanList.forEach((bahan, index) => {
+            const option = document.createElement('option');
+            option.value = index;
+            option.textContent = bahan.nama;
+            select.appendChild(option);
+        });
+    };
+
+    window.updateHargaBahan = () => {
+        const select = document.getElementById('spndNamaBahan');
+        const hargaInput = document.getElementById('spndHargaBahan');
+        
+        if (select.value !== '') {
+            const bahan = window.dataBahanList[select.value];
+            hargaInput.value = `Rp ${bahan.harga.toLocaleString('id-ID')}`;
+        } else {
+            hargaInput.value = 'Rp 0';
+        }
+        
+        hitungHargaBahan();
+    };
+
+    window.hitungHargaBahan = () => {
+        const panjangCm = parseFloat(document.getElementById('spndPanjangCm').value) || 0;
+        const lebarCm = parseFloat(document.getElementById('spndLebarCm').value) || 0;
+        const select = document.getElementById('spndNamaBahan');
+        
+        const meterPanjang = panjangCm / 100;
+        const meterLebar = lebarCm / 100;
+        
+        document.getElementById('spndMeterPanjang').value = `${meterPanjang.toFixed(2)} m`;
+        document.getElementById('spndMeterLebar').value = `${meterLebar.toFixed(2)} m`;
+        
+        let hargaTotal = 0;
+        let namaBahan = '';
+        if (select.value !== '') {
+            const bahan = window.dataBahanList[select.value];
+            hargaTotal = meterPanjang * meterLebar * bahan.harga;
+            namaBahan = bahan.nama;
+        }
+        
+        const elemHarga = document.getElementById('spndHargaCetak');
+        elemHarga.textContent = `Rp ${hargaTotal.toLocaleString('id-ID')}`;
+        elemHarga.dataset.val = hargaTotal;
+        
+        updateSummaryTextBahan(namaBahan, meterPanjang, meterLebar, hargaTotal);
+    };
+
+    window.updateSummaryTextBahan = (namaBahan, meterPanjang, meterLebar, hargaTotal) => {
+        const summaryElement = document.getElementById('spndSummaryText');
+        
+        if (namaBahan && meterPanjang > 0 && meterLebar > 0) {
+            summaryElement.textContent = `${namaBahan} - Ukuran ${meterPanjang.toFixed(2)}m x ${meterLebar.toFixed(2)}m = Rp ${hargaTotal.toLocaleString('id-ID')}`;
+        } else {
+            summaryElement.textContent = 'Pilih bahan dan masukkan ukuran untuk melihat detail';
+        }
+    };
+
+    window.copyHargaCetak = () => {
+        const hargaCetak = document.getElementById('spndHargaCetak').textContent;
+        navigator.clipboard.writeText(hargaCetak).then(() => {
+            showToast('Harga cetak berhasil dicopy!', 'bg-success');
+        }).catch(() => {
+            showToast('Gagal copy text!', 'bg-warning');
+        });
+    };
+
+    window.copySummaryText = () => {
+        const summaryText = document.getElementById('spndSummaryText').textContent;
+        navigator.clipboard.writeText(summaryText).then(() => {
+            showToast('Detail perhitungan berhasil dicopy!', 'bg-success');
+        }).catch(() => {
+            showToast('Gagal copy text!', 'bg-warning');
+        });
+    };
+
+    window.masukkanSpandukKeNota = () => {
+        const summaryText = document.getElementById('spndSummaryText').textContent;
+        const hargaTotalStr = document.getElementById('spndHargaCetak').dataset.val || "0";
+        const hargaTotal = parseFloat(hargaTotalStr) || 0;
+        
+        if (hargaTotal <= 0 || summaryText.includes('Pilih bahan')) {
+            return showToast("Hitung ukuran dan pilih bahan terlebih dahulu!", "bg-warning");
+        }
+        
+        const idItem = 'manual_' + Date.now();
+        window.keranjang.push({ id: idItem, nama: summaryText, harga: hargaTotal, qty: 1, total: hargaTotal });
+        renderNotaIsi();
+        
+        const modalEl = document.getElementById('modalSpanduk');
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if(modal) modal.hide();
+        
+        showToast("Hitungan spanduk berhasil dimasukkan ke nota!", "bg-success");
+    };
 </script>
 </body>
 </html>
