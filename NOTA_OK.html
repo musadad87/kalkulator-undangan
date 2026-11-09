@@ -154,6 +154,9 @@
                         <td class="text-end text-success">${n.dp.toLocaleString()}</td>
                         <td class="text-end text-danger fw-bold">${kurang.toLocaleString()}</td>
                         <td class="text-center">
+                            <button onclick="tagihHutangWA('${n.docId}')" class="btn btn-sm btn-success fw-bold shadow-sm me-1" title="Tagih via WhatsApp">
+                                <i class="fab fa-whatsapp"></i> TAGIH WA
+                            </button>
                             <button onclick="lunasiHutang('${n.docId}', ${n.total}, ${kurang})" class="btn btn-sm btn-outline-success fw-bold shadow-sm">
                                 <i class="fas fa-check"></i> LUNASI
                             </button>
@@ -168,6 +171,26 @@
             document.getElementById('infoTotalHutang').innerText = "Total Piutang: Rp " + totalPiutang.toLocaleString();
             document.getElementById('badgeHutang').innerText = count > 0 ? count : '';
         }
+
+        window.tagihHutangWA = (docId) => {
+            let n = window.localCache.nota.find(x => x.docId === docId);
+            if(!n) return;
+            let kurang = n.total - n.dp;
+            let rawTelp = n.telp || n.hp || '';
+            
+            let pesan = `Halo Kak ${n.nama},\nKami dari *MUSADAD.COM* menginformasikan mengenai catatan nota *${n.no}*.\n\n*Total Tagihan:* Rp ${n.total.toLocaleString()}\n*Sudah Bayar (DP):* Rp ${n.dp.toLocaleString()}\n*Sisa Tagihan (KURANG): Rp ${kurang.toLocaleString()}*\n\nPembayaran dapat ditransfer via:\n- *BCA:* 5410927839 (ROHMATULLOH)\n- *DANA/OVO/GOPAY:* 083812352663\n\nMohon konfirmasi jika sudah melakukan pembayaran. Terima kasih! 🙏`;
+
+            let formattedTelp = rawTelp.replace(/[^0-9]/g, '');
+            if (formattedTelp.startsWith('0')) {
+                formattedTelp = '62' + formattedTelp.substring(1);
+            }
+
+            let waUrl = formattedTelp 
+                ? `https://wa.me/${formattedTelp}?text=${encodeURIComponent(pesan)}` 
+                : `https://api.whatsapp.com/send?text=${encodeURIComponent(pesan)}`;
+            
+            window.open(waUrl, '_blank');
+        };
 
         window.lunasiHutang = async (docId, totalTagihan, kekurangan) => {
             customConfirm(`Pelanggan akan melunasi sisa tagihan sebesar Rp ${kekurangan.toLocaleString()}?\n\nUang sudah diterima?`, async () => {
@@ -184,11 +207,12 @@
             const harga = Number(document.getElementById('prodHarga').value);
             const stok = Number(document.getElementById('prodStok').value);
             const min = Number(document.getElementById('prodMin').value);
+            const linkShopee = document.getElementById('prodShopee').value;
             if(!nama) return showToast("Nama wajib diisi!", "bg-warning");
             const btn = document.getElementById('btnSimpanProduk'); btn.disabled = true; btn.innerText = "Menyimpan...";
             try {
-                if (window.editProdukId) await updateDoc(doc(db, `data_toko/${appId}/produk`, window.editProdukId), { nama, harga, stok, min });
-                else await addDoc(collection(db, `data_toko/${appId}/produk`), { nama, harga, stok, min, createdAt: Date.now() });
+                if (window.editProdukId) await updateDoc(doc(db, `data_toko/${appId}/produk`, window.editProdukId), { nama, harga, stok, min, linkShopee });
+                else await addDoc(collection(db, `data_toko/${appId}/produk`), { nama, harga, stok, min, linkShopee, createdAt: Date.now() });
                 resetFormGudang();
                 showToast("Produk berhasil disimpan!", "bg-success");
             } catch (e) { showToast("Gagal: " + e.message, "bg-danger"); } finally { btn.disabled = false; }
@@ -229,6 +253,7 @@
                     no: document.getElementById('notaNo').innerText,
                     tgl: new Date().toISOString(),
                     nama: document.getElementById('custNama').value,
+                    telp: document.getElementById('custTelp').value,
                     items: window.keranjang,
                     total: totalVal,
                     dp: dpVal,
@@ -508,6 +533,7 @@
                             <div class="col-6"><input type="number" id="prodStok" class="form-control" placeholder="Stok"></div>
                             <div class="col-6"><input type="number" id="prodMin" class="form-control" placeholder="Min"></div>
                         </div>
+                        <input type="url" id="prodShopee" class="form-control mb-2" placeholder="Link Shopee Belanja (Opsional)">
                         <button onclick="simpanProduk()" id="btnSimpanProduk" class="btn btn-primary w-100">Simpan Ke Cloud</button>
                     </div>
                     <button onclick="cetakBelanja()" class="btn btn-warning w-100 mt-3 fw-bold">Print Daftar Belanja</button>
@@ -524,10 +550,11 @@
                                         <th class="sortable-header" onclick="aturSort('harga')">Harga <i class="fas fa-sort sort-icon"></i></th>
                                         <th class="sortable-header" onclick="aturSort('stok')">Stok <i class="fas fa-sort sort-icon"></i></th>
                                         <th>Min</th>
+                                        <th class="text-center">Shopee</th>
                                         <th>Hapus</th>
                                     </tr>
                                 </thead>
-                                <tbody id="isiTabelGudang"><tr><td colspan="5" class="text-center">Menghubungkan ke database...</td></tr></tbody>
+                                <tbody id="isiTabelGudang"><tr><td colspan="6" class="text-center">Menghubungkan ke database...</td></tr></tbody>
                             </table>
                         </div>
                     </div>
@@ -1130,18 +1157,20 @@
         });
 
         filteredData.forEach((p) => {
+            let shopeeBtn = p.linkShopee ? `<a href="${p.linkShopee}" target="_blank" onclick="event.stopPropagation()" class="btn btn-warning btn-sm py-0 fw-bold text-dark" title="Beli di Shopee"><i class="fas fa-shopping-bag"></i> Shopee</a>` : '<span class="text-muted">-</span>';
             tbody.innerHTML += `
             <tr onclick="editProduk('${p.docId}')">
                 <td class="fw-bold text-primary">${p.nama}</td>
                 <td>${p.harga.toLocaleString()}</td>
                 <td class="${p.stok<=p.min?'text-danger fw-bold':''}">${p.stok}</td>
                 <td>${p.min}</td>
+                <td class="text-center">${shopeeBtn}</td>
                 <td onclick="event.stopPropagation()">
                     <button onclick="hapusProduk('${p.docId}')" class="btn btn-danger btn-sm py-0">Hapus</button>
                 </td>
             </tr>`;
         });
-        if(filteredData.length === 0) tbody.innerHTML = '<tr><td colspan="5" class="text-center">Data kosong / tidak ditemukan</td></tr>';
+        if(filteredData.length === 0) tbody.innerHTML = '<tr><td colspan="6" class="text-center">Data kosong / tidak ditemukan</td></tr>';
     }
 
     window.editProduk = (docId) => {
@@ -1151,6 +1180,7 @@
         document.getElementById('prodHarga').value = p.harga; 
         document.getElementById('prodStok').value = p.stok; 
         document.getElementById('prodMin').value = p.min;
+        document.getElementById('prodShopee').value = p.linkShopee || '';
         
         document.getElementById('btnSimpanProduk').innerText = "Update Barang"; 
         document.getElementById('btnSimpanProduk').classList.replace('btn-primary', 'btn-success');
@@ -1162,6 +1192,7 @@
         window.editProdukId = null; 
         document.getElementById('prodNama').value = ""; document.getElementById('prodHarga').value = ""; 
         document.getElementById('prodStok').value = ""; document.getElementById('prodMin').value = "";
+        document.getElementById('prodShopee').value = "";
         
         document.getElementById('btnSimpanProduk').innerText = "Simpan Ke Cloud"; 
         document.getElementById('btnSimpanProduk').classList.replace('btn-success', 'btn-primary');
