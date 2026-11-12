@@ -361,6 +361,37 @@
         .bottom-section { border-top: 2px solid #000; margin-top: 20px; padding-top: 10px; display: flex; justify-content: space-between; }
         .payment-info { font-size: 11px; font-weight: bold; width: 50%; }
         .warning-box { border: 2px solid red; background-color: #fff5f5; color: red; width: 45%; text-align: center; padding: 8px; font-size: 11px; font-weight: bold; -webkit-print-color-adjust: exact; }
+        .stamp-lunas {
+            position: absolute;
+            bottom: 135px;
+            left: 36%;
+            transform: rotate(-14deg);
+            border: 4px double #d90429;
+            color: #d90429;
+            font-family: 'Oswald', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: 4px;
+            padding: 4px 18px;
+            border-radius: 8px;
+            text-align: center;
+            line-height: 1.1;
+            opacity: 0.85;
+            pointer-events: none;
+            z-index: 10;
+            background: rgba(255, 255, 255, 0.2);
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .stamp-lunas small {
+            display: block;
+            font-size: 0.65rem;
+            letter-spacing: 1.5px;
+            font-family: 'Roboto Condensed', sans-serif;
+            border-top: 1px solid #d90429;
+            margin-top: 2px;
+            padding-top: 2px;
+        }
         .editing-mode { border: 3px solid #ffc107; position: relative; }
         .editing-badge { background: #ffc107; color: black; position: absolute; top: 0; right: 0; padding: 5px 10px; font-weight: bold; z-index: 100; }
         .btn-filter-group .btn.active { background-color: #1e3c72; color: white; border-color: #1e3c72; }
@@ -475,6 +506,8 @@
                 <div class="col-md-8">
                     <div id="areaNota">
                         <div id="badgeEditMode" class="editing-badge d-none">MODE EDIT AKTIF</div>
+                        <!-- STEMPEL LUNAS OTOMATIS -->
+                        <div id="stempelLunas" class="stamp-lunas d-none">LUNAS<small>MUSADAD.COM</small></div>
                         <div class="row">
                             <div class="col-7">
                                 <div class="brand-title">MUSADAD.COM</div>
@@ -493,7 +526,24 @@
                             <tbody id="notaIsi"></tbody>
                         </table>
                         <div class="footer-grid">
-                            <div class="sign-area"><div class="text-start mb-5 fw-bold">Diterima,</div><div class="sign-line"></div><div>( ........................... )</div></div>
+                            <div class="sign-area d-flex justify-content-between gap-2" style="width: 46%;">
+                                <div class="text-center w-50">
+                                    <div class="mb-5 fw-bold">Diterima,</div>
+                                    <div class="sign-line" style="margin-top: 55px;"></div>
+                                    <div>( .................... )</div>
+                                </div>
+                                <div class="text-center w-50 position-relative">
+                                    <div class="fw-bold">Hormat Kami,</div>
+                                    <div style="height: 55px; display: flex; align-items: center; justify-content: center; margin-top: 10px;">
+                                        <svg viewBox="0 0 180 70" width="130" height="55" style="overflow: visible;">
+                                            <path d="M15,52 C22,20 32,12 35,38 C37,50 45,18 52,15 C56,14 54,48 60,46 C66,44 74,30 82,34 C88,37 84,46 92,44 C100,42 108,28 116,35 C122,40 128,45 142,38 C152,33 162,36 168,34" fill="none" stroke="#1a2a6c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <path d="M25,58 C65,52 115,49 160,51" fill="none" stroke="#1a2a6c" stroke-width="1.8" stroke-linecap="round"/>
+                                        </svg>
+                                    </div>
+                                    <div class="sign-line" style="margin-top: 0;"></div>
+                                    <div class="fw-bold">( MUSADAD )</div>
+                                </div>
+                            </div>
                             <div class="total-area">
                                 <div class="total-row"><span class="total-label">Jumlah Rp.</span><div class="total-box" id="notaTotal">0</div></div>
                                 <div class="total-row"><span class="total-label">Uang Muka Rp.</span><input type="number" id="inputDP" class="total-box text-end no-border-input" style="background: white;" value="0" onkeyup="hitungSisa()"></div>
@@ -1036,6 +1086,15 @@
         let dp = Number(document.getElementById('inputDP').value || 0);
         let sisa = dp - total;
         document.getElementById('notaSisa').innerText = sisa >= 0 ? "LUNAS (" + sisa.toLocaleString() + ")" : "KURANG: " + Math.abs(sisa).toLocaleString();
+        
+        const stempel = document.getElementById('stempelLunas');
+        if (stempel) {
+            if (total > 0 && dp >= total) {
+                stempel.classList.remove('d-none');
+            } else {
+                stempel.classList.add('d-none');
+            }
+        }
     }
 
     window.resetNota = () => {
@@ -1045,6 +1104,8 @@
         document.getElementById('inputDP').value = "0";
         document.getElementById('areaNota').classList.remove('editing-mode');
         document.getElementById('badgeEditMode').classList.add('d-none');
+        const stempel = document.getElementById('stempelLunas');
+        if (stempel) stempel.classList.add('d-none');
         document.getElementById('btnSimpan').innerHTML = '<i class="fas fa-print"></i> SIMPAN & CETAK';
         document.getElementById('btnSimpan').classList.replace('btn-warning', 'btn-primary');
         window.activeNotaId = null;
@@ -1052,86 +1113,7 @@
         updateAutoNoNota();
     }
 
-    // --- FUNGSI SCREENSHOT NOTA & WA ---
-    window.screenshotNota = async () => {
-        if (window.keranjang.length === 0) {
-            return showToast("Nota masih kosong!", "bg-warning");
-        }
-        
-        const areaNota = document.getElementById('areaNota');
-        const noNota = document.getElementById('notaNo').innerText || 'INV';
-        const custNama = document.getElementById('custNama').value || document.getElementById('notaYth').innerText || 'Pelanggan';
-        let rawTelp = document.getElementById('custTelp').value || document.getElementById('notaHp').innerText || '';
-        
-        const btnSs = document.getElementById('btnScreenshot');
-        const origText = btnSs.innerHTML;
-        btnSs.disabled = true;
-        btnSs.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses Gambar...';
-
-        try {
-            const canvas = await html2canvas(areaNota, {
-                scale: 2,
-                backgroundColor: '#ffffff',
-                useCORS: true,
-                logging: false
-            });
-
-            const imageBase64 = canvas.toDataURL("image/png");
-
-            // Format nomor HP ke 62... untuk WA
-            let formattedTelp = rawTelp.replace(/[^0-9]/g, '');
-            if (formattedTelp.startsWith('0')) {
-                formattedTelp = '62' + formattedTelp.substring(1);
-            }
-
-            // Set gambar ke modal preview
-            document.getElementById('modalPreviewImg').src = imageBase64;
-            
-            // Set link unduh gambar
-            const downloadBtn = document.getElementById('btnDownloadImg');
-            downloadBtn.href = imageBase64;
-            downloadBtn.download = `Nota_${noNota.replace(/\//g, '-')}_${custNama}.png`;
-
-            // Set URL pesan WhatsApp
-            const waMessage = encodeURIComponent(
-                `Halo ${custNama},\nBerikut nota transaksi Anda di *MUSADAD.COM* (${noNota}).\n\n*Total Tagihan:* Rp ${document.getElementById('notaTotal').innerText}\nTerima kasih telah berbelanja!`
-            );
-            
-            const btnSendWA = document.getElementById('btnOpenWA');
-            if (formattedTelp) {
-                btnSendWA.href = `https://wa.me/${formattedTelp}?text=${waMessage}`;
-            } else {
-                btnSendWA.href = `https://api.whatsapp.com/send?text=${waMessage}`;
-            }
-
-            // Tampilkan Modal Screenshot
-            const modal = new bootstrap.Modal(document.getElementById('modalScreenshot'));
-            modal.show();
-
-        } catch (err) {
-            console.error("Gagal screenshot:", err);
-            showToast("Gagal screenshot nota: " + err.message, "bg-danger");
-        } finally {
-            btnSs.disabled = false;
-            btnSs.innerHTML = origText;
-        }
-    };
-
-    window.salinGambarNota = async () => {
-        try {
-            const img = document.getElementById('modalPreviewImg');
-            const response = await fetch(img.src);
-            const blob = await response.blob();
-            await navigator.clipboard.write([
-                new ClipboardItem({ 'image/png': blob })
-            ]);
-            showToast("Gambar nota berhasil disalin! Tinggal Paste (Ctrl+V) di WhatsApp.", "bg-success");
-        } catch (e) {
-            showToast("Penyalinan otomatis tidak didukung browser ini. Silakan unduh gambar.", "bg-warning");
-        }
-    };
-
-    // --- SORT GUDANG ---
+    // --- SORT & RENDER GUDANG ---
     window.aturSort = (column) => {
         if(window.sortGudangState.col === column) window.sortGudangState.order = window.sortGudangState.order === 'asc' ? 'desc' : 'asc';
         else { window.sortGudangState.col = column; window.sortGudangState.order = 'asc'; }
@@ -1157,14 +1139,17 @@
         });
 
         filteredData.forEach((p) => {
-            let shopeeBtn = p.linkShopee ? `<a href="${p.linkShopee}" target="_blank" onclick="event.stopPropagation()" class="btn btn-warning btn-sm py-0 fw-bold text-dark" title="Beli di Shopee"><i class="fas fa-shopping-bag"></i> Shopee</a>` : '<span class="text-muted">-</span>';
+            let shopeeBtn = p.linkShopee 
+                ? `<a href="${p.linkShopee}" target="_blank" rel="noopener noreferrer" class="btn btn-sm py-0 px-2 text-white fw-bold" style="background-color:#ee4d2d;" title="Beli di Shopee"><i class="fas fa-shopping-bag"></i> Shopee</a>`
+                : `<span class="text-muted">-</span>`;
+
             tbody.innerHTML += `
-            <tr onclick="editProduk('${p.docId}')">
+            <tr onclick="editProduk('${p.docId}')" style="cursor:pointer;">
                 <td class="fw-bold text-primary">${p.nama}</td>
                 <td>${p.harga.toLocaleString()}</td>
                 <td class="${p.stok<=p.min?'text-danger fw-bold':''}">${p.stok}</td>
                 <td>${p.min}</td>
-                <td class="text-center">${shopeeBtn}</td>
+                <td class="text-center" onclick="event.stopPropagation()">${shopeeBtn}</td>
                 <td onclick="event.stopPropagation()">
                     <button onclick="hapusProduk('${p.docId}')" class="btn btn-danger btn-sm py-0">Hapus</button>
                 </td>
@@ -1190,8 +1175,10 @@
 
     window.resetFormGudang = () => {
         window.editProdukId = null; 
-        document.getElementById('prodNama').value = ""; document.getElementById('prodHarga').value = ""; 
-        document.getElementById('prodStok').value = ""; document.getElementById('prodMin').value = "";
+        document.getElementById('prodNama').value = ""; 
+        document.getElementById('prodHarga').value = ""; 
+        document.getElementById('prodStok').value = ""; 
+        document.getElementById('prodMin').value = "";
         document.getElementById('prodShopee').value = "";
         
         document.getElementById('btnSimpanProduk').innerText = "Simpan Ke Cloud"; 
@@ -1203,9 +1190,10 @@
     window.cetakBelanja = () => {
         let tbody = document.getElementById('isiBelanja'); tbody.innerHTML = ''; let no=1;
         window.localCache.produk.forEach(p => { if(p.stok <= p.min) tbody.innerHTML += `<tr><td>${no++}</td><td>${p.nama}</td><td>${p.stok}</td><td>[ ]</td></tr>`; });
-        if(no>1) { document.body.classList.add('print-belanja'); window.print(); document.body.classList.remove('print-belanja'); } else showToast("Stok Aman!", "bg-success");
+        if(no>1) { document.body.classList.add('print-belanja'); window.print(); document.body.classList.remove('print-belanja'); } else showToast("Stok Aman", "bg-success");
     }
 
+    // --- RIWAYAT, EDIT, CETAK ULANG & SCREENSHOT NOTA ---
     window.renderRiwayatNota = () => {
         let key = document.getElementById('cariNota').value.toLowerCase();
         let tbody = document.getElementById('tabelRiwayatNota'); tbody.innerHTML = '';
@@ -1229,7 +1217,8 @@
         let n = window.localCache.nota.find(x => x.docId === docId); if(!n) return;
         window.activeNotaId = docId;
         document.getElementById('notaNo').innerText = n.no;
-        document.getElementById('custNama').value = n.nama;
+        document.getElementById('custNama').value = n.nama || '';
+        document.getElementById('custTelp').value = n.telp || n.hp || '';
         document.getElementById('inputDP').value = n.dp;
         window.keranjang = JSON.parse(JSON.stringify(n.items));
         renderNotaIsi();
@@ -1244,7 +1233,9 @@
     window.cetakUlang = (docId) => {
         let n = window.localCache.nota.find(x => x.docId === docId); if(!n) return;
         document.getElementById('notaNo').innerText = n.no; 
+        document.getElementById('notaTgl').innerText = new Date(n.tgl).toLocaleDateString('id-ID');
         document.getElementById('notaYth').innerText = n.nama;
+        document.getElementById('notaHp').innerText = n.telp || n.hp || '';
         let tbody = document.getElementById('notaIsi'); tbody.innerHTML = '';
         n.items.forEach((item, idx) => {
             tbody.innerHTML += `<tr><td class="text-center">${idx + 1}</td><td>${item.nama}</td><td class="text-center">${item.qty}</td><td class="text-end">${item.harga.toLocaleString()}</td><td class="text-end fw-bold">${item.total.toLocaleString()}</td><td></td></tr>`;
@@ -1252,18 +1243,103 @@
         document.getElementById('notaTotal').innerText = n.total.toLocaleString(); 
         document.getElementById('inputDP').value = n.dp; 
         document.getElementById('notaSisa').innerText = n.sisaInfo;
+        const stempel = document.getElementById('stempelLunas');
+        if (stempel) {
+            if (n.dp >= n.total || (n.sisaInfo && n.sisaInfo.toUpperCase().includes('LUNAS'))) {
+                stempel.classList.remove('d-none');
+            } else {
+                stempel.classList.add('d-none');
+            }
+        }
         document.body.classList.add('print-nota'); window.print(); document.body.classList.remove('print-nota'); resetNota();
     }
 
+    window.lastScreenshotBlob = null;
+
+    window.screenshotNota = async () => {
+        if (window.keranjang.length === 0) {
+            return showToast("Keranjang kosong! Masukkan barang ke nota terlebih dahulu.", "bg-warning");
+        }
+        document.getElementById('notaYth').innerText = document.getElementById('custNama').value || "..................";
+        document.getElementById('notaHp').innerText = document.getElementById('custTelp').value || "";
+        window.hitungSisa();
+
+        const btn = document.getElementById('btnScreenshot');
+        const originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> MEMBUAT GAMBAR NOTA...';
+
+        const areaNota = document.getElementById('areaNota');
+        const noPrintEls = areaNota.querySelectorAll('.no-print, .editing-badge');
+        noPrintEls.forEach(el => el.style.visibility = 'hidden');
+
+        try {
+            const canvas = await html2canvas(areaNota, {
+                scale: 2,
+                backgroundColor: '#ffffff',
+                useCORS: true
+            });
+
+            noPrintEls.forEach(el => el.style.visibility = '');
+
+            const dataUrl = canvas.toDataURL('image/png');
+            canvas.toBlob(blob => { window.lastScreenshotBlob = blob; }, 'image/png');
+
+            document.getElementById('modalPreviewImg').src = dataUrl;
+            const noNota = document.getElementById('notaNo').innerText.replace(/[^a-zA-Z0-9]/g, '_');
+            const namaCust = (document.getElementById('custNama').value || 'Pelanggan').replace(/[^a-zA-Z0-9]/g, '_');
+            const dlBtn = document.getElementById('btnDownloadImg');
+            dlBtn.href = dataUrl;
+            dlBtn.download = `Nota_${noNota}_${namaCust}.png`;
+
+            const rawTelp = document.getElementById('custTelp').value || '';
+            let formattedTelp = rawTelp.replace(/[^0-9]/g, '');
+            if (formattedTelp.startsWith('0')) formattedTelp = '62' + formattedTelp.substring(1);
+
+            const totalText = document.getElementById('notaTotal').innerText;
+            const sisaText = document.getElementById('notaSisa').innerText;
+            const pesanWA = `Halo Kak ${document.getElementById('custNama').value || ''},\nBerikut nota transaksi Anda dari *MUSADAD.COM* (${document.getElementById('notaNo').innerText}).\nTotal: Rp ${totalText}\nStatus: ${sisaText}\nTerima kasih! 🙏`;
+
+            const waBtn = document.getElementById('btnOpenWA');
+            waBtn.href = formattedTelp
+                ? `https://wa.me/${formattedTelp}?text=${encodeURIComponent(pesanWA)}`
+                : `https://api.whatsapp.com/send?text=${encodeURIComponent(pesanWA)}`;
+
+            const modal = new bootstrap.Modal(document.getElementById('modalScreenshot'));
+            modal.show();
+        } catch (err) {
+            noPrintEls.forEach(el => el.style.visibility = '');
+            console.error(err);
+            showToast("Gagal membuat screenshot nota: " + err.message, "bg-danger");
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        }
+    };
+
+    window.salinGambarNota = async () => {
+        try {
+            if (window.lastScreenshotBlob && navigator.clipboard && window.ClipboardItem) {
+                await navigator.clipboard.write([
+                    new ClipboardItem({ 'image/png': window.lastScreenshotBlob })
+                ]);
+                showToast("Gambar nota berhasil disalin! Silakan Paste (Ctrl+V) di WhatsApp.", "bg-success");
+            } else {
+                showToast("Browser tidak mendukung salin gambar otomatis. Silakan klik 'Unduh Gambar Nota'.", "bg-warning");
+            }
+        } catch (err) {
+            showToast("Gagal menyalin gambar ke clipboard. Gunakan tombol 'Unduh Gambar Nota'.", "bg-warning");
+        }
+    };
+
+    // --- FILTER & LAPORAN KEUANGAN ---
     window.setFilter = (mode) => {
         window.currentFilter = mode;
         
-        // Update Buttons Active State
         document.querySelectorAll('.btn-filter-group button').forEach(btn => btn.classList.remove('active'));
         let activeBtn = document.getElementById('btn-' + mode);
         if(activeBtn) activeBtn.classList.add('active');
 
-        // Toggle Input Visibility
         document.getElementById('filter-hari-input').classList.add('d-none');
         document.getElementById('filter-bulan-input').classList.add('d-none');
         document.getElementById('filter-tahun-input').classList.add('d-none');
@@ -1314,30 +1390,23 @@
         let tbody = document.getElementById('tabelLaporan'); tbody.innerHTML = ''; 
         let allData = [];
         
-        // Ambil Nilai dari Input Filter Custom
-        let targetHari = document.getElementById('filter-hari-input').value; // YYYY-MM-DD
-        let targetBulan = document.getElementById('filter-bulan-input').value; // YYYY-MM
-        let targetTahun = document.getElementById('filter-tahun-input').value; // YYYY
-        let today = new Date(); 
+        let targetHari = document.getElementById('filter-hari-input').value;
+        let targetBulan = document.getElementById('filter-bulan-input').value;
+        let targetTahun = document.getElementById('filter-tahun-input').value;
         
-        // Helper Comparison Logic
         function isMatch(d) {
             if (window.currentFilter === 'semua') return true;
-            
             if (window.currentFilter === 'hari') {
                 let dStr = d.toISOString().split('T')[0];
                 return dStr === targetHari;
             }
-            
             if (window.currentFilter === 'bulan') {
                 let dStr = d.toISOString().substring(0, 7);
                 return dStr === targetBulan;
             }
-
             if (window.currentFilter === 'tahun') {
                 return d.getFullYear().toString() === targetTahun;
             }
-
             if (window.currentFilter === 'minggu') {
                 let todayZero = new Date(); todayZero.setHours(0,0,0,0);
                 let diff = Math.ceil(Math.abs(todayZero - d) / (1000 * 60 * 60 * 24)); 
@@ -1346,7 +1415,6 @@
             return true;
         }
 
-        // Update Text Info
         let label = "";
         if(window.currentFilter === 'hari') label = `Tanggal: ${targetHari}`;
         else if(window.currentFilter === 'bulan') label = `Bulan: ${targetBulan}`;
@@ -1404,8 +1472,8 @@
         document.getElementById('totProfit').innerText = (totMasuk - totKeluar).toLocaleString();
     }
 
-    // --- LOGIKA KALKULATOR SPANDUK (HITUNG RIZA INTEGRATED) ---
-    window.dataBahanList = JSON.parse(localStorage.getItem('dataBahan')) || [
+    // --- KALKULATOR SPANDUK / BAHAN (INTEGRASI HITUNG RIZA) ---
+    let spndDataBahanList = JSON.parse(localStorage.getItem('dataBahan')) || [
         { no: 1, nama: 'TERANSPARAN DOFF', harga: 0 },
         { no: 2, nama: 'TERANSPARAN GLOSYY', harga: 0 },
         { no: 3, nama: '3D', harga: 0 },
@@ -1427,36 +1495,157 @@
         { no: 19, nama: 'DRILL', harga: 86000 },
         { no: 20, nama: 'BLUSTER', harga: 5 }
     ];
-    window.editingBahanIndex = -1;
+    let spndEditingIndex = -1;
 
     window.openModalSpanduk = () => {
         if (!localStorage.getItem('dataBahan')) {
-            localStorage.setItem('dataBahan', JSON.stringify(window.dataBahanList));
+            localStorage.setItem('dataBahan', JSON.stringify(spndDataBahanList));
         }
         loadDataBahan();
-        updateComboBoxBahan();
+        updateComboBox();
         const modal = new bootstrap.Modal(document.getElementById('modalSpanduk'));
         modal.show();
     };
 
+    window.loadDataBahan = () => {
+        const tbody = document.getElementById('spndDataBahan');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        spndDataBahanList.forEach((bahan, index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${bahan.no}</td>
+                <td class="fw-bold">${bahan.nama}</td>
+                <td class="text-end">Rp ${bahan.harga.toLocaleString('id-ID')}</td>
+                <td class="text-center">
+                    <button onclick="editBahan(${index})" class="btn btn-sm btn-outline-primary py-0 px-1 me-1" title="Edit"><i class="fas fa-edit"></i></button>
+                    <button onclick="deleteBahan(${index})" class="btn btn-sm btn-outline-danger py-0 px-1" title="Hapus"><i class="fas fa-trash"></i></button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    };
+
+    window.updateComboBox = () => {
+        const select = document.getElementById('spndNamaBahan');
+        if (!select) return;
+        const currentVal = select.value;
+        select.innerHTML = '<option value="">Pilih Bahan</option>';
+
+        spndDataBahanList.forEach((bahan, index) => {
+            const option = document.createElement('option');
+            option.value = index;
+            option.textContent = `${bahan.nama} (Rp ${bahan.harga.toLocaleString('id-ID')}/m)`;
+            select.appendChild(option);
+        });
+        if (currentVal !== '' && spndDataBahanList[currentVal]) {
+            select.value = currentVal;
+        }
+    };
+
+    window.updateHargaBahan = () => {
+        const select = document.getElementById('spndNamaBahan');
+        const hargaInput = document.getElementById('spndHargaBahan');
+        if (select.value !== '') {
+            const bahan = spndDataBahanList[select.value];
+            hargaInput.value = `Rp ${bahan.harga.toLocaleString('id-ID')}`;
+        } else {
+            hargaInput.value = 'Rp 0';
+        }
+        hitungHargaBahan();
+    };
+
+    window.hitungHargaBahan = () => {
+        const panjangCm = parseFloat(document.getElementById('spndPanjangCm').value) || 0;
+        const lebarCm = parseFloat(document.getElementById('spndLebarCm').value) || 0;
+        const select = document.getElementById('spndNamaBahan');
+
+        const meterPanjang = panjangCm / 100;
+        const meterLebar = lebarCm / 100;
+
+        document.getElementById('spndMeterPanjang').value = `${meterPanjang.toFixed(2)} m`;
+        document.getElementById('spndMeterLebar').value = `${meterLebar.toFixed(2)} m`;
+
+        let hargaTotal = 0;
+        let namaBahan = '';
+        if (select.value !== '') {
+            const bahan = spndDataBahanList[select.value];
+            hargaTotal = Math.round(meterPanjang * meterLebar * bahan.harga);
+            namaBahan = bahan.nama;
+        }
+
+        const hargaEl = document.getElementById('spndHargaCetak');
+        hargaEl.textContent = `Rp ${hargaTotal.toLocaleString('id-ID')}`;
+        hargaEl.dataset.val = hargaTotal;
+
+        updateSummaryText(namaBahan, meterPanjang, meterLebar, hargaTotal);
+    };
+
+    window.updateSummaryText = (namaBahan, meterPanjang, meterLebar, hargaTotal) => {
+        const summaryElement = document.getElementById('spndSummaryText');
+        if (namaBahan && meterPanjang > 0 && meterLebar > 0) {
+            summaryElement.textContent = `${namaBahan} - Ukuran ${meterPanjang.toFixed(2)}m x ${meterLebar.toFixed(2)}m = Rp ${hargaTotal.toLocaleString('id-ID')}`;
+        } else {
+            summaryElement.textContent = 'Pilih bahan dan masukkan ukuran untuk melihat detail';
+        }
+    };
+
+    window.masukkanSpandukKeNota = () => {
+        const select = document.getElementById('spndNamaBahan');
+        const panjangCm = parseFloat(document.getElementById('spndPanjangCm').value) || 0;
+        const lebarCm = parseFloat(document.getElementById('spndLebarCm').value) || 0;
+        const noId = document.getElementById('spndNoId').value.trim();
+        const hargaTotal = Number(document.getElementById('spndHargaCetak').dataset.val || 0);
+
+        if (select.value === '' || panjangCm <= 0 || lebarCm <= 0) {
+            return showToast("Pilih bahan dan isi ukuran panjang & lebar terlebih dahulu!", "bg-warning");
+        }
+
+        const bahan = spndDataBahanList[select.value];
+        const meterPanjang = (panjangCm / 100).toFixed(2);
+        const meterLebar = (lebarCm / 100).toFixed(2);
+        const idTag = noId ? ` [ID:${noId}]` : '';
+        const namaItem = `SPANDUK ${bahan.nama} (${meterPanjang}m x ${meterLebar}m)${idTag}`;
+
+        window.keranjang.push({
+            id: 'manual_' + Date.now(),
+            nama: namaItem,
+            harga: hargaTotal,
+            qty: 1,
+            total: hargaTotal
+        });
+
+        renderNotaIsi();
+        showToast("Spanduk berhasil dimasukkan ke nota!", "bg-success");
+
+        const modalEl = document.getElementById('modalSpanduk');
+        const modalInstance = bootstrap.Modal.getInstance(modalEl);
+        if (modalInstance) modalInstance.hide();
+    };
+
     window.openFormHargaBahan = () => {
-        const modalEl = document.getElementById('modalFormHargaBahan');
-        const modal = new bootstrap.Modal(modalEl);
+        if (spndEditingIndex === -1) {
+            document.getElementById('spndFormNo').value = spndDataBahanList.length + 1;
+            document.getElementById('spndFormNamaBahan').value = '';
+            document.getElementById('spndFormHargaMeter').value = '';
+        }
+        const modal = new bootstrap.Modal(document.getElementById('modalFormHargaBahan'));
         modal.show();
     };
 
     window.closeFormHargaBahan = () => {
         const modalEl = document.getElementById('modalFormHargaBahan');
-        const modal = bootstrap.Modal.getInstance(modalEl);
-        if(modal) modal.hide();
+        const modalInstance = bootstrap.Modal.getInstance(modalEl);
+        if (modalInstance) modalInstance.hide();
         newBahan();
     };
 
     window.newBahan = () => {
-        document.getElementById('spndFormNo').value = '';
+        document.getElementById('spndFormNo').value = spndDataBahanList.length + 1;
         document.getElementById('spndFormNamaBahan').value = '';
         document.getElementById('spndFormHargaMeter').value = '';
-        window.editingBahanIndex = -1;
+        spndEditingIndex = -1;
     };
 
     window.simpanBahan = () => {
@@ -1464,8 +1653,8 @@
         const nama = document.getElementById('spndFormNamaBahan').value;
         const harga = document.getElementById('spndFormHargaMeter').value;
 
-        if (!no || !nama || !harga) {
-            return showToast('Semua field harus diisi!', 'bg-warning');
+        if (!no || !nama || harga === '') {
+            return showToast('Semua field bahan harus diisi!', 'bg-warning');
         }
 
         const bahanData = {
@@ -1474,26 +1663,27 @@
             harga: parseFloat(harga)
         };
 
-        if (window.editingBahanIndex >= 0) {
-            window.dataBahanList[window.editingBahanIndex] = bahanData;
+        if (spndEditingIndex >= 0) {
+            spndDataBahanList[spndEditingIndex] = bahanData;
         } else {
-            window.dataBahanList.push(bahanData);
+            spndDataBahanList.push(bahanData);
         }
 
-        localStorage.setItem('dataBahan', JSON.stringify(window.dataBahanList));
+        localStorage.setItem('dataBahan', JSON.stringify(spndDataBahanList));
         loadDataBahan();
-        updateComboBoxBahan();
+        updateComboBox();
+        updateHargaBahan();
         closeFormHargaBahan();
-        showToast('Data bahan disimpan!', 'bg-success');
+        showToast('Data bahan berhasil disimpan!', 'bg-success');
     };
 
     window.hapusBahan = () => {
-        if (window.editingBahanIndex >= 0) {
+        if (spndEditingIndex >= 0) {
             customConfirm('Yakin ingin menghapus data bahan ini?', () => {
-                window.dataBahanList.splice(window.editingBahanIndex, 1);
-                localStorage.setItem('dataBahan', JSON.stringify(window.dataBahanList));
+                spndDataBahanList.splice(spndEditingIndex, 1);
+                localStorage.setItem('dataBahan', JSON.stringify(spndDataBahanList));
                 loadDataBahan();
-                updateComboBoxBahan();
+                updateComboBox();
                 closeFormHargaBahan();
                 showToast('Data bahan dihapus!', 'bg-success');
             });
@@ -1503,141 +1693,42 @@
     };
 
     window.editBahan = (index) => {
-        const bahan = window.dataBahanList[index];
+        const bahan = spndDataBahanList[index];
         document.getElementById('spndFormNo').value = bahan.no;
         document.getElementById('spndFormNamaBahan').value = bahan.nama;
         document.getElementById('spndFormHargaMeter').value = bahan.harga;
-        window.editingBahanIndex = index;
+        spndEditingIndex = index;
         openFormHargaBahan();
     };
 
     window.deleteBahan = (index) => {
-        customConfirm('Yakin ingin menghapus data ini?', () => {
-            window.dataBahanList.splice(index, 1);
-            localStorage.setItem('dataBahan', JSON.stringify(window.dataBahanList));
+        customConfirm('Yakin ingin menghapus data bahan ini?', () => {
+            spndDataBahanList.splice(index, 1);
+            localStorage.setItem('dataBahan', JSON.stringify(spndDataBahanList));
             loadDataBahan();
-            updateComboBoxBahan();
+            updateComboBox();
             showToast('Data bahan dihapus!', 'bg-success');
         });
     };
 
-    window.loadDataBahan = () => {
-        const tbody = document.getElementById('spndDataBahan');
-        tbody.innerHTML = '';
-
-        window.dataBahanList.forEach((bahan, index) => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${bahan.no}</td>
-                <td class="fw-bold">${bahan.nama}</td>
-                <td class="text-end">Rp ${bahan.harga.toLocaleString('id-ID')}</td>
-                <td class="text-center">
-                    <button onclick="editBahan(${index})" class="btn btn-sm btn-outline-primary py-0 me-1 text-xs">Edit</button>
-                    <button onclick="deleteBahan(${index})" class="btn btn-sm btn-outline-danger py-0 text-xs">Hapus</button>
-                </td>
-            `;
-            tbody.appendChild(row);
-        });
-    };
-
-    window.updateComboBoxBahan = () => {
-        const select = document.getElementById('spndNamaBahan');
-        select.innerHTML = '<option value="">Pilih Bahan</option>';
-
-        window.dataBahanList.forEach((bahan, index) => {
-            const option = document.createElement('option');
-            option.value = index;
-            option.textContent = bahan.nama;
-            select.appendChild(option);
-        });
-    };
-
-    window.updateHargaBahan = () => {
-        const select = document.getElementById('spndNamaBahan');
-        const hargaInput = document.getElementById('spndHargaBahan');
-        
-        if (select.value !== '') {
-            const bahan = window.dataBahanList[select.value];
-            hargaInput.value = `Rp ${bahan.harga.toLocaleString('id-ID')}`;
-        } else {
-            hargaInput.value = 'Rp 0';
-        }
-        
-        hitungHargaBahan();
-    };
-
-    window.hitungHargaBahan = () => {
-        const panjangCm = parseFloat(document.getElementById('spndPanjangCm').value) || 0;
-        const lebarCm = parseFloat(document.getElementById('spndLebarCm').value) || 0;
-        const select = document.getElementById('spndNamaBahan');
-        
-        const meterPanjang = panjangCm / 100;
-        const meterLebar = lebarCm / 100;
-        
-        document.getElementById('spndMeterPanjang').value = `${meterPanjang.toFixed(2)} m`;
-        document.getElementById('spndMeterLebar').value = `${meterLebar.toFixed(2)} m`;
-        
-        let hargaTotal = 0;
-        let namaBahan = '';
-        if (select.value !== '') {
-            const bahan = window.dataBahanList[select.value];
-            hargaTotal = meterPanjang * meterLebar * bahan.harga;
-            namaBahan = bahan.nama;
-        }
-        
-        const elemHarga = document.getElementById('spndHargaCetak');
-        elemHarga.textContent = `Rp ${hargaTotal.toLocaleString('id-ID')}`;
-        elemHarga.dataset.val = hargaTotal;
-        
-        updateSummaryTextBahan(namaBahan, meterPanjang, meterLebar, hargaTotal);
-    };
-
-    window.updateSummaryTextBahan = (namaBahan, meterPanjang, meterLebar, hargaTotal) => {
-        const summaryElement = document.getElementById('spndSummaryText');
-        
-        if (namaBahan && meterPanjang > 0 && meterLebar > 0) {
-            summaryElement.textContent = `${namaBahan} - Ukuran ${meterPanjang.toFixed(2)}m x ${meterLebar.toFixed(2)}m = Rp ${hargaTotal.toLocaleString('id-ID')}`;
-        } else {
-            summaryElement.textContent = 'Pilih bahan dan masukkan ukuran untuk melihat detail';
-        }
-    };
+    function copyTextFallback(text, successMsg) {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        showToast(successMsg, 'bg-success');
+    }
 
     window.copyHargaCetak = () => {
         const hargaCetak = document.getElementById('spndHargaCetak').textContent;
-        navigator.clipboard.writeText(hargaCetak).then(() => {
-            showToast('Harga cetak berhasil dicopy!', 'bg-success');
-        }).catch(() => {
-            showToast('Gagal copy text!', 'bg-warning');
-        });
+        copyTextFallback(hargaCetak, 'Harga cetak berhasil dicopy!');
     };
 
     window.copySummaryText = () => {
         const summaryText = document.getElementById('spndSummaryText').textContent;
-        navigator.clipboard.writeText(summaryText).then(() => {
-            showToast('Detail perhitungan berhasil dicopy!', 'bg-success');
-        }).catch(() => {
-            showToast('Gagal copy text!', 'bg-warning');
-        });
-    };
-
-    window.masukkanSpandukKeNota = () => {
-        const summaryText = document.getElementById('spndSummaryText').textContent;
-        const hargaTotalStr = document.getElementById('spndHargaCetak').dataset.val || "0";
-        const hargaTotal = parseFloat(hargaTotalStr) || 0;
-        
-        if (hargaTotal <= 0 || summaryText.includes('Pilih bahan')) {
-            return showToast("Hitung ukuran dan pilih bahan terlebih dahulu!", "bg-warning");
-        }
-        
-        const idItem = 'manual_' + Date.now();
-        window.keranjang.push({ id: idItem, nama: summaryText, harga: hargaTotal, qty: 1, total: hargaTotal });
-        renderNotaIsi();
-        
-        const modalEl = document.getElementById('modalSpanduk');
-        const modal = bootstrap.Modal.getInstance(modalEl);
-        if(modal) modal.hide();
-        
-        showToast("Hitungan spanduk berhasil dimasukkan ke nota!", "bg-success");
+        copyTextFallback(summaryText, 'Detail perhitungan berhasil dicopy!');
     };
 </script>
 </body>
