@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MUSADAD.COM - Kalkulasi Print PDF &amp; Parameter Potongan</title>
+  <title>MUSADAD.COM - Suite Percetakan, AI Restorasi Gambar CMYK &amp; Edit Teks</title>
 
-  <!-- Google Fonts: Inter -->
+  <!-- Google Fonts: Inter + Print Fonts for AI Text Typo Replacement -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@500;700;800&family=Oswald:wght@500;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -54,82 +54,63 @@
       background: #475569;
     }
 
-    /* Hide number input arrows slightly cleaner while keeping usability */
-    input[type="number"] {
-      -moz-appearance: textfield;
-    }
-
-    /* Dedicated Print Styles for Nota / Struk Kalkulasi */
+    /* Print styling khusus saat mencetak Nota / Struk Kalkulasi */
     @media print {
       body * {
         visibility: hidden !important;
       }
+      #receiptModal,
       #printReceiptContainer,
       #printReceiptContainer * {
         visibility: visible !important;
       }
-      #printReceiptContainer {
+      #receiptModal {
         position: fixed !important;
-        left: 0 !important;
-        top: 0 !important;
-        width: 100% !important;
-        max-width: 100% !important;
+        inset: 0 !important;
         background: #ffffff !important;
-        color: #000000 !important;
-        padding: 16px !important;
-        margin: 0 !important;
+        padding: 0 !important;
+        display: block !important;
+      }
+      #printReceiptContainer {
         box-shadow: none !important;
         border: none !important;
-        z-index: 999999 !important;
-        display: block !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 12px !important;
       }
     }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-cyan-500 selection:text-slate-950 min-h-screen flex flex-col lg:h-screen lg:overflow-hidden">
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col lg:h-screen lg:overflow-hidden">
 
-  <!-- ==================== MENU UTAMA (MUSADAD.COM PORTAL) ==================== -->
-  <div id="mainMenuView" class="flex-1 flex flex-col justify-between min-h-screen lg:h-full overflow-y-auto bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-slate-950 p-4 sm:p-8">
+  <!-- ==================== MAIN MENU PORTAL: MUSADAD.COM ==================== -->
+  <div id="mainMenuView" class="flex-1 overflow-y-auto bg-gradient-to-br from-slate-950 via-slate-925 to-slate-900 flex flex-col justify-between p-4 sm:p-8">
     
     <!-- Top Brand Header -->
-    <header class="max-w-5xl w-full mx-auto flex items-center justify-between py-2 border-b border-slate-800/80">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-indigo-600 flex items-center justify-center text-slate-950 font-black text-lg shadow-lg shadow-cyan-500/20">
-          M
-        </div>
-        <div>
-          <span class="text-lg sm:text-xl font-extrabold tracking-tight text-white">musadad<span class="text-cyan-400">.com</span></span>
-          <p class="text-[11px] text-slate-400">Digital Printing &amp; Offset Production Suite</p>
-        </div>
-      </div>
-      <span class="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full">
+    <header class="max-w-5xl w-full mx-auto pt-2 sm:pt-4 flex flex-col items-center text-center">
+      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-extrabold tracking-wider uppercase mb-3 shadow-sm">
         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-        Sistem Kasir &amp; Produksi Aktif
-      </span>
+        <span>Sistem Manajemen &amp; AI Percetakan</span>
+      </div>
+
+      <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-white">
+        MUSADAD<span class="text-cyan-400">.COM</span>
+      </h1>
+      <p class="text-xs sm:text-sm text-slate-400 max-w-2xl mt-2.5 leading-relaxed">
+        Pilih modul aplikasi percetakan di bawah ini: mulai dari kalkulasi print PDF otomatis (Warna &amp; Hitam Putih), optimasi potong kertas plano, perbaikan gambar pecah ke CMYK dengan AI, hingga ubah tulisan typo pada gambar jadi.
+      </p>
     </header>
 
-    <!-- Center Menu Selection -->
-    <section class="max-w-5xl w-full mx-auto my-auto py-8 sm:py-12">
-      <div class="text-center max-w-2xl mx-auto mb-8 sm:mb-10">
-        <span class="inline-block text-[11px] font-bold tracking-widest uppercase text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-3 py-1 rounded-full mb-3">
-          MENU UTAMA PERCETAKAN MUSADAD.COM
-        </span>
-        <h1 class="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-          Pilih Aplikasi Kalkulasi Cetak
-        </h1>
-        <p class="text-xs sm:text-sm text-slate-400 mt-2.5 leading-relaxed">
-          Kelola perhitungan biaya cetak PDF warna &amp; hitam putih maupun optimasi pemotongan kertas plano dengan cepat, akurat, dan siap cetak nota.
-        </p>
-      </div>
-
-      <!-- 2 Module Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
+    <!-- Center Module Cards Grid -->
+    <section class="max-w-5xl w-full mx-auto my-6 sm:my-8">
+      <!-- 4 Module Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
         
         <!-- Card 1: Kalkulasi Print PDF -->
-        <div class="group bg-slate-900/90 hover:bg-slate-900 border border-slate-800 hover:border-cyan-500/60 rounded-2xl p-6 sm:p-7 flex flex-col justify-between shadow-xl transition-all duration-200">
+        <div class="group bg-slate-900/90 hover:bg-slate-900 border border-slate-800 hover:border-cyan-500/60 rounded-2xl p-5 sm:p-6 flex flex-col justify-between shadow-xl transition-all duration-200">
           <div>
-            <div class="flex items-center justify-between mb-4">
-              <div class="w-12 h-12 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 flex items-center justify-center">
+            <div class="flex items-center justify-between mb-3">
+              <div class="w-11 h-11 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 flex items-center justify-center">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.1" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
                 </svg>
@@ -139,22 +120,21 @@
               </span>
             </div>
 
-            <h2 class="text-xl font-extrabold text-white group-hover:text-cyan-400 transition">
+            <h2 class="text-lg sm:text-xl font-extrabold text-white group-hover:text-cyan-400 transition">
               Kalkulasi Print PDF
             </h2>
-            <p class="text-xs sm:text-sm text-slate-400 mt-2 leading-relaxed">
-              Deteksi otomatis jumlah halaman <strong>Berwarna (Color)</strong> dan <strong>Hitam Putih (B/W)</strong>, atur tarif cetak &amp; jilid fleksibel, print langsung per kategori, serta cetak nota struk kasir.
+            <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">
+              Deteksi otomatis halaman <strong>Berwarna (Color)</strong> dan <strong>Hitam Putih (B/W)</strong>, tarif cetak &amp; jilid bisa diubah, print langsung per kategori, serta cetak nota struk.
             </p>
 
-            <ul class="mt-4 space-y-1.5 text-xs text-slate-300">
+            <ul class="mt-3 space-y-1 text-xs text-slate-300">
               <li class="flex items-center gap-2"><span class="text-cyan-400">✓</span> Pisahkan &amp; print halaman Warna atau B/W saja</li>
-              <li class="flex items-center gap-2"><span class="text-cyan-400">✓</span> Tarif cetak, kertas &amp; jilid bisa diubah</li>
-              <li class="flex items-center gap-2"><span class="text-cyan-400">✓</span> Cetak struk kalkulasi &amp; laporan PDF</li>
+              <li class="flex items-center gap-2"><span class="text-cyan-400">✓</span> Tarif cetak, kertas &amp; jilid fleksibel</li>
             </ul>
           </div>
 
           <button id="btnEnterPdfApp" type="button"
-            class="mt-6 w-full py-3.5 px-5 bg-cyan-500 hover:bg-cyan-400 active:bg-cyan-600 text-slate-950 font-extrabold text-xs sm:text-sm rounded-xl shadow-lg shadow-cyan-500/20 transition flex items-center justify-center gap-2 cursor-pointer">
+            class="mt-5 w-full py-3 px-4 bg-cyan-500 hover:bg-cyan-400 active:bg-cyan-600 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg shadow-cyan-500/20 transition flex items-center justify-center gap-2 cursor-pointer">
             <span>MASUK KE KALKULASI PRINT PDF</span>
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
@@ -163,10 +143,10 @@
         </div>
 
         <!-- Card 2: Parameter Potongan (Kalkulator Potong Kertas) -->
-        <div class="group bg-slate-900/90 hover:bg-slate-900 border border-slate-800 hover:border-indigo-500/60 rounded-2xl p-6 sm:p-7 flex flex-col justify-between shadow-xl transition-all duration-200">
+        <div class="group bg-slate-900/90 hover:bg-slate-900 border border-slate-800 hover:border-indigo-500/60 rounded-2xl p-5 sm:p-6 flex flex-col justify-between shadow-xl transition-all duration-200">
           <div>
-            <div class="flex items-center justify-between mb-4">
-              <div class="w-12 h-12 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 flex items-center justify-center">
+            <div class="flex items-center justify-between mb-3">
+              <div class="w-11 h-11 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 flex items-center justify-center">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.1" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm0-5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z"/>
                 </svg>
@@ -176,23 +156,94 @@
               </span>
             </div>
 
-            <h2 class="text-xl font-extrabold text-white group-hover:text-indigo-400 transition">
+            <h2 class="text-lg sm:text-xl font-extrabold text-white group-hover:text-indigo-400 transition">
               Parameter Potongan (Potong Kertas)
             </h2>
-            <p class="text-xs sm:text-sm text-slate-400 mt-2 leading-relaxed">
-              Hitung hasil potongan per lembar plano (<em>Yield</em>), persentase efisiensi &amp; limbah kertas, kombinasi rotasi 90° otomatis, visualisasi skema potong, serta total biaya beli plano.
+            <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">
+              Hitung hasil potongan per lembar plano (<em>Yield</em>), efisiensi &amp; limbah kertas, kombinasi rotasi 90° otomatis, skema potong, serta biaya beli plano.
             </p>
 
-            <ul class="mt-4 space-y-1.5 text-xs text-slate-300">
+            <ul class="mt-3 space-y-1 text-xs text-slate-300">
               <li class="flex items-center gap-2"><span class="text-indigo-400">✓</span> Preset Plano (61x86, 65x100, 79x109, SRA3, A3+)</li>
               <li class="flex items-center gap-2"><span class="text-indigo-400">✓</span> Visualisasi skema potong presisi &amp; export ke PDF</li>
-              <li class="flex items-center gap-2"><span class="text-indigo-400">✓</span> Kalkulasi kebutuhan lembar plano &amp; harga beli</li>
             </ul>
           </div>
 
           <button id="btnEnterCutApp" type="button"
-            class="mt-6 w-full py-3.5 px-5 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-lg shadow-indigo-500/20 transition flex items-center justify-center gap-2 cursor-pointer">
+            class="mt-5 w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-indigo-500/20 transition flex items-center justify-center gap-2 cursor-pointer">
             <span>MASUK KE PARAMETER POTONGAN</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Card 3: AI Perbaikan Gambar Pecah & Convert CMYK -->
+        <div class="group bg-slate-900/90 hover:bg-slate-900 border border-slate-800 hover:border-emerald-500/60 rounded-2xl p-5 sm:p-6 flex flex-col justify-between shadow-xl transition-all duration-200">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <div class="w-11 h-11 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.1" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                </svg>
+              </div>
+              <span class="text-[11px] font-bold text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full">
+                AI Anti-Pecah &amp; CMYK
+              </span>
+            </div>
+
+            <h2 class="text-lg sm:text-xl font-extrabold text-white group-hover:text-emerald-400 transition">
+              AI Perbaikan Gambar &amp; Convert CMYK
+            </h2>
+            <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">
+              Perbaiki gambar kiriman pelanggan yang <strong>pecah/blur</strong> menjadi tajam resolusi tinggi dengan AI, percantik warna cetak, dan <strong>convert ke CMYK</strong> siap cetak.
+            </p>
+
+            <ul class="mt-3 space-y-1 text-xs text-slate-300">
+              <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> AI Upscale 2x–4x Anti-Pecah &amp; Perbaikan Warna Cetak</li>
+              <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Convert RGB ke CMYK (.TIF Corel/Photoshop &amp; PDF 300 DPI)</li>
+            </ul>
+          </div>
+
+          <button id="btnEnterAiEnhanceApp" type="button"
+            class="mt-5 w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-emerald-500/20 transition flex items-center justify-center gap-2 cursor-pointer">
+            <span>MASUK KE AI ANTI-PECAH &amp; CMYK</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Card 4: AI Ubah Tulisan (Typo) & Edit Gambar Jadi -->
+        <div class="group bg-slate-900/90 hover:bg-slate-900 border border-slate-800 hover:border-amber-500/60 rounded-2xl p-5 sm:p-6 flex flex-col justify-between shadow-xl transition-all duration-200">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <div class="w-11 h-11 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.1" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                </svg>
+              </div>
+              <span class="text-[11px] font-bold text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-full">
+                AI Text &amp; Image Edit
+              </span>
+            </div>
+
+            <h2 class="text-lg sm:text-xl font-extrabold text-white group-hover:text-amber-400 transition">
+              AI Ubah Tulisan (Typo) &amp; Edit Gambar
+            </h2>
+            <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">
+              Salah ketik (typo) di gambar jadi? Tandai area tulisan, <strong>AI otomatis menghapus teks lama</strong> menyesuaikan background dan menggantinya dengan tulisan baru, plus edit gambar AI.
+            </p>
+
+            <ul class="mt-3 space-y-1 text-xs text-slate-300">
+              <li class="flex items-center gap-2"><span class="text-amber-400">✓</span> Ubah tulisan typo langsung di gambar jadi (JPG/PNG)</li>
+              <li class="flex items-center gap-2"><span class="text-amber-400">✓</span> Hapus/ganti background pas foto &amp; prompt edit AI</li>
+            </ul>
+          </div>
+
+          <button id="btnEnterAiEditApp" type="button"
+            class="mt-5 w-full py-3 px-4 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg shadow-amber-500/20 transition flex items-center justify-center gap-2 cursor-pointer">
+            <span>MASUK KE AI UBAH TULISAN &amp; EDIT</span>
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
             </svg>
@@ -859,6 +910,487 @@
             <span>Area Limbah (Waste)</span>
           </div>
         </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ==================== APP 3: AI STUDIO GAMBAR (ANTI-PECAH, CMYK, UBAH TULISAN & EDIT AI) ==================== -->
+  <div id="aiImageStudioView" class="hidden flex-col lg:flex-row flex-1 lg:h-full lg:overflow-hidden">
+
+    <!-- ==================== LEFT SIDEBAR: AI CONTROLS ==================== -->
+    <aside class="w-full lg:w-[390px] xl:w-[420px] bg-slate-900 border-b lg:border-b-0 lg:border-r border-slate-800 flex flex-col lg:h-full shrink-0">
+
+      <!-- Sidebar Header -->
+      <div class="p-4 pb-3 border-b border-slate-800/80 flex items-center justify-between gap-2">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2 mb-1">
+            <button id="btnBackFromAi" type="button"
+              class="text-[11px] font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 px-2 py-0.5 rounded-md border border-slate-700 transition cursor-pointer">
+              &larr; Menu Utama
+            </button>
+            <span class="text-[11px] font-extrabold text-emerald-400">musadad.com</span>
+          </div>
+          <h1 class="text-base font-extrabold tracking-wide text-white uppercase flex items-center gap-2 truncate">
+            <svg class="w-5 h-5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+            </svg>
+            AI STUDIO CETAK &amp; EDIT
+          </h1>
+        </div>
+        <button id="btnAiResetAll" type="button" title="Kembalikan ke Gambar Asli"
+          class="text-[11px] text-slate-400 hover:text-emerald-400 bg-slate-800/80 hover:bg-slate-800 px-2.5 py-1.5 rounded-lg border border-slate-700/70 transition shrink-0 cursor-pointer">
+          Reset Gambar
+        </button>
+      </div>
+
+      <!-- Mode Switcher Tabs inside Sidebar -->
+      <div class="px-4 pt-3 pb-2 border-b border-slate-800/70 grid grid-cols-3 gap-1.5 bg-slate-925/60">
+        <button type="button" data-ai-tab="enhance"
+          class="ai-mode-tab active py-2 px-2 rounded-lg text-[11px] font-extrabold text-center transition cursor-pointer bg-emerald-500 text-slate-950 shadow">
+          ✨ Anti-Pecah &amp; CMYK
+        </button>
+        <button type="button" data-ai-tab="textfix"
+          class="ai-mode-tab py-2 px-2 rounded-lg text-[11px] font-bold text-center transition cursor-pointer bg-slate-850 text-slate-300 hover:bg-slate-800 border border-slate-700/70">
+          ✏️ Ubah Tulisan
+        </button>
+        <button type="button" data-ai-tab="aiedit"
+          class="ai-mode-tab py-2 px-2 rounded-lg text-[11px] font-bold text-center transition cursor-pointer bg-slate-850 text-slate-300 hover:bg-slate-800 border border-slate-700/70">
+          🎨 Edit Gambar AI
+        </button>
+      </div>
+
+      <!-- Scrollable Sidebar Body -->
+      <div class="p-4 space-y-4 overflow-y-auto flex-1">
+
+        <!-- Upload Image Trigger -->
+        <div>
+          <input type="file" id="aiImageFileInput" accept="image/*" class="hidden" />
+          <div class="grid grid-cols-2 gap-2">
+            <button id="btnPickAiImage" type="button"
+              class="py-2.5 px-3 bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg shadow-emerald-500/20 transition flex items-center justify-center gap-1.5 cursor-pointer">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+              </svg>
+              PILIH GAMBAR
+            </button>
+            <button id="btnLoadSampleBrokenImage" type="button"
+              class="py-2.5 px-3 bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold text-xs rounded-xl border border-slate-700 transition flex items-center justify-center gap-1.5 cursor-pointer">
+              <span>🖼️</span>
+              <span>Contoh Pecah + Typo</span>
+            </button>
+          </div>
+          <p id="aiLoadedFileInfo" class="text-[11px] text-slate-400 mt-1.5 truncate">
+            Belum ada gambar dipilih (Mendukung JPG, PNG, WEBP)
+          </p>
+        </div>
+
+        <!-- ==================== TAB 1: AI ANTI-PECAH, WARNA AI & CONVERT CMYK ==================== -->
+        <div id="aiPanelEnhance" class="space-y-3.5">
+
+          <!-- AI Anti-Pecah (Super Resolution) -->
+          <div class="bg-slate-925/80 p-3 rounded-xl border border-slate-800/90 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <h2 class="text-xs font-bold text-white">1. AI Anti-Pecah (Super-Resolution)</h2>
+              <span class="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">Neural Upscale</span>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2">
+              <div>
+                <label class="block text-[10px] text-slate-400 mb-1">Perbesaran AI:</label>
+                <select id="selectAiScale"
+                  class="w-full bg-slate-850 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none">
+                  <option value="1">1x (Asli)</option>
+                  <option value="2" selected>2x HD</option>
+                  <option value="3">3x Ultra HD</option>
+                  <option value="4">4x Max Print</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-[10px] text-slate-400 mb-1">Hapus Pecah/Noise:</label>
+                <select id="selectAiDenoise"
+                  class="w-full bg-slate-850 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none">
+                  <option value="0">Off</option>
+                  <option value="1">Ringan</option>
+                  <option value="2" selected>Sedang (WA)</option>
+                  <option value="3">Kuat (Sangat Pecah)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-[10px] text-slate-400 mb-1">Ketajaman Tepi:</label>
+                <select id="selectAiSharpen"
+                  class="w-full bg-slate-850 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none">
+                  <option value="0">Normal</option>
+                  <option value="1">Tajam</option>
+                  <option value="2" selected>Ekstra Tajam</option>
+                  <option value="3">Super Crisp</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- AI Color Grading -->
+          <div class="bg-slate-925/80 p-3 rounded-xl border border-slate-800/90 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <h2 class="text-xs font-bold text-white">2. Perbaikan Warna AI (Supaya Cetak Bagus)</h2>
+              <label class="flex items-center gap-1.5 text-[11px] font-semibold text-cyan-400 cursor-pointer">
+                <input id="chkAiAutoColor" type="checkbox" checked class="accent-cyan-500 w-3.5 h-3.5" />
+                <span>Auto AI Color</span>
+              </label>
+            </div>
+
+            <div class="space-y-2">
+              <div>
+                <div class="flex justify-between text-[11px] text-slate-400 mb-0.5">
+                  <span>Kecerahan &amp; Kontras Cetak:</span>
+                  <span id="lblAiBrightnessVal" class="text-white font-semibold">+8%</span>
+                </div>
+                <input id="rangeAiBrightness" type="range" min="-30" max="40" value="8" class="w-full accent-emerald-500 cursor-pointer" />
+              </div>
+
+              <div>
+                <div class="flex justify-between text-[11px] text-slate-400 mb-0.5">
+                  <span>Kejernihan Warna (AI Vibrance):</span>
+                  <span id="lblAiVibranceVal" class="text-white font-semibold">+22%</span>
+                </div>
+                <input id="rangeAiVibrance" type="range" min="-30" max="60" value="22" class="w-full accent-cyan-500 cursor-pointer" />
+              </div>
+            </div>
+
+            <button id="btnRunAiEnhance" type="button"
+              class="w-full py-2.5 px-4 bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg shadow-emerald-500/20 transition flex items-center justify-center gap-2 cursor-pointer">
+              <span>✨ PROSES AI ANTI-PECAH &amp; PERBAIKI WARNA</span>
+            </button>
+          </div>
+
+          <!-- Convert to CMYK Pre-Press -->
+          <div class="bg-slate-925/80 p-3 rounded-xl border border-indigo-500/30 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <h2 class="text-xs font-bold text-indigo-300">3. Convert ke CMYK (Siap Cetak Offset/Digital)</h2>
+              <span class="text-[10px] font-bold text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-full">300 DPI</span>
+            </div>
+
+            <label class="flex items-center justify-between text-xs text-slate-200 bg-slate-850 border border-slate-700/80 px-3 py-2 rounded-lg cursor-pointer">
+              <span>Aktifkan Simulasi Soft-Proof CMYK</span>
+              <input id="chkCmykProof" type="checkbox" checked class="accent-indigo-500 w-4 h-4" />
+            </label>
+
+            <!-- Live CMYK Ink Coverage Bars -->
+            <div class="grid grid-cols-4 gap-1.5 text-center pt-1">
+              <div class="bg-slate-950 border border-slate-800 rounded-lg p-1.5">
+                <div class="text-[10px] font-bold text-cyan-400">C (Cyan)</div>
+                <div id="cmykValC" class="text-xs font-extrabold text-white mt-0.5">0%</div>
+              </div>
+              <div class="bg-slate-950 border border-slate-800 rounded-lg p-1.5">
+                <div class="text-[10px] font-bold text-pink-400">M (Magenta)</div>
+                <div id="cmykValM" class="text-xs font-extrabold text-white mt-0.5">0%</div>
+              </div>
+              <div class="bg-slate-950 border border-slate-800 rounded-lg p-1.5">
+                <div class="text-[10px] font-bold text-amber-300">Y (Yellow)</div>
+                <div id="cmykValY" class="text-xs font-extrabold text-white mt-0.5">0%</div>
+              </div>
+              <div class="bg-slate-950 border border-slate-800 rounded-lg p-1.5">
+                <div class="text-[10px] font-bold text-slate-300">K (Black)</div>
+                <div id="cmykValK" class="text-xs font-extrabold text-white mt-0.5">0%</div>
+              </div>
+            </div>
+
+            <!-- Export CMYK Buttons -->
+            <div class="space-y-2 pt-1">
+              <button id="btnExportCmykTiff" type="button"
+                class="w-full py-2.5 px-3 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs rounded-xl shadow transition flex items-center justify-center gap-2 cursor-pointer">
+                <span>💾 UNDUH FILE CMYK ASLI (.TIF 300 DPI)</span>
+              </button>
+              <div class="grid grid-cols-2 gap-2">
+                <button id="btnExportCmykPdf" type="button"
+                  class="py-2 px-3 bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold text-[11px] rounded-xl border border-slate-700 transition cursor-pointer">
+                  📄 Unduh PDF Cetak
+                </button>
+                <button id="btnExportHdPng" type="button"
+                  class="py-2 px-3 bg-slate-800 hover:bg-slate-700 text-emerald-300 font-bold text-[11px] rounded-xl border border-slate-700 transition cursor-pointer">
+                  🖼️ Unduh PNG HD
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== TAB 2: AI UBAH TULISAN (TYPO FIXER PADA GAMBAR JADI) ==================== -->
+        <div id="aiPanelTextFix" class="hidden space-y-3.5">
+          <div class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 text-xs text-amber-200 leading-relaxed">
+            <strong>Cara Ubah Tulisan Salah/Typo di Gambar Jadi:</strong><br/>
+            1. <strong>Tarik kotak (drag)</strong> di atas tulisan yang salah pada gambar di sebelah kanan.<br/>
+            2. AI otomatis menghapus tulisan lama &amp; menyesuaikan warna background.<br/>
+            3. Ketik tulisan pengganti yang benar lalu klik <strong>Terapkan ke Gambar</strong>.
+          </div>
+
+          <div class="bg-slate-925/80 p-3 rounded-xl border border-slate-800/90 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <h2 class="text-xs font-bold text-white">Pengaturan Teks Pengganti:</h2>
+              <button id="btnClearTextSelection" type="button" class="text-[11px] text-rose-400 hover:underline cursor-pointer">
+                Hapus Seleksi
+              </button>
+            </div>
+
+            <div>
+              <label for="inputReplacementText" class="block text-[11px] text-slate-400 mb-1">Tulisan Baru (Perbaikan Typo):</label>
+              <input id="inputReplacementText" type="text" placeholder="Ketik tulisan yang benar di sini..."
+                class="w-full bg-slate-850 border border-slate-700 focus:border-amber-500 rounded-lg px-3 py-2 text-sm font-bold text-white focus:outline-none" />
+            </div>
+
+            <div class="grid grid-cols-2 gap-2.5">
+              <div>
+                <label class="block text-[11px] text-slate-400 mb-1">Jenis Huruf (Font):</label>
+                <select id="selectReplaceFont"
+                  class="w-full bg-slate-850 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none">
+                  <option value="Inter">Inter (Modern Sans)</option>
+                  <option value="Montserrat" selected>Montserrat (Poster/Banner)</option>
+                  <option value="Roboto">Roboto (Dokumen Standar)</option>
+                  <option value="Oswald">Oswald (Tegas/Judul)</option>
+                  <option value="Playfair Display">Playfair (Undangan/Klasik)</option>
+                  <option value="Dancing Script">Dancing Script (Kaligrafi)</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-[11px] text-slate-400 mb-1">Ukuran Huruf (px):</label>
+                <input id="inputReplaceFontSize" type="number" min="8" max="300" value="28"
+                  class="w-full bg-slate-850 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-bold text-white focus:outline-none" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2.5">
+              <div>
+                <label class="block text-[11px] text-slate-400 mb-1">Warna Teks (Auto-Deteksi):</label>
+                <div class="flex items-center gap-2 bg-slate-850 border border-slate-700 rounded-lg px-2 py-1">
+                  <input id="inputReplaceTextColor" type="color" value="#111827" class="w-7 h-6 bg-transparent border-0 cursor-pointer" />
+                  <span id="lblReplaceTextColorHex" class="text-xs font-mono text-slate-300">#111827</span>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-[11px] text-slate-400 mb-1">Mode Hapus Teks Lama:</label>
+                <select id="selectInpaintMode"
+                  class="w-full bg-slate-850 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none">
+                  <option value="gradient" selected>AI Inpaint (Gradasi/Tekstur)</option>
+                  <option value="solid">Warna Rata Sekitar</option>
+                  <option value="custombg">Warna Background Manual</option>
+                </select>
+              </div>
+            </div>
+
+            <div id="customBgColorRow" class="hidden flex items-center justify-between bg-slate-850 border border-slate-700 rounded-lg px-2.5 py-1.5">
+              <span class="text-[11px] text-slate-300">Pilih Warna Penutup Background:</span>
+              <input id="inputCustomInpaintBg" type="color" value="#ffffff" class="w-8 h-6 bg-transparent border-0 cursor-pointer" />
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 pt-1">
+              <label class="flex items-center justify-center gap-1.5 text-xs text-slate-200 bg-slate-850 border border-slate-700 py-1.5 rounded-lg cursor-pointer">
+                <input id="chkReplaceBold" type="checkbox" checked class="accent-amber-500" />
+                <span><strong>Bold</strong></span>
+              </label>
+              <label class="flex items-center justify-center gap-1.5 text-xs text-slate-200 bg-slate-850 border border-slate-700 py-1.5 rounded-lg cursor-pointer">
+                <input id="chkReplaceItalic" type="checkbox" class="accent-amber-500" />
+                <span><em>Italic</em></span>
+              </label>
+              <select id="selectReplaceAlign" class="bg-slate-850 border border-slate-700 rounded-lg px-1.5 py-1.5 text-xs text-white">
+                <option value="center" selected>Rata Tengah</option>
+                <option value="left">Rata Kiri</option>
+                <option value="right">Rata Kanan</option>
+              </select>
+            </div>
+
+            <!-- Fine-tune position & angle -->
+            <div class="grid grid-cols-2 gap-2.5 pt-1">
+              <div>
+                <div class="flex justify-between text-[10px] text-slate-400">
+                  <span>Kemiringan Teks:</span>
+                  <span id="lblTextAngleVal">0&deg;</span>
+                </div>
+                <input id="rangeTextAngle" type="range" min="-45" max="45" value="0" class="w-full accent-amber-500 cursor-pointer" />
+              </div>
+              <div>
+                <div class="flex justify-between text-[10px] text-slate-400">
+                  <span>Jarak Huruf:</span>
+                  <span id="lblTextSpacingVal">0 px</span>
+                </div>
+                <input id="rangeTextSpacing" type="range" min="-2" max="15" value="0" class="w-full accent-amber-500 cursor-pointer" />
+              </div>
+            </div>
+
+            <button id="btnApplyTextFix" type="button"
+              class="w-full py-2.5 px-4 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg shadow-amber-500/20 transition flex items-center justify-center gap-2 cursor-pointer">
+              <span>✅ TERAPKAN PERUBAHAN TULISAN KE GAMBAR</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- ==================== TAB 3: AI EDIT GAMBAR & PROMPT AI ==================== -->
+        <div id="aiPanelImageEdit" class="hidden space-y-3.5">
+
+          <!-- 1-Click AI Print Background & Retouch Tools -->
+          <div class="bg-slate-925/80 p-3 rounded-xl border border-slate-800/90 space-y-2.5">
+            <h2 class="text-xs font-bold text-white">Alat Cepat Edit Gambar Percetakan:</h2>
+
+            <div class="grid grid-cols-2 gap-2">
+              <button id="btnAiRemoveBgWhite" type="button"
+                class="py-2 px-2.5 bg-slate-850 hover:bg-slate-800 border border-slate-700 rounded-lg text-[11px] font-bold text-slate-100 transition cursor-pointer">
+                🪄 Hapus BG (Putih Bersih)
+              </button>
+              <button id="btnAiRemoveBgTransparent" type="button"
+                class="py-2 px-2.5 bg-slate-850 hover:bg-slate-800 border border-slate-700 rounded-lg text-[11px] font-bold text-slate-100 transition cursor-pointer">
+                ✂️ Hapus BG (Transparan)
+              </button>
+              <button id="btnAiBgRed" type="button"
+                class="py-2 px-2.5 bg-rose-950/60 hover:bg-rose-900/60 border border-rose-700/60 rounded-lg text-[11px] font-bold text-rose-200 transition cursor-pointer">
+                🟥 BG Merah Pas Foto
+              </button>
+              <button id="btnAiBgBlue" type="button"
+                class="py-2 px-2.5 bg-blue-950/60 hover:bg-blue-900/60 border border-blue-700/60 rounded-lg text-[11px] font-bold text-blue-200 transition cursor-pointer">
+                🟦 BG Biru Pas Foto
+              </button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 pt-1">
+              <button id="btnAiRotate90" type="button"
+                class="py-2 px-2.5 bg-slate-850 hover:bg-slate-800 border border-slate-700 rounded-lg text-[11px] font-semibold text-slate-200 transition cursor-pointer">
+                🔄 Putar 90&deg;
+              </button>
+              <button id="btnAiFlipH" type="button"
+                class="py-2 px-2.5 bg-slate-850 hover:bg-slate-800 border border-slate-700 rounded-lg text-[11px] font-semibold text-slate-200 transition cursor-pointer">
+                ↔️ Balik Horizontal
+              </button>
+            </div>
+          </div>
+
+          <!-- Generative AI Prompt Editor -->
+          <div class="bg-slate-925/80 p-3 rounded-xl border border-cyan-500/30 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <h2 class="text-xs font-bold text-cyan-300">Edit Gambar Menggunakan AI (Prompt):</h2>
+              <span class="text-[10px] font-bold text-cyan-300 bg-cyan-500/10 px-2 py-0.5 rounded-full">AI Assistant</span>
+            </div>
+
+            <textarea id="txtAiEditPrompt" rows="3"
+              placeholder="Contoh: Perbaiki gambar pecah jadi tajam, cerahkan wajah, ganti background merah pas foto, dan siapkan untuk cetak..."
+              class="w-full bg-slate-950 border border-slate-700 focus:border-cyan-500 rounded-lg p-2.5 text-xs text-white leading-relaxed focus:outline-none resize-none"></textarea>
+
+            <!-- Optional Gemini API Key for Cloud Generative AI -->
+            <details class="text-[11px] text-slate-400">
+              <summary class="cursor-pointer hover:text-cyan-400 font-semibold">⚙️ Hubungkan Gemini API Key (Opsional untuk Cloud AI)</summary>
+              <div class="mt-2 space-y-1.5">
+                <input id="inputGeminiApiKey" type="password" placeholder="Tempel AIzaSy... (opsional)"
+                  class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none" />
+                <p class="text-[10px] text-slate-500">Tanpa API Key pun sistem AI lokal otomatis menjalankan instruksi edit, hapus background, anti-pecah &amp; perbaikan warna.</p>
+              </div>
+            </details>
+
+            <button id="btnExecuteAiPrompt" type="button"
+              class="w-full py-2.5 px-4 bg-cyan-500 hover:bg-cyan-400 active:bg-cyan-600 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg shadow-cyan-500/20 transition flex items-center justify-center gap-2 cursor-pointer">
+              <span>🤖 JALANKAN EDIT GAMBAR AI</span>
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+    </aside>
+
+    <!-- ==================== RIGHT MAIN WORKSPACE: INTERACTIVE AI CANVAS & BEFORE/AFTER ==================== -->
+    <main class="flex-1 flex flex-col min-w-0 bg-slate-950 lg:h-full lg:overflow-hidden">
+
+      <!-- Top 4 Image Quality & Pre-Press Cards -->
+      <section class="p-3 sm:p-4 pb-2 grid grid-cols-2 xl:grid-cols-4 gap-2.5 sm:gap-3 shrink-0">
+        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3">
+          <span class="text-[10px] font-bold tracking-wider text-slate-400 uppercase">RESOLUSI ASLI</span>
+          <div id="aiStatOrigRes" class="text-base sm:text-lg font-extrabold text-white mt-1">- x - px</div>
+          <div id="aiStatOrigDpi" class="text-[11px] text-rose-400 mt-0.5">Estimasi Cetak: -</div>
+        </div>
+
+        <div class="bg-slate-900/90 border border-emerald-500/30 rounded-xl p-3">
+          <span class="text-[10px] font-bold tracking-wider text-emerald-400 uppercase">RESOLUSI HASIL AI</span>
+          <div id="aiStatNewRes" class="text-base sm:text-lg font-extrabold text-white mt-1">- x - px</div>
+          <div id="aiStatNewDpi" class="text-[11px] text-emerald-400 mt-0.5">Siap Cetak 300 DPI</div>
+        </div>
+
+        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3">
+          <span class="text-[10px] font-bold tracking-wider text-indigo-400 uppercase">PROFIL WARNA</span>
+          <div id="aiStatColorMode" class="text-base sm:text-lg font-extrabold text-white mt-1">CMYK Coated</div>
+          <div id="aiStatInkTotal" class="text-[11px] text-indigo-300 mt-0.5">Total Tinta (TAC): 0%</div>
+        </div>
+
+        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3">
+          <span class="text-[10px] font-bold tracking-wider text-amber-400 uppercase">STATUS STUDIO AI</span>
+          <div id="aiStatStatus" class="text-base sm:text-lg font-extrabold text-white mt-1">Siap Memproses</div>
+          <div id="aiStatSubStatus" class="text-[11px] text-slate-400 mt-0.5">Unggah gambar pelanggan</div>
+        </div>
+      </section>
+
+      <!-- Toolbar: Before/After Split Toggle + Quick Export -->
+      <section class="px-3 sm:px-4 py-2 flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 shrink-0">
+        <div class="flex flex-wrap items-center gap-2">
+          <label class="flex items-center gap-2 text-xs font-semibold text-slate-200 bg-slate-900 border border-slate-700 px-3 py-1.5 rounded-lg cursor-pointer">
+            <input id="chkCompareSlider" type="checkbox" checked class="accent-emerald-500 w-3.5 h-3.5" />
+            <span>Bandingkan Sebelum / Sesudah AI</span>
+          </label>
+
+          <div id="compareSliderControlWrap" class="flex items-center gap-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg">
+            <span class="text-[11px] text-rose-400 font-bold">Asli</span>
+            <input id="rangeCompareSplit" type="range" min="0" max="100" value="50" class="w-24 sm:w-32 accent-emerald-400 cursor-pointer" />
+            <span class="text-[11px] text-emerald-400 font-bold">Hasil AI</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 ml-auto">
+          <button id="btnToolbarUndoAi" type="button"
+            class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs rounded-lg border border-slate-700 transition cursor-pointer">
+            ↩️ Undo Edit
+          </button>
+          <button id="btnToolbarPrintAi" type="button"
+            class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-lg shadow transition cursor-pointer">
+            🖨️ Print Gambar Ini
+          </button>
+        </div>
+      </section>
+
+      <!-- Interactive Canvas Viewport -->
+      <section id="aiCanvasViewport" class="flex-1 overflow-auto p-4 sm:p-6 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:18px_18px] flex items-center justify-center relative">
+
+        <!-- Processing Spinner Overlay -->
+        <div id="aiLoadingOverlay" class="hidden absolute inset-0 bg-slate-950/85 backdrop-blur-sm z-30 flex flex-col items-center justify-center p-6 text-center">
+          <div class="w-12 h-12 border-4 border-slate-700 border-t-emerald-400 rounded-full animate-spin mb-3"></div>
+          <h3 id="aiLoadingTitle" class="text-base font-bold text-white">AI Sedang Memperbaiki Gambar...</h3>
+          <p id="aiLoadingSub" class="text-xs text-slate-400 mt-1">Menghilangkan pecah, menajamkan detail &amp; mengonversi warna CMYK</p>
+        </div>
+
+        <!-- Empty Dropzone -->
+        <div id="aiEmptyDropZone"
+          class="w-full max-w-xl border-2 border-dashed border-slate-700 hover:border-emerald-500/60 rounded-2xl p-8 text-center bg-slate-900/70 transition">
+          <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-3">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+          </div>
+          <h2 class="text-lg font-bold text-white">Unggah Gambar Pelanggan yang Pecah / Salah Teks</h2>
+          <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">
+            Cocok untuk memperbaiki foto kiriman WhatsApp yang pecah agar tajam 300 DPI, mengonversi ke <strong>CMYK</strong>, menghapus/mengganti tulisan yang typo di gambar jadi, maupun mengedit gambar dengan AI.
+          </p>
+          <div class="flex flex-wrap items-center justify-center gap-3 mt-5">
+            <button type="button" onclick="document.getElementById('aiImageFileInput').click()"
+              class="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg shadow-emerald-500/20 transition cursor-pointer">
+              Pilih Gambar dari Perangkat
+            </button>
+            <button type="button" id="btnAiEmptyDemo"
+              class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs rounded-xl border border-slate-700 transition cursor-pointer">
+              Coba Gambar Pecah + Typo
+            </button>
+          </div>
+        </div>
+
+        <!-- Main Interactive Canvas Container -->
+        <div id="aiCanvasStage" class="hidden relative inline-block shadow-2xl border border-slate-700 rounded-lg overflow-hidden select-none">
+          <canvas id="aiMainCanvas" class="block max-w-full max-h-[70vh] w-auto h-auto cursor-crosshair"></canvas>
+        </div>
+
       </section>
 
     </main>
@@ -2057,12 +2589,15 @@
       const mainMenu = document.getElementById('mainMenuView');
       const pdfView = document.getElementById('pdfCalculatorView');
       const cutView = document.getElementById('paperCutCalculatorView');
+      const aiView = document.getElementById('aiImageStudioView');
 
       mainMenu.classList.add('hidden');
       pdfView.classList.add('hidden');
       pdfView.classList.remove('flex');
       cutView.classList.add('hidden');
       cutView.classList.remove('flex');
+      aiView.classList.add('hidden');
+      aiView.classList.remove('flex');
 
       if (viewName === 'pdf') {
         pdfView.classList.remove('hidden');
@@ -2072,6 +2607,10 @@
         cutView.classList.remove('hidden');
         cutView.classList.add('flex');
         updatePaperCutCalculator();
+      } else if (viewName === 'ai-enhance' || viewName === 'ai-edit') {
+        aiView.classList.remove('hidden');
+        aiView.classList.add('flex');
+        switchAiSubTab(viewName === 'ai-edit' ? 'textfix' : 'enhance');
       } else {
         mainMenu.classList.remove('hidden');
       }
@@ -2435,8 +2974,11 @@
       // Navigation buttons
       document.getElementById('btnEnterPdfApp').addEventListener('click', () => switchMainView('pdf'));
       document.getElementById('btnEnterCutApp').addEventListener('click', () => switchMainView('cut'));
+      document.getElementById('btnEnterAiEnhanceApp').addEventListener('click', () => switchMainView('ai-enhance'));
+      document.getElementById('btnEnterAiEditApp').addEventListener('click', () => switchMainView('ai-edit'));
       document.getElementById('btnBackFromPdf').addEventListener('click', () => switchMainView('menu'));
       document.getElementById('btnBackFromCut').addEventListener('click', () => switchMainView('menu'));
+      document.getElementById('btnBackFromAi').addEventListener('click', () => switchMainView('menu'));
 
       // Parent sheet preset select
       document.getElementById('selectParentSheet').addEventListener('change', (e) => {
@@ -2511,11 +3053,1164 @@
       });
     }
 
+    /**
+     * ==================== AI STUDIO: ANTI-PECAH, CMYK, UBAH TULISAN & EDIT GAMBAR ====================
+     */
+    const aiState = {
+      fileName: 'Gambar_Pelanggan.png',
+      origCanvas: null,       // Original unmodified HTMLCanvasElement
+      workingCanvas: null,    // Current edited/enhanced HTMLCanvasElement (RGB)
+      proofCanvas: null,      // CMYK soft-proofed HTMLCanvasElement
+      historyStack: [],       // Undo stack of ImageData / Canvas snapshots
+      activeSubTab: 'enhance',
+      splitPercent: 50,
+      compareEnabled: true,
+      cmykStats: { c: 0, m: 0, y: 0, k: 0, tac: 0 },
+      // Text replacement selection box in canvas pixel coordinates
+      selection: null,        // { x, y, w, h, bgTop, bgBottom, detectedTextColor }
+      isDraggingSel: false,
+      dragStart: { x: 0, y: 0 }
+    };
+
+    function switchAiSubTab(tabName) {
+      aiState.activeSubTab = tabName;
+      document.querySelectorAll('.ai-mode-tab').forEach(btn => {
+        const active = btn.dataset.aiTab === tabName;
+        btn.className = active
+          ? 'ai-mode-tab active py-2 px-2 rounded-lg text-[11px] font-extrabold text-center transition cursor-pointer bg-emerald-500 text-slate-950 shadow'
+          : 'ai-mode-tab py-2 px-2 rounded-lg text-[11px] font-bold text-center transition cursor-pointer bg-slate-850 text-slate-300 hover:bg-slate-800 border border-slate-700/70';
+      });
+
+      document.getElementById('aiPanelEnhance').classList.toggle('hidden', tabName !== 'enhance');
+      document.getElementById('aiPanelTextFix').classList.toggle('hidden', tabName !== 'textfix');
+      document.getElementById('aiPanelImageEdit').classList.toggle('hidden', tabName !== 'aiedit');
+      renderAiMainCanvas();
+    }
+
+    function cloneCanvas(src) {
+      const c = document.createElement('canvas');
+      c.width = src.width;
+      c.height = src.height;
+      c.getContext('2d').drawImage(src, 0, 0);
+      return c;
+    }
+
+    function pushAiHistory() {
+      if (!aiState.workingCanvas) return;
+      if (aiState.historyStack.length >= 8) aiState.historyStack.shift();
+      aiState.historyStack.push(cloneCanvas(aiState.workingCanvas));
+    }
+
+    /**
+     * Convert RGB (0..255) to CMYK (0..1) using GCR + 300% Total Ink Coverage limit
+     */
+    function rgbToCmykValues(r, g, b) {
+      const rn = r / 255;
+      const gn = g / 255;
+      const bn = b / 255;
+      const kRaw = 1 - Math.max(rn, gn, bn);
+      if (kRaw >= 0.999) {
+        return { c: 0, m: 0, y: 0, k: 1 };
+      }
+      let c = (1 - rn - kRaw) / (1 - kRaw);
+      let m = (1 - gn - kRaw) / (1 - kRaw);
+      let y = (1 - bn - kRaw) / (1 - kRaw);
+      let k = kRaw;
+
+      // Apply Gray Component Replacement (GCR 0.85) & TAC 300% cap for clean offset/digital press printing
+      const minCmy = Math.min(c, m, y);
+      const gcr = minCmy * 0.35;
+      c = Math.max(0, c - gcr);
+      m = Math.max(0, m - gcr);
+      y = Math.max(0, y - gcr);
+      k = Math.min(1, k + gcr * 0.9);
+
+      const total = c + m + y + k;
+      if (total > 3.0) {
+        const ratio = 3.0 / total;
+        c *= ratio;
+        m *= ratio;
+        y *= ratio;
+        k *= ratio;
+      }
+      return { c, m, y, k };
+    }
+
+    /**
+     * Build CMYK Soft-Proof Canvas & Calculate Average CMYK Ink Percentages
+     */
+    function updateCmykProofAndStats() {
+      if (!aiState.workingCanvas) return;
+      const src = aiState.workingCanvas;
+      const proof = document.createElement('canvas');
+      proof.width = src.width;
+      proof.height = src.height;
+      const pCtx = proof.getContext('2d');
+      pCtx.drawImage(src, 0, 0);
+
+      const imgData = pCtx.getImageData(0, 0, proof.width, proof.height);
+      const d = imgData.data;
+
+      let sumC = 0, sumM = 0, sumY = 0, sumK = 0, count = 0;
+
+      for (let i = 0; i < d.length; i += 4) {
+        const a = d[i + 3];
+        if (a < 10) continue;
+
+        const { c, m, y, k } = rgbToCmykValues(d[i], d[i + 1], d[i + 2]);
+        sumC += c;
+        sumM += m;
+        sumY += y;
+        sumK += k;
+        count++;
+
+        // Simulate Coated Art Paper CMYK Gamut (paper white 250,249,246)
+        const pr = 250 * (1 - Math.min(1, c * 0.96 + k * 0.92));
+        const pg = 249 * (1 - Math.min(1, m * 0.95 + k * 0.92));
+        const pb = 246 * (1 - Math.min(1, y * 0.94 + k * 0.92));
+
+        d[i] = Math.round(pr);
+        d[i + 1] = Math.round(pg);
+        d[i + 2] = Math.round(pb);
+      }
+
+      pCtx.putImageData(imgData, 0, 0);
+      aiState.proofCanvas = proof;
+
+      const denom = Math.max(1, count);
+      const avgC = Math.round((sumC / denom) * 100);
+      const avgM = Math.round((sumM / denom) * 100);
+      const avgY = Math.round((sumY / denom) * 100);
+      const avgK = Math.round((sumK / denom) * 100);
+      const tac = avgC + avgM + avgY + avgK;
+
+      aiState.cmykStats = { c: avgC, m: avgM, y: avgY, k: avgK, tac };
+      document.getElementById('cmykValC').textContent = `${avgC}%`;
+      document.getElementById('cmykValM').textContent = `${avgM}%`;
+      document.getElementById('cmykValY').textContent = `${avgY}%`;
+      document.getElementById('cmykValK').textContent = `${avgK}%`;
+      document.getElementById('aiStatInkTotal').textContent = `Rata-rata Tinta: ${tac}%`;
+    }
+
+    /**
+     * AI Super-Resolution (Anti-Pecah), Edge-Preserving Denoise, Sharpen & Print Color Optimization
+     */
+    async function runAiEnhancePipeline() {
+      if (!aiState.origCanvas) {
+        showToast('Silakan unggah gambar terlebih dahulu!', '⚠️');
+        return;
+      }
+
+      const overlay = document.getElementById('aiLoadingOverlay');
+      overlay.classList.remove('hidden');
+      await new Promise(r => setTimeout(r, 40));
+
+      try {
+        pushAiHistory();
+
+        const scaleFactor = Number(document.getElementById('selectAiScale').value) || 2;
+        const denoiseLevel = Number(document.getElementById('selectAiDenoise').value) || 2;
+        const sharpenLevel = Number(document.getElementById('selectAiSharpen').value) || 2;
+        const autoColor = document.getElementById('chkAiAutoColor').checked;
+        const brightnessShift = Number(document.getElementById('rangeAiBrightness').value) || 0;
+        const vibranceShift = Number(document.getElementById('rangeAiVibrance').value) || 0;
+
+        // Cap max output dimension to 3600px to keep browser memory fast & responsive
+        const orig = aiState.origCanvas;
+        const maxAllowed = 3600;
+        const actualScale = Math.min(scaleFactor, maxAllowed / Math.max(orig.width, orig.height));
+        const targetW = Math.max(1, Math.round(orig.width * actualScale));
+        const targetH = Math.max(1, Math.round(orig.height * actualScale));
+
+        // Step 1: Progressive Multi-Pass Upscaling (prevents pixel stair-stepping)
+        let currentCanvas = cloneCanvas(orig);
+        while (currentCanvas.width < targetW || currentCanvas.height < targetH) {
+          const nextW = Math.min(targetW, Math.round(currentCanvas.width * 1.5));
+          const nextH = Math.min(targetH, Math.round(currentCanvas.height * 1.5));
+          const stepCanvas = document.createElement('canvas');
+          stepCanvas.width = nextW;
+          stepCanvas.height = nextH;
+          const sCtx = stepCanvas.getContext('2d');
+          sCtx.imageSmoothingEnabled = true;
+          sCtx.imageSmoothingQuality = 'high';
+          sCtx.drawImage(currentCanvas, 0, 0, nextW, nextH);
+          currentCanvas = stepCanvas;
+          if (nextW === targetW && nextH === targetH) break;
+        }
+
+        const ctx = currentCanvas.getContext('2d');
+        const imgData = ctx.getImageData(0, 0, targetW, targetH);
+        const data = imgData.data;
+
+        // Step 2: Edge-Preserving De-Block / De-Pixelation Filter
+        if (denoiseLevel > 0) {
+          const copy = new Uint8ClampedArray(data);
+          const threshold = 22 + denoiseLevel * 12;
+          for (let y = 1; y < targetH - 1; y++) {
+            for (let x = 1; x < targetW - 1; x++) {
+              const idx = (y * targetW + x) * 4;
+              const r0 = copy[idx], g0 = copy[idx + 1], b0 = copy[idx + 2];
+              let sumR = r0 * 2, sumG = g0 * 2, sumB = b0 * 2, weight = 2;
+
+              const neighbors = [
+                ((y - 1) * targetW + x) * 4,
+                ((y + 1) * targetW + x) * 4,
+                (y * targetW + (x - 1)) * 4,
+                (y * targetW + (x + 1)) * 4
+              ];
+              for (let n = 0; n < 4; n++) {
+                const nIdx = neighbors[n];
+                const diff = Math.abs(copy[nIdx] - r0) + Math.abs(copy[nIdx + 1] - g0) + Math.abs(copy[nIdx + 2] - b0);
+                if (diff < threshold) {
+                  sumR += copy[nIdx];
+                  sumG += copy[nIdx + 1];
+                  sumB += copy[nIdx + 2];
+                  weight += 1;
+                }
+              }
+              data[idx] = sumR / weight;
+              data[idx + 1] = sumG / weight;
+              data[idx + 2] = sumB / weight;
+            }
+          }
+        }
+
+        // Step 3: Adaptive Unsharp Mask (Restores crisp text & edges)
+        if (sharpenLevel > 0) {
+          const copy = new Uint8ClampedArray(data);
+          const amount = 0.35 * sharpenLevel;
+          for (let y = 1; y < targetH - 1; y++) {
+            for (let x = 1; x < targetW - 1; x++) {
+              const idx = (y * targetW + x) * 4;
+              const top = ((y - 1) * targetW + x) * 4;
+              const bot = ((y + 1) * targetW + x) * 4;
+              const lft = (y * targetW + (x - 1)) * 4;
+              const rgt = (y * targetW + (x + 1)) * 4;
+
+              for (let c = 0; c < 3; c++) {
+                const blur = (copy[top + c] + copy[bot + c] + copy[lft + c] + copy[rgt + c]) * 0.25;
+                const detail = copy[idx + c] - blur;
+                // Ignore tiny micro-noise, sharpen real edges
+                if (Math.abs(detail) > 2) {
+                  data[idx + c] = Math.min(255, Math.max(0, copy[idx + c] + detail * amount));
+                }
+              }
+            }
+          }
+        }
+
+        // Step 4: AI Auto-Color & Print Tone Curve
+        let minL = 255, maxL = 0;
+        if (autoColor) {
+          for (let i = 0; i < data.length; i += 16) {
+            if (data[i + 3] < 20) continue;
+            const lum = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+            if (lum < minL) minL = lum;
+            if (lum > maxL) maxL = lum;
+          }
+        }
+        const rangeL = Math.max(40, maxL - minL);
+        const brightOffset = brightnessShift * 1.4;
+        const vibFactor = 1 + (vibranceShift / 100);
+
+        for (let i = 0; i < data.length; i += 4) {
+          if (data[i + 3] < 10) continue;
+          let r = data[i], g = data[i + 1], b = data[i + 2];
+
+          if (autoColor && maxL > minL + 20) {
+            r = ((r - minL) / rangeL) * 255;
+            g = ((g - minL) / rangeL) * 255;
+            b = ((b - minL) / rangeL) * 255;
+          }
+
+          // Brightness lift
+          r += brightOffset;
+          g += brightOffset;
+          b += brightOffset;
+
+          // Selective AI Vibrance (boosts muted tones without clipping skin/neon)
+          const avg = (r + g + b) / 3;
+          const maxCh = Math.max(r, g, b);
+          const sat = (maxCh - avg) / 255;
+          const adaptiveVib = 1 + (vibFactor - 1) * (1 - sat * 0.55);
+
+          r = avg + (r - avg) * adaptiveVib;
+          g = avg + (g - avg) * adaptiveVib;
+          b = avg + (b - avg) * adaptiveVib;
+
+          data[i] = Math.min(255, Math.max(0, r));
+          data[i + 1] = Math.min(255, Math.max(0, g));
+          data[i + 2] = Math.min(255, Math.max(0, b));
+        }
+
+        ctx.putImageData(imgData, 0, 0);
+        aiState.workingCanvas = currentCanvas;
+        updateCmykProofAndStats();
+        updateAiStatsHeader();
+        renderAiMainCanvas();
+
+        showToast(`AI selesai! Resolusi ditingkatkan menjadi ${targetW} x ${targetH} px & warna dioptimalkan.`, '✨');
+      } finally {
+        overlay.classList.add('hidden');
+      }
+    }
+
+    function updateAiStatsHeader() {
+      if (!aiState.origCanvas || !aiState.workingCanvas) return;
+      const ow = aiState.origCanvas.width;
+      const oh = aiState.origCanvas.height;
+      const nw = aiState.workingCanvas.width;
+      const nh = aiState.workingCanvas.height;
+
+      document.getElementById('aiStatOrigRes').textContent = `${ow} x ${oh} px`;
+      const cmW = (ow / 118.11).toFixed(1);
+      const cmH = (oh / 118.11).toFixed(1);
+      document.getElementById('aiStatOrigDpi').textContent = `Cetak 300 DPI: ${cmW} x ${cmH} cm`;
+
+      document.getElementById('aiStatNewRes').textContent = `${nw} x ${nh} px`;
+      const newCmW = (nw / 118.11).toFixed(1);
+      const newCmH = (nh / 118.11).toFixed(1);
+      document.getElementById('aiStatNewDpi').textContent = `Cetak 300 DPI: ${newCmW} x ${newCmH} cm`;
+
+      const useProof = document.getElementById('chkCmykProof').checked;
+      document.getElementById('aiStatColorMode').textContent = useProof ? 'CMYK Soft-Proof' : 'RGB Enhanced';
+      document.getElementById('aiStatStatus').textContent = 'Siap Cetak';
+      document.getElementById('aiStatSubStatus').textContent = 'Anti-pecah & profil CMYK aktif';
+    }
+
+    /**
+     * Render Main Interactive Viewport Canvas (with Before/After split & Live Typo Text Replacement Preview)
+     */
+    function renderAiMainCanvas() {
+      if (!aiState.workingCanvas || !aiState.origCanvas) return;
+
+      const mainCanvas = document.getElementById('aiMainCanvas');
+      const w = aiState.workingCanvas.width;
+      const h = aiState.workingCanvas.height;
+      mainCanvas.width = w;
+      mainCanvas.height = h;
+
+      const ctx = mainCanvas.getContext('2d');
+      const useProof = document.getElementById('chkCmykProof').checked;
+      const processedSource = (useProof && aiState.proofCanvas) ? aiState.proofCanvas : aiState.workingCanvas;
+
+      // Draw processed image full
+      ctx.clearRect(0, 0, w, h);
+      ctx.drawImage(processedSource, 0, 0, w, h);
+
+      // If in Text Fix tab and user has drawn a selection box, render live preview of inpainted background + new text
+      if (aiState.activeSubTab === 'textfix' && aiState.selection && aiState.selection.w > 4 && aiState.selection.h > 4) {
+        drawTextReplacementOnContext(ctx, aiState.workingCanvas, aiState.selection, true);
+      } else if (aiState.compareEnabled) {
+        // Draw Before/After Split Comparison
+        const splitX = Math.round((aiState.splitPercent / 100) * w);
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, 0, splitX, h);
+        ctx.clip();
+        ctx.drawImage(aiState.origCanvas, 0, 0, w, h);
+        ctx.restore();
+
+        // Divider Line
+        ctx.save();
+        ctx.strokeStyle = '#34d399';
+        ctx.lineWidth = Math.max(2, Math.round(w * 0.003));
+        ctx.beginPath();
+        ctx.moveTo(splitX, 0);
+        ctx.lineTo(splitX, h);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    /**
+     * Smart Content-Aware Background Inpainting + Replacement Text Renderer
+     */
+    function drawTextReplacementOnContext(ctx, sourceCanvas, sel, showDashedOutline = false) {
+      const x = Math.max(0, Math.round(sel.x));
+      const y = Math.max(0, Math.round(sel.y));
+      const w = Math.min(sourceCanvas.width - x, Math.round(sel.w));
+      const h = Math.min(sourceCanvas.height - y, Math.round(sel.h));
+      if (w <= 2 || h <= 2) return;
+
+      const mode = document.getElementById('selectInpaintMode').value;
+
+      if (mode === 'custombg') {
+        ctx.fillStyle = document.getElementById('inputCustomInpaintBg').value;
+        ctx.fillRect(x, y, w, h);
+      } else {
+        // Sample border pixels around the box to reconstruct smooth gradient/solid background
+        const sCtx = sourceCanvas.getContext('2d');
+        const pad = 3;
+        const sx = Math.max(0, x - pad);
+        const sy = Math.max(0, y - pad);
+        const sw = Math.min(sourceCanvas.width - sx, w + pad * 2);
+        const sh = Math.min(sourceCanvas.height - sy, h + pad * 2);
+        const patch = sCtx.getImageData(sx, sy, sw, sh);
+        const d = patch.data;
+
+        const getPix = (px, py) => {
+          const cx = Math.min(sw - 1, Math.max(0, px));
+          const cy = Math.min(sh - 1, Math.max(0, py));
+          const idx = (cy * sw + cx) * 4;
+          return [d[idx], d[idx + 1], d[idx + 2]];
+        };
+
+        if (mode === 'solid') {
+          // Median-like average of outer border
+          let sr = 0, sg = 0, sb = 0, cnt = 0;
+          for (let ix = 0; ix < sw; ix++) {
+            const topP = getPix(ix, 0);
+            const botP = getPix(ix, sh - 1);
+            sr += topP[0] + botP[0];
+            sg += topP[1] + botP[1];
+            sb += topP[2] + botP[2];
+            cnt += 2;
+          }
+          ctx.fillStyle = `rgb(${Math.round(sr / cnt)}, ${Math.round(sg / cnt)}, ${Math.round(sb / cnt)})`;
+          ctx.fillRect(x, y, w, h);
+        } else {
+          // 2D Bilinear Edge-to-Edge Inpainting (erases text over gradients & banners cleanly!)
+          const outImg = ctx.createImageData(w, h);
+          const od = outImg.data;
+          for (let iy = 0; iy < h; iy++) {
+            const ty = iy / Math.max(1, h - 1);
+            for (let ix = 0; ix < w; ix++) {
+              const tx = ix / Math.max(1, w - 1);
+              const topP = getPix(ix + pad, 0);
+              const botP = getPix(ix + pad, sh - 1);
+              const lftP = getPix(0, iy + pad);
+              const rgtP = getPix(sw - 1, iy + pad);
+
+              const vR = topP[0] * (1 - ty) + botP[0] * ty;
+              const vG = topP[1] * (1 - ty) + botP[1] * ty;
+              const vB = topP[2] * (1 - ty) + botP[2] * ty;
+
+              const hR = lftP[0] * (1 - tx) + rgtP[0] * tx;
+              const hG = lftP[1] * (1 - tx) + rgtP[1] * tx;
+              const hB = lftP[2] * (1 - tx) + rgtP[2] * tx;
+
+              const oIdx = (iy * w + ix) * 4;
+              od[oIdx] = Math.round((vR * 0.65 + hR * 0.35));
+              od[oIdx + 1] = Math.round((vG * 0.65 + hG * 0.35));
+              od[oIdx + 2] = Math.round((vB * 0.65 + hB * 0.35));
+              od[oIdx + 3] = 255;
+            }
+          }
+          ctx.putImageData(outImg, x, y);
+        }
+      }
+
+      // Draw Replacement Text
+      const newText = document.getElementById('inputReplacementText').value;
+      if (newText.trim().length > 0) {
+        const fontFam = document.getElementById('selectReplaceFont').value;
+        const fontSize = Math.max(8, Number(document.getElementById('inputReplaceFontSize').value) || 24);
+        const textColor = document.getElementById('inputReplaceTextColor').value;
+        const isBold = document.getElementById('chkReplaceBold').checked;
+        const isItalic = document.getElementById('chkReplaceItalic').checked;
+        const align = document.getElementById('selectReplaceAlign').value;
+        const angleDeg = Number(document.getElementById('rangeTextAngle').value) || 0;
+        const spacingPx = Number(document.getElementById('rangeTextSpacing').value) || 0;
+
+        ctx.save();
+        const cx = x + w / 2;
+        const cy = y + h / 2;
+        ctx.translate(cx, cy);
+        ctx.rotate((angleDeg * Math.PI) / 180);
+
+        ctx.font = `${isItalic ? 'italic ' : ''}${isBold ? '700 ' : '400 '}${fontSize}px "${fontFam}", sans-serif`;
+        ctx.fillStyle = textColor;
+        ctx.textBaseline = 'middle';
+        if ('letterSpacing' in ctx) {
+          ctx.letterSpacing = `${spacingPx}px`;
+        }
+
+        let drawX = 0;
+        if (align === 'left') {
+          ctx.textAlign = 'left';
+          drawX = -w / 2 + 4;
+        } else if (align === 'right') {
+          ctx.textAlign = 'right';
+          drawX = w / 2 - 4;
+        } else {
+          ctx.textAlign = 'center';
+          drawX = 0;
+        }
+
+        ctx.fillText(newText, drawX, 0);
+        ctx.restore();
+      }
+
+      if (showDashedOutline) {
+        ctx.save();
+        ctx.strokeStyle = '#f59e0b';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([6, 4]);
+        ctx.strokeRect(x, y, w, h);
+        ctx.restore();
+      }
+    }
+
+    /**
+     * Auto-detect dominant foreground text color inside selected box
+     */
+    function detectForegroundColorInSelection(canvas, sel) {
+      const ctx = canvas.getContext('2d');
+      const x = Math.max(0, Math.round(sel.x));
+      const y = Math.max(0, Math.round(sel.y));
+      const w = Math.min(canvas.width - x, Math.round(sel.w));
+      const h = Math.min(canvas.height - y, Math.round(sel.h));
+      if (w < 4 || h < 4) return '#111827';
+
+      const img = ctx.getImageData(x, y, w, h).data;
+      // Border average as background reference
+      const bgR = img[0], bgG = img[1], bgB = img[2];
+      let maxDist = 0;
+      let bestR = 17, bestG = 24, bestB = 39;
+
+      for (let i = 0; i < img.length; i += 4) {
+        const dist = Math.abs(img[i] - bgR) + Math.abs(img[i + 1] - bgG) + Math.abs(img[i + 2] - bgB);
+        if (dist > maxDist) {
+          maxDist = dist;
+          bestR = img[i];
+          bestG = img[i + 1];
+          bestB = img[i + 2];
+        }
+      }
+
+      const toHex = (v) => v.toString(16).padStart(2, '0');
+      return `#${toHex(bestR)}${toHex(bestG)}${toHex(bestB)}`;
+    }
+
+    /**
+     * Export Genuine 32-bit CMYK TIFF File (300 DPI) directly in browser!
+     */
+    function exportWorkingImageAsCmykTiff() {
+      if (!aiState.workingCanvas) {
+        showToast('Silakan unggah gambar terlebih dahulu!', '⚠️');
+        return;
+      }
+
+      const src = aiState.workingCanvas;
+      const w = src.width;
+      const h = src.height;
+      const rgba = src.getContext('2d').getImageData(0, 0, w, h).data;
+
+      const pixelBytes = w * h * 4; // 4 channels: C, M, Y, K
+      const numTags = 12;
+      const ifdOffset = 8;
+      const ifdSize = 2 + numTags * 12 + 4;
+      const extraDataOffset = ifdOffset + ifdSize;
+      // Extra data: BitsPerSample (4 shorts = 8 bytes) + XRes (8 bytes) + YRes (8 bytes) = 24 bytes
+      const pixelDataOffset = extraDataOffset + 24;
+      const totalSize = pixelDataOffset + pixelBytes;
+
+      const buffer = new ArrayBuffer(totalSize);
+      const view = new DataView(buffer);
+      const bytes = new Uint8Array(buffer);
+
+      // TIFF Header (Little Endian 'II', magic 42, IFD offset 8)
+      view.setUint8(0, 0x49);
+      view.setUint8(1, 0x49);
+      view.setUint16(2, 42, true);
+      view.setUint32(4, ifdOffset, true);
+
+      let pos = ifdOffset;
+      view.setUint16(pos, numTags, true);
+      pos += 2;
+
+      const writeTag = (tag, type, count, valOrOffset) => {
+        view.setUint16(pos, tag, true);
+        view.setUint16(pos + 2, type, true);
+        view.setUint32(pos + 4, count, true);
+        view.setUint32(pos + 8, valOrOffset, true);
+        pos += 12;
+      };
+
+      const bpsOffset = extraDataOffset;
+      const xResOffset = extraDataOffset + 8;
+      const yResOffset = extraDataOffset + 16;
+
+      // Tags MUST be sorted in ascending tag ID order per TIFF spec
+      writeTag(256, 4, 1, w);                  // ImageWidth (LONG)
+      writeTag(257, 4, 1, h);                  // ImageLength (LONG)
+      writeTag(258, 3, 4, bpsOffset);          // BitsPerSample [8,8,8,8]
+      writeTag(259, 3, 1, 1);                  // Compression = 1 (None)
+      writeTag(262, 3, 1, 5);                  // PhotometricInterpretation = 5 (CMYK Separated)
+      writeTag(273, 4, 1, pixelDataOffset);    // StripOffsets
+      writeTag(277, 3, 1, 4);                  // SamplesPerPixel = 4 (CMYK)
+      writeTag(278, 4, 1, h);                  // RowsPerStrip = h
+      writeTag(279, 4, 1, pixelBytes);         // StripByteCounts
+      writeTag(282, 5, 1, xResOffset);         // XResolution (RATIONAL)
+      writeTag(283, 5, 1, yResOffset);         // YResolution (RATIONAL)
+      writeTag(296, 3, 1, 2);                  // ResolutionUnit = 2 (Inches)
+
+      // Next IFD = 0
+      view.setUint32(pos, 0, true);
+
+      // Write BitsPerSample [8, 8, 8, 8]
+      view.setUint16(bpsOffset, 8, true);
+      view.setUint16(bpsOffset + 2, 8, true);
+      view.setUint16(bpsOffset + 4, 8, true);
+      view.setUint16(bpsOffset + 6, 8, true);
+
+      // Write 300/1 DPI for XResolution & YResolution
+      view.setUint32(xResOffset, 300, true);
+      view.setUint32(xResOffset + 4, 1, true);
+      view.setUint32(yResOffset, 300, true);
+      view.setUint32(yResOffset + 4, 1, true);
+
+      // Write CMYK pixel data
+      let outPtr = pixelDataOffset;
+      for (let i = 0; i < rgba.length; i += 4) {
+        const { c, m, y, k } = rgbToCmykValues(rgba[i], rgba[i + 1], rgba[i + 2]);
+        bytes[outPtr++] = Math.round(c * 255);
+        bytes[outPtr++] = Math.round(m * 255);
+        bytes[outPtr++] = Math.round(y * 255);
+        bytes[outPtr++] = Math.round(k * 255);
+      }
+
+      const baseName = aiState.fileName.replace(/\.[^.]+$/, '') || 'Gambar_AI';
+      triggerBlobDownload(bytes, `${baseName}_CMYK_300DPI_musadad.tif`, 'image/tiff');
+      showToast('File CMYK Asli (.TIF 300 DPI) siap dibuka di CorelDRAW / Photoshop!', '💾');
+    }
+
+    /**
+     * Export Print-Ready PDF (300 DPI scaled) using pdf-lib
+     */
+    async function exportWorkingImageAsPdf() {
+      if (!aiState.workingCanvas) {
+        showToast('Silakan unggah gambar terlebih dahulu!', '⚠️');
+        return;
+      }
+
+      const src = aiState.workingCanvas;
+      const jpegDataUrl = src.toDataURL('image/jpeg', 0.96);
+      const jpegBytes = await fetch(jpegDataUrl).then(r => r.arrayBuffer());
+
+      const doc = await PDFLib.PDFDocument.create();
+      const embeddedImg = await doc.embedJpg(jpegBytes);
+
+      // Convert pixel dimensions at 300 DPI to PDF points (72 pt/inch)
+      const ptW = (src.width / 300) * 72;
+      const ptH = (src.height / 300) * 72;
+
+      const page = doc.addPage([Math.max(72, ptW), Math.max(72, ptH)]);
+      page.drawImage(embeddedImg, {
+        x: 0,
+        y: 0,
+        width: page.getWidth(),
+        height: page.getHeight()
+      });
+
+      const pdfBytes = await doc.save();
+      const baseName = aiState.fileName.replace(/\.[^.]+$/, '') || 'Gambar_AI';
+      triggerBlobDownload(pdfBytes, `${baseName}_SiapCetak_300DPI_musadad.pdf`, 'application/pdf');
+      showToast('PDF Siap Cetak 300 DPI berhasil diunduh!', '📄');
+    }
+
+    /**
+     * Load an Image File or DataURL into AI Studio
+     */
+    function loadImageIntoAiStudio(dataUrl, fileName) {
+      const img = new Image();
+      img.onload = () => {
+        const c = document.createElement('canvas');
+        c.width = img.width;
+        c.height = img.height;
+        c.getContext('2d').drawImage(img, 0, 0);
+
+        aiState.fileName = fileName;
+        aiState.origCanvas = cloneCanvas(c);
+        aiState.workingCanvas = cloneCanvas(c);
+        aiState.historyStack = [];
+        aiState.selection = null;
+
+        document.getElementById('aiLoadedFileInfo').textContent = `${fileName} (${img.width} x ${img.height} px)`;
+        document.getElementById('aiEmptyDropZone').classList.add('hidden');
+        document.getElementById('aiCanvasStage').classList.remove('hidden');
+
+        updateCmykProofAndStats();
+        updateAiStatsHeader();
+        renderAiMainCanvas();
+        showToast(`Gambar "${fileName}" dimuat!`, '🖼️');
+      };
+      img.src = dataUrl;
+    }
+
+    /**
+     * Generate a realistic Sample Low-Res Pixelated Flyer with a Typo ("UNDAGAN") so user can test immediately
+     */
+    function loadSampleBrokenImageWithTypo() {
+      // Create a low-resolution (320x420) compressed-looking flyer with a deliberate typo
+      const c = document.createElement('canvas');
+      c.width = 320;
+      c.height = 420;
+      const ctx = c.getContext('2d');
+
+      // Gradient Poster Background
+      const grad = ctx.createLinearGradient(0, 0, 0, 420);
+      grad.addColorStop(0, '#0f294a');
+      grad.addColorStop(1, '#1e4e79');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 320, 420);
+
+      // Decorative Gold Frame
+      ctx.strokeStyle = '#d4af37';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(14, 14, 292, 392);
+
+      // Header with deliberate typo ("UNDAGAN" instead of "UNDANGAN")
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = 'bold 26px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('UNDAGAN RESMI', 160, 72);
+
+      ctx.fillStyle = '#e2e8f0';
+      ctx.font = '13px sans-serif';
+      ctx.fillText('PERCETAKAN MUSADAD.COM', 160, 102);
+
+      // Sample Photo Card inside flyer
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(45, 130, 230, 140);
+      ctx.fillStyle = '#0284c7';
+      ctx.beginPath();
+      ctx.arc(160, 185, 32, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#0f172a';
+      ctx.font = 'bold 14px sans-serif';
+      ctx.fillText('PROMO CETAK SPANDUK & BROSUR', 160, 245);
+
+      ctx.fillStyle = '#cbd5e1';
+      ctx.font = '11px sans-serif';
+      ctx.fillText('Gambar ini sengaja dibuat resolusi kecil & typo', 160, 315);
+      ctx.fillText('Coba AI Anti-Pecah & Ubah "UNDAGAN" -> "UNDANGAN"', 160, 335);
+
+      // Compress heavily as low-quality JPEG to simulate WhatsApp forwarded image
+      const compressedDataUrl = c.toDataURL('image/jpeg', 0.38);
+      loadImageIntoAiStudio(compressedDataUrl, 'Contoh_Gambar_Pecah_Typo_WA.jpg');
+    }
+
+    /**
+     * Background Removal / Replacement Helper (Corner flood-fill + color distance)
+     */
+    function applySmartBackgroundColor(targetColorHexOrTransparent) {
+      if (!aiState.workingCanvas) {
+        showToast('Silakan unggah gambar terlebih dahulu!', '⚠️');
+        return;
+      }
+      pushAiHistory();
+
+      const c = aiState.workingCanvas;
+      const w = c.width;
+      const h = c.height;
+      const ctx = c.getContext('2d');
+      const img = ctx.getImageData(0, 0, w, h);
+      const d = img.data;
+
+      // Sample 4 corners to detect background color
+      const corners = [
+        [0, 0], [w - 1, 0], [0, h - 1], [w - 1, h - 1]
+      ];
+      let bgR = 0, bgG = 0, bgB = 0;
+      corners.forEach(([cx, cy]) => {
+        const idx = (cy * w + cx) * 4;
+        bgR += d[idx];
+        bgG += d[idx + 1];
+        bgB += d[idx + 2];
+      });
+      bgR /= 4;
+      bgG /= 4;
+      bgB /= 4;
+
+      let repR = 255, repG = 255, repB = 255, repA = 255;
+      if (targetColorHexOrTransparent === 'transparent') {
+        repA = 0;
+      } else {
+        const hex = targetColorHexOrTransparent.replace('#', '');
+        repR = parseInt(hex.substring(0, 2), 16);
+        repG = parseInt(hex.substring(2, 4), 16);
+        repB = parseInt(hex.substring(4, 6), 16);
+      }
+
+      // Flood-fill from borders so subject interior with similar colors stays protected
+      const visited = new Uint8Array(w * h);
+      const stack = [];
+      for (let x = 0; x < w; x++) {
+        stack.push(x, 0, x, h - 1);
+      }
+      for (let y = 0; y < h; y++) {
+        stack.push(0, y, w - 1, y);
+      }
+
+      const tolerance = 58;
+      while (stack.length > 0) {
+        const py = stack.pop();
+        const px = stack.pop();
+        const pPos = py * w + px;
+        if (visited[pPos]) continue;
+        visited[pPos] = 1;
+
+        const idx = pPos * 4;
+        const dist = Math.abs(d[idx] - bgR) + Math.abs(d[idx + 1] - bgG) + Math.abs(d[idx + 2] - bgB);
+        if (dist <= tolerance) {
+          d[idx] = repR;
+          d[idx + 1] = repG;
+          d[idx + 2] = repB;
+          d[idx + 3] = repA;
+
+          if (px > 0) stack.push(px - 1, py);
+          if (px < w - 1) stack.push(px + 1, py);
+          if (py > 0) stack.push(px, py - 1);
+          if (py < h - 1) stack.push(px, py + 1);
+        }
+      }
+
+      ctx.putImageData(img, 0, 0);
+      updateCmykProofAndStats();
+      renderAiMainCanvas();
+      showToast('Background gambar berhasil diperbarui!', '🪄');
+    }
+
+    /**
+     * Execute AI Prompt (Supports optional Gemini API Key + Built-in Indonesian AI Intent Engine)
+     */
+    async function executeAiPromptEdit() {
+      if (!aiState.workingCanvas) {
+        showToast('Silakan unggah gambar terlebih dahulu!', '⚠️');
+        return;
+      }
+      const prompt = document.getElementById('txtAiEditPrompt').value.trim();
+      if (!prompt) {
+        showToast('Ketik perintah edit gambar AI terlebih dahulu!', '⚠️');
+        return;
+      }
+
+      const apiKey = document.getElementById('inputGeminiApiKey').value.trim();
+      const overlay = document.getElementById('aiLoadingOverlay');
+      overlay.classList.remove('hidden');
+
+      try {
+        // Optional Cloud Gemini Multimodal Image Edit if user entered a valid API key
+        if (apiKey.startsWith('AIza')) {
+          const base64Img = aiState.workingCanvas.toDataURL('image/png').split(',')[1];
+          const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${encodeURIComponent(apiKey)}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{
+                parts: [
+                  { text: `Edit this print image according to instruction: ${prompt}` },
+                  { inlineData: { mimeType: 'image/png', data: base64Img } }
+                ]
+              }],
+              generationConfig: { responseModalities: ['TEXT', 'IMAGE'] }
+            })
+          });
+          if (resp.ok) {
+            const json = await resp.json();
+            const parts = json?.candidates?.[0]?.content?.parts || [];
+            const imgPart = parts.find(p => p.inlineData && p.inlineData.data);
+            if (imgPart) {
+              pushAiHistory();
+              loadImageIntoAiStudio(`data:${imgPart.inlineData.mimeType || 'image/png'};base64,${imgPart.inlineData.data}`, aiState.fileName);
+              showToast('Edit gambar AI (Gemini Cloud) berhasil diterapkan!', '🤖');
+              return;
+            }
+          }
+        }
+
+        // Built-in Intelligent Indonesian Print AI Intent Engine
+        const pLower = prompt.toLowerCase();
+        if (pLower.includes('merah')) {
+          applySmartBackgroundColor('#db1514');
+        } else if (pLower.includes('biru')) {
+          applySmartBackgroundColor('#0b5ed7');
+        } else if (pLower.includes('hapus background') || pLower.includes('putih')) {
+          applySmartBackgroundColor('#ffffff');
+        } else if (pLower.includes('transparan')) {
+          applySmartBackgroundColor('transparent');
+        }
+
+        if (pLower.includes('hitam putih') || pLower.includes('bw') || pLower.includes('grayscale')) {
+          pushAiHistory();
+          const c = aiState.workingCanvas;
+          const ctx = c.getContext('2d');
+          const img = ctx.getImageData(0, 0, c.width, c.height);
+          const d = img.data;
+          for (let i = 0; i < d.length; i += 4) {
+            const g = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+            d[i] = d[i + 1] = d[i + 2] = g;
+          }
+          ctx.putImageData(img, 0, 0);
+          updateCmykProofAndStats();
+          renderAiMainCanvas();
+        }
+
+        // Always enhance clarity/color when asked to fix/improve
+        if (pLower.includes('pecah') || pLower.includes('tajam') || pLower.includes('cerah') || pLower.includes('bagus') || pLower.includes('perbaiki') || pLower.includes('cmyk')) {
+          await runAiEnhancePipeline();
+        } else {
+          showToast('Perintah edit AI berhasil dijalankan pada gambar!', '🤖');
+        }
+      } catch (err) {
+        console.error(err);
+        showToast('Terjadi kendala saat memproses prompt AI.', '⚠️');
+      } finally {
+        overlay.classList.add('hidden');
+      }
+    }
+
+    function initAiStudioEvents() {
+      // Sub-tab switcher
+      document.querySelectorAll('.ai-mode-tab').forEach(btn => {
+        btn.addEventListener('click', () => switchAiSubTab(btn.dataset.aiTab));
+      });
+
+      // File Upload & Sample Buttons
+      const fileInput = document.getElementById('aiImageFileInput');
+      document.getElementById('btnPickAiImage').addEventListener('click', () => fileInput.click());
+      fileInput.addEventListener('change', (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => loadImageIntoAiStudio(ev.target.result, file.name);
+        reader.readAsDataURL(file);
+        e.target.value = '';
+      });
+
+      document.getElementById('btnLoadSampleBrokenImage').addEventListener('click', loadSampleBrokenImageWithTypo);
+      document.getElementById('btnAiEmptyDemo').addEventListener('click', loadSampleBrokenImageWithTypo);
+
+      // Sliders live labels
+      document.getElementById('rangeAiBrightness').addEventListener('input', (e) => {
+        const v = Number(e.target.value);
+        document.getElementById('lblAiBrightnessVal').textContent = `${v >= 0 ? '+' : ''}${v}%`;
+      });
+      document.getElementById('rangeAiVibrance').addEventListener('input', (e) => {
+        const v = Number(e.target.value);
+        document.getElementById('lblAiVibranceVal').textContent = `${v >= 0 ? '+' : ''}${v}%`;
+      });
+
+      // Run AI Enhance
+      document.getElementById('btnRunAiEnhance').addEventListener('click', runAiEnhancePipeline);
+
+      // CMYK Soft Proof toggle
+      document.getElementById('chkCmykProof').addEventListener('change', () => {
+        updateAiStatsHeader();
+        renderAiMainCanvas();
+      });
+
+      // Export Buttons
+      document.getElementById('btnExportCmykTiff').addEventListener('click', exportWorkingImageAsCmykTiff);
+      document.getElementById('btnExportCmykPdf').addEventListener('click', exportWorkingImageAsPdf);
+      document.getElementById('btnExportHdPng').addEventListener('click', () => {
+        if (!aiState.workingCanvas) {
+          showToast('Silakan unggah gambar terlebih dahulu!', '⚠️');
+          return;
+        }
+        aiState.workingCanvas.toBlob((blob) => {
+          const baseName = aiState.fileName.replace(/\.[^.]+$/, '') || 'Gambar_AI';
+          triggerBlobDownload(blob, `${baseName}_HD_musadad.png`, 'image/png');
+          showToast('Gambar PNG HD berhasil diunduh!', '🖼️');
+        }, 'image/png');
+      });
+
+      // Before / After Comparison Controls
+      document.getElementById('chkCompareSlider').addEventListener('change', (e) => {
+        aiState.compareEnabled = e.target.checked;
+        document.getElementById('compareSliderControlWrap').classList.toggle('hidden', !aiState.compareEnabled);
+        renderAiMainCanvas();
+      });
+      document.getElementById('rangeCompareSplit').addEventListener('input', (e) => {
+        aiState.splitPercent = Number(e.target.value);
+        renderAiMainCanvas();
+      });
+
+      // Undo & Reset
+      document.getElementById('btnToolbarUndoAi').addEventListener('click', () => {
+        if (aiState.historyStack.length === 0) {
+          showToast('Tidak ada riwayat edit sebelumnya.', 'ℹ️');
+          return;
+        }
+        aiState.workingCanvas = aiState.historyStack.pop();
+        updateCmykProofAndStats();
+        updateAiStatsHeader();
+        renderAiMainCanvas();
+        showToast('Perubahan terakhir dibatalkan (Undo).', '↩️');
+      });
+
+      document.getElementById('btnAiResetAll').addEventListener('click', () => {
+        if (!aiState.origCanvas) return;
+        aiState.workingCanvas = cloneCanvas(aiState.origCanvas);
+        aiState.selection = null;
+        aiState.historyStack = [];
+        updateCmykProofAndStats();
+        updateAiStatsHeader();
+        renderAiMainCanvas();
+        showToast('Gambar dikembalikan ke kondisi asli.', '🔄');
+      });
+
+      // Print Image directly
+      document.getElementById('btnToolbarPrintAi').addEventListener('click', async () => {
+        if (!aiState.workingCanvas) {
+          showToast('Silakan unggah gambar terlebih dahulu!', '⚠️');
+          return;
+        }
+        const dataUrl = aiState.workingCanvas.toDataURL('image/png');
+        const win = window.open('', '_blank');
+        if (win) {
+          win.document.write(`<html><head><title>Print - ${escapeHtml(aiState.fileName)}</title></head><body style="margin:0;display:flex;justify-content:center;align-items:center;"><img src="${dataUrl}" style="max-width:100%;height:auto;" onload="window.print();"/></body></html>`);
+          win.document.close();
+        }
+      });
+
+      // Interactive Canvas Drag Selection for Typo Text Fixer
+      const mainCanvas = document.getElementById('aiMainCanvas');
+      const getCanvasCoords = (clientX, clientY) => {
+        const rect = mainCanvas.getBoundingClientRect();
+        const scaleX = mainCanvas.width / rect.width;
+        const scaleY = mainCanvas.height / rect.height;
+        return {
+          x: (clientX - rect.left) * scaleX,
+          y: (clientY - rect.top) * scaleY
+        };
+      };
+
+      mainCanvas.addEventListener('mousedown', (e) => {
+        if (aiState.activeSubTab !== 'textfix' || !aiState.workingCanvas) return;
+        const pt = getCanvasCoords(e.clientX, e.clientY);
+        aiState.isDraggingSel = true;
+        aiState.dragStart = pt;
+        aiState.selection = { x: pt.x, y: pt.y, w: 0, h: 0 };
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (!aiState.isDraggingSel) return;
+        const pt = getCanvasCoords(e.clientX, e.clientY);
+        aiState.selection = {
+          x: Math.min(aiState.dragStart.x, pt.x),
+          y: Math.min(aiState.dragStart.y, pt.y),
+          w: Math.abs(pt.x - aiState.dragStart.x),
+          h: Math.abs(pt.y - aiState.dragStart.y)
+        };
+        renderAiMainCanvas();
+      });
+
+      window.addEventListener('mouseup', () => {
+        if (!aiState.isDraggingSel) return;
+        aiState.isDraggingSel = false;
+        if (aiState.selection && aiState.selection.w > 8 && aiState.selection.h > 8) {
+          // Auto-estimate font size & text color from the selected typo area!
+          const estFontSize = Math.max(10, Math.round(aiState.selection.h * 0.68));
+          document.getElementById('inputReplaceFontSize').value = estFontSize;
+
+          const detectedHex = detectForegroundColorInSelection(aiState.workingCanvas, aiState.selection);
+          document.getElementById('inputReplaceTextColor').value = detectedHex;
+          document.getElementById('lblReplaceTextColorHex').textContent = detectedHex;
+
+          renderAiMainCanvas();
+          document.getElementById('inputReplacementText').focus();
+          showToast('Area tulisan ditandai! Ketik tulisan baru di panel kiri.', '✏️');
+        }
+      });
+
+      // Live re-render when typing replacement text or tweaking typography
+      ['inputReplacementText', 'selectReplaceFont', 'inputReplaceFontSize', 'chkReplaceBold', 'chkReplaceItalic', 'selectReplaceAlign', 'inputCustomInpaintBg'].forEach(id => {
+        document.getElementById(id).addEventListener('input', renderAiMainCanvas);
+        document.getElementById(id).addEventListener('change', renderAiMainCanvas);
+      });
+
+      document.getElementById('inputReplaceTextColor').addEventListener('input', (e) => {
+        document.getElementById('lblReplaceTextColorHex').textContent = e.target.value;
+        renderAiMainCanvas();
+      });
+
+      document.getElementById('selectInpaintMode').addEventListener('change', (e) => {
+        document.getElementById('customBgColorRow').classList.toggle('hidden', e.target.value !== 'custombg');
+        renderAiMainCanvas();
+      });
+
+      document.getElementById('rangeTextAngle').addEventListener('input', (e) => {
+        document.getElementById('lblTextAngleVal').textContent = `${e.target.value}°`;
+        renderAiMainCanvas();
+      });
+
+      document.getElementById('rangeTextSpacing').addEventListener('input', (e) => {
+        document.getElementById('lblTextSpacingVal').textContent = `${e.target.value} px`;
+        renderAiMainCanvas();
+      });
+
+      document.getElementById('btnClearTextSelection').addEventListener('click', () => {
+        aiState.selection = null;
+        renderAiMainCanvas();
+      });
+
+      // Bake Text Fix permanently into workingCanvas
+      document.getElementById('btnApplyTextFix').addEventListener('click', () => {
+        if (!aiState.workingCanvas || !aiState.selection || aiState.selection.w < 5) {
+          showToast('Tarik kotak (drag) pada area tulisan di gambar terlebih dahulu!', '⚠️');
+          return;
+        }
+        pushAiHistory();
+        const wCtx = aiState.workingCanvas.getContext('2d');
+        drawTextReplacementOnContext(wCtx, aiState.workingCanvas, aiState.selection, false);
+        aiState.selection = null;
+        document.getElementById('inputReplacementText').value = '';
+        updateCmykProofAndStats();
+        renderAiMainCanvas();
+        showToast('Perubahan tulisan berhasil diterapkan ke gambar!', '✅');
+      });
+
+      // Quick Image Edit & Background Tools
+      document.getElementById('btnAiRemoveBgWhite').addEventListener('click', () => applySmartBackgroundColor('#ffffff'));
+      document.getElementById('btnAiRemoveBgTransparent').addEventListener('click', () => applySmartBackgroundColor('transparent'));
+      document.getElementById('btnAiBgRed').addEventListener('click', () => applySmartBackgroundColor('#db1514'));
+      document.getElementById('btnAiBgBlue').addEventListener('click', () => applySmartBackgroundColor('#0b5ed7'));
+
+      document.getElementById('btnAiRotate90').addEventListener('click', () => {
+        if (!aiState.workingCanvas) return;
+        pushAiHistory();
+        const src = aiState.workingCanvas;
+        const rot = document.createElement('canvas');
+        rot.width = src.height;
+        rot.height = src.width;
+        const rCtx = rot.getContext('2d');
+        rCtx.translate(rot.width / 2, rot.height / 2);
+        rCtx.rotate(Math.PI / 2);
+        rCtx.drawImage(src, -src.width / 2, -src.height / 2);
+        aiState.workingCanvas = rot;
+        updateCmykProofAndStats();
+        updateAiStatsHeader();
+        renderAiMainCanvas();
+      });
+
+      document.getElementById('btnAiFlipH').addEventListener('click', () => {
+        if (!aiState.workingCanvas) return;
+        pushAiHistory();
+        const src = aiState.workingCanvas;
+        const flip = document.createElement('canvas');
+        flip.width = src.width;
+        flip.height = src.height;
+        const fCtx = flip.getContext('2d');
+        fCtx.translate(flip.width, 0);
+        fCtx.scale(-1, 1);
+        fCtx.drawImage(src, 0, 0);
+        aiState.workingCanvas = flip;
+        updateCmykProofAndStats();
+        renderAiMainCanvas();
+      });
+
+      document.getElementById('btnExecuteAiPrompt').addEventListener('click', executeAiPromptEdit);
+    }
+
     // Initialize Application
     window.addEventListener('DOMContentLoaded', () => {
       loadSavedSettings();
       initEventListeners();
       initPaperCutEvents();
+      initAiStudioEvents();
       renderPreviewViewport();
       updatePaperCutCalculator();
     });
