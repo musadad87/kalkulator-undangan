@@ -1,503 +1,2524 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Manajemen Pesanan</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MUSADAD.COM - Kalkulasi Print PDF &amp; Parameter Potongan</title>
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            slate: {
+              850: '#151e32',
+              925: '#0d1323',
+              950: '#090d16',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- PDF.js for rendering & pixel color analysis -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <!-- pdf-lib for splitting B/W & Color PDFs, direct printing, and generating invoice PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+
+  <style>
+    /* Custom scrollbar for dark UI */
+    ::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+
+    /* Hide number input arrows slightly cleaner while keeping usability */
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
+
+    /* Dedicated Print Styles for Nota / Struk Kalkulasi */
+    @media print {
+      body * {
+        visibility: hidden !important;
+      }
+      #printReceiptContainer,
+      #printReceiptContainer * {
+        visibility: visible !important;
+      }
+      #printReceiptContainer {
+        position: fixed !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+        padding: 16px !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+        border: none !important;
+        z-index: 999999 !important;
+        display: block !important;
+      }
+    }
+  </style>
 </head>
-<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen p-6">
-    <div class="max-w-7xl mx-auto">
-        <!-- Header -->
-        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
-            <h1 class="text-3xl font-bold text-gray-800 text-center">📋 Sistem Manajemen Pesanan</h1>
-            <p class="text-gray-600 text-center mt-1">Data tersimpan aman di browser Anda dengan LocalStorage</p>
+<body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-cyan-500 selection:text-slate-950 min-h-screen flex flex-col lg:h-screen lg:overflow-hidden">
+
+  <!-- ==================== MENU UTAMA (MUSADAD.COM PORTAL) ==================== -->
+  <div id="mainMenuView" class="flex-1 flex flex-col justify-between min-h-screen lg:h-full overflow-y-auto bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-slate-950 p-4 sm:p-8">
+    
+    <!-- Top Brand Header -->
+    <header class="max-w-5xl w-full mx-auto flex items-center justify-between py-2 border-b border-slate-800/80">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-indigo-600 flex items-center justify-center text-slate-950 font-black text-lg shadow-lg shadow-cyan-500/20">
+          M
+        </div>
+        <div>
+          <span class="text-lg sm:text-xl font-extrabold tracking-tight text-white">musadad<span class="text-cyan-400">.com</span></span>
+          <p class="text-[11px] text-slate-400">Digital Printing &amp; Offset Production Suite</p>
+        </div>
+      </div>
+      <span class="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        Sistem Kasir &amp; Produksi Aktif
+      </span>
+    </header>
+
+    <!-- Center Menu Selection -->
+    <section class="max-w-5xl w-full mx-auto my-auto py-8 sm:py-12">
+      <div class="text-center max-w-2xl mx-auto mb-8 sm:mb-10">
+        <span class="inline-block text-[11px] font-bold tracking-widest uppercase text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-3 py-1 rounded-full mb-3">
+          MENU UTAMA PERCETAKAN MUSADAD.COM
+        </span>
+        <h1 class="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
+          Pilih Aplikasi Kalkulasi Cetak
+        </h1>
+        <p class="text-xs sm:text-sm text-slate-400 mt-2.5 leading-relaxed">
+          Kelola perhitungan biaya cetak PDF warna &amp; hitam putih maupun optimasi pemotongan kertas plano dengan cepat, akurat, dan siap cetak nota.
+        </p>
+      </div>
+
+      <!-- 2 Module Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
+        
+        <!-- Card 1: Kalkulasi Print PDF -->
+        <div class="group bg-slate-900/90 hover:bg-slate-900 border border-slate-800 hover:border-cyan-500/60 rounded-2xl p-6 sm:p-7 flex flex-col justify-between shadow-xl transition-all duration-200">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <div class="w-12 h-12 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 flex items-center justify-center">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.1" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                </svg>
+              </div>
+              <span class="text-[11px] font-bold text-cyan-300 bg-cyan-500/10 border border-cyan-500/20 px-2.5 py-1 rounded-full">
+                PDF Warna &amp; B/W
+              </span>
+            </div>
+
+            <h2 class="text-xl font-extrabold text-white group-hover:text-cyan-400 transition">
+              Kalkulasi Print PDF
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-400 mt-2 leading-relaxed">
+              Deteksi otomatis jumlah halaman <strong>Berwarna (Color)</strong> dan <strong>Hitam Putih (B/W)</strong>, atur tarif cetak &amp; jilid fleksibel, print langsung per kategori, serta cetak nota struk kasir.
+            </p>
+
+            <ul class="mt-4 space-y-1.5 text-xs text-slate-300">
+              <li class="flex items-center gap-2"><span class="text-cyan-400">✓</span> Pisahkan &amp; print halaman Warna atau B/W saja</li>
+              <li class="flex items-center gap-2"><span class="text-cyan-400">✓</span> Tarif cetak, kertas &amp; jilid bisa diubah</li>
+              <li class="flex items-center gap-2"><span class="text-cyan-400">✓</span> Cetak struk kalkulasi &amp; laporan PDF</li>
+            </ul>
+          </div>
+
+          <button id="btnEnterPdfApp" type="button"
+            class="mt-6 w-full py-3.5 px-5 bg-cyan-500 hover:bg-cyan-400 active:bg-cyan-600 text-slate-950 font-extrabold text-xs sm:text-sm rounded-xl shadow-lg shadow-cyan-500/20 transition flex items-center justify-center gap-2 cursor-pointer">
+            <span>MASUK KE KALKULASI PRINT PDF</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+            </svg>
+          </button>
         </div>
 
-        <!-- Form Input -->
-        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
-            <h2 class="text-xl font-semibold text-gray-700 mb-4">Form Input Pesanan</h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">No Pesanan</label>
-                    <input type="text" id="noPesanan" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Masukkan No Pesanan">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Nama Pesanan</label>
-                    <input type="text" id="namaPesanan" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Masukkan Nama Pesanan">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Jumlah</label>
-                    <input type="number" id="jumlah" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Masukkan Jumlah">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Diambil</label>
-                    <input type="date" id="tanggalAmbil" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                    <select id="status" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                        <option value="BLM PROSES">BLM PROSES</option>
-                        <option value="PROSES">PROSES</option>
-                        <option value="CETAK">CETAK</option>
-                        <option value="FINISHING">FINISHING</option>
-                        <option value="SELESAI">SELESAI</option>
-                    </select>
-                </div>
+        <!-- Card 2: Parameter Potongan (Kalkulator Potong Kertas) -->
+        <div class="group bg-slate-900/90 hover:bg-slate-900 border border-slate-800 hover:border-indigo-500/60 rounded-2xl p-6 sm:p-7 flex flex-col justify-between shadow-xl transition-all duration-200">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <div class="w-12 h-12 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 flex items-center justify-center">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.1" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm0-5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z"/>
+                </svg>
+              </div>
+              <span class="text-[11px] font-bold text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-1 rounded-full">
+                Optimasi Plano
+              </span>
             </div>
-            
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Keterangan Proses</label>
-                <textarea id="keteranganProses" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Masukkan keterangan proses..."></textarea>
-            </div>
+
+            <h2 class="text-xl font-extrabold text-white group-hover:text-indigo-400 transition">
+              Parameter Potongan (Potong Kertas)
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-400 mt-2 leading-relaxed">
+              Hitung hasil potongan per lembar plano (<em>Yield</em>), persentase efisiensi &amp; limbah kertas, kombinasi rotasi 90° otomatis, visualisasi skema potong, serta total biaya beli plano.
+            </p>
+
+            <ul class="mt-4 space-y-1.5 text-xs text-slate-300">
+              <li class="flex items-center gap-2"><span class="text-indigo-400">✓</span> Preset Plano (61x86, 65x100, 79x109, SRA3, A3+)</li>
+              <li class="flex items-center gap-2"><span class="text-indigo-400">✓</span> Visualisasi skema potong presisi &amp; export ke PDF</li>
+              <li class="flex items-center gap-2"><span class="text-indigo-400">✓</span> Kalkulasi kebutuhan lembar plano &amp; harga beli</li>
+            </ul>
+          </div>
+
+          <button id="btnEnterCutApp" type="button"
+            class="mt-6 w-full py-3.5 px-5 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-lg shadow-indigo-500/20 transition flex items-center justify-center gap-2 cursor-pointer">
+            <span>MASUK KE PARAMETER POTONGAN</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+            </svg>
+          </button>
         </div>
 
-        <!-- Navigation & Control Buttons -->
-        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Record Navigation Buttons -->
-                <div>
-                    <h3 class="text-lg font-semibold text-gray-700 mb-3">🧭 Navigasi Record</h3>
-                    <div class="flex flex-wrap gap-2">
-                        <button onclick="firstRecord()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">⏮️ First</button>
-                        <button onclick="previousRecord()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">⏪ Previous</button>
-                        <button onclick="nextRecord()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">⏩ Next</button>
-                        <button onclick="lastRecord()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">⏭️ Last</button>
-                    </div>
-                </div>
+      </div>
+    </section>
 
-                <!-- Data Control Buttons -->
-                <div>
-                    <h3 class="text-lg font-semibold text-gray-700 mb-3">⚙️ Kontrol Data</h3>
-                    <div class="flex flex-wrap gap-2">
-                        <button onclick="newRecord()" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">➕ New</button>
-                        <button onclick="saveRecord()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">💾 Save</button>
-                        <button onclick="deleteRecord()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">🗑️ Delete</button>
-                        <button onclick="undoRecord()" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">↶ Undo</button>
-                    </div>
-                </div>
-                
-                <!-- Database Management -->
-                <div>
-                    <h3 class="text-lg font-semibold text-gray-700 mb-3">🗃️ Database Management</h3>
-                     <div class="flex flex-wrap gap-2">
-                        <button onclick="downloadDatabase()" class="bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">📤 Download</button>
-                        <button onclick="uploadDatabase()" class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">📥 Upload</button>
-                        <input type="file" id="importFile" class="hidden" accept=".json" onchange="handleFileUpload(event)">
-                     </div>
-                </div>
-            </div>
+    <!-- Bottom Footer -->
+    <footer class="max-w-5xl w-full mx-auto py-3 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
+      <span>&copy; <strong class="text-slate-300">musadad.com</strong> — Aplikasi Kalkulasi Percetakan</span>
+      <span>Semua perhitungan diproses cepat &amp; tersimpan otomatis di perangkat Anda</span>
+    </footer>
+  </div>
 
-            <!-- Record Counter -->
-            <div class="mt-6 text-center">
-                <span class="bg-gray-100 px-4 py-2 rounded-lg text-gray-700 font-medium">
-                    Record <span id="currentRecord">0</span> dari <span id="totalRecords">0</span>
-                </span>
-            </div>
+  <!-- ==================== APP 1: KALKULASI PRINT PDF ==================== -->
+  <div id="pdfCalculatorView" class="hidden flex-col lg:flex-row flex-1 lg:h-full lg:overflow-hidden">
+
+    <!-- ==================== LEFT SIDEBAR: CONTROLS & PRICING ==================== -->
+    <aside class="w-full lg:w-[375px] xl:w-[400px] bg-slate-900 border-b lg:border-b-0 lg:border-r border-slate-800 flex flex-col lg:h-full shrink-0">
+      
+      <!-- Sidebar Header -->
+      <div class="p-4 pb-3 border-b border-slate-800/80 flex items-center justify-between gap-2">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2 mb-1">
+            <button id="btnBackFromPdf" type="button"
+              class="text-[11px] font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 px-2 py-0.5 rounded-md border border-slate-700 transition cursor-pointer">
+              &larr; Menu Utama
+            </button>
+            <span class="text-[11px] font-extrabold text-cyan-400">musadad.com</span>
+          </div>
+          <h1 class="text-base font-extrabold tracking-wide text-white uppercase flex items-center gap-2 truncate">
+            <svg class="w-5 h-5 text-cyan-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+            </svg>
+            KALKULASI PRINT PDF
+          </h1>
+        </div>
+        <button id="btnResetPrices" type="button" title="Reset Tarif ke Default"
+          class="text-[11px] text-slate-400 hover:text-cyan-400 bg-slate-800/80 hover:bg-slate-800 px-2.5 py-1.5 rounded-lg border border-slate-700/70 transition shrink-0">
+          Reset Tarif
+        </button>
+      </div>
+
+      <!-- Scrollable Sidebar Body -->
+      <div class="p-4 space-y-4 overflow-y-auto flex-1">
+
+        <!-- File Upload Trigger -->
+        <div>
+          <input type="file" id="pdfFileInput" accept="application/pdf" class="hidden" />
+          <button id="btnPickPdf" type="button"
+            class="w-full py-3 px-4 bg-cyan-500 hover:bg-cyan-400 active:bg-cyan-600 text-slate-950 font-extrabold text-sm rounded-xl shadow-lg shadow-cyan-500/20 transition flex items-center justify-center gap-2 cursor-pointer">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+            </svg>
+            PILIH FILE PDF...
+          </button>
+
+          <!-- File Name & Demo Button -->
+          <div class="mt-2 flex items-center justify-between gap-2">
+            <p id="selectedFileName" class="text-xs text-slate-400 truncate flex-1" title="Belum ada file dipilih">
+              Belum ada file PDF dipilih
+            </p>
+            <button id="btnLoadDemo" type="button"
+              class="text-[11px] font-semibold text-cyan-400 hover:text-cyan-300 underline shrink-0">
+              Contoh PDF
+            </button>
+          </div>
         </div>
 
-        <!-- Database Table -->
-        <div class="bg-white rounded-xl shadow-lg p-6">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
-                <h2 class="text-xl font-semibold text-gray-700">📊 Database Pesanan</h2>
-                
-                <!-- Search Section -->
-                <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-                    <div class="relative">
-                        <input type="text" id="searchInput" placeholder="Cari pesanan..." class="w-full md:w-64 px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                        </div>
-                    </div>
-                    <select id="searchFilter" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                        <option value="all">Semua Field</option>
-                        <option value="noPesanan">No Pesanan</option>
-                        <option value="namaPesanan">Nama Pesanan</option>
-                        <option value="status">Status</option>
-                    </select>
-                    <button onclick="clearSearch()" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors">🗑️ Clear</button>
-                </div>
+        <!-- Section 1: Tarif Cetak per Halaman (Editable) -->
+        <div class="bg-slate-925/80 p-3 rounded-xl border border-slate-800/90 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <h2 class="text-xs font-bold text-slate-200">Tarif Cetak per Halaman:</h2>
+            <span class="text-[10px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">Bisa Diubah</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2.5">
+            <!-- Hitam Putih Price -->
+            <div>
+              <label for="inputPriceBW" class="block text-[11px] font-medium text-slate-400 mb-1">Hitam Putih (B/W):</label>
+              <div class="flex items-center bg-slate-850 border border-slate-700 focus-within:border-cyan-500 rounded-lg px-2.5 py-1.5 transition">
+                <span class="text-xs text-slate-400 mr-1.5 select-none">Rp</span>
+                <input id="inputPriceBW" type="number" min="0" step="50" value="250"
+                  class="w-full bg-transparent text-sm font-semibold text-white focus:outline-none" />
+              </div>
             </div>
-            
-            <div id="searchInfo" class="mb-3 text-sm text-gray-600 hidden"><span id="searchResults"></span></div>
-            
-            <div class="overflow-x-auto">
-                <table class="w-full border-collapse border border-gray-300">
-                    <thead>
-                        <tr class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
-                            <th class="border border-gray-300 px-4 py-3 text-left font-semibold">No Pesanan</th>
-                            <th class="border border-gray-300 px-4 py-3 text-left font-semibold">Nama Pesanan</th>
-                            <th class="border border-gray-300 px-4 py-3 text-left font-semibold">Jumlah</th>
-                            <th class="border border-gray-300 px-4 py-3 text-left font-semibold">Tanggal Diambil</th>
-                            <th class="border border-gray-300 px-4 py-3 text-left font-semibold">Status</th>
-                            <th class="border border-gray-300 px-4 py-3 text-left font-semibold">Keterangan Proses</th>
-                        </tr>
-                    </thead>
-                    <tbody id="dataTable"></tbody>
-                </table>
+
+            <!-- Warna Price -->
+            <div>
+              <label for="inputPriceColor" class="block text-[11px] font-medium text-cyan-400 mb-1">Warna (Color):</label>
+              <div class="flex items-center bg-slate-850 border border-slate-700 focus-within:border-cyan-500 rounded-lg px-2.5 py-1.5 transition">
+                <span class="text-xs text-slate-400 mr-1.5 select-none">Rp</span>
+                <input id="inputPriceColor" type="number" min="0" step="100" value="1500"
+                  class="w-full bg-transparent text-sm font-semibold text-white focus:outline-none" />
+              </div>
             </div>
+          </div>
         </div>
+
+        <!-- Section 2: Opsi Cetak & Jenis Kertas -->
+        <div class="bg-slate-925/80 p-3 rounded-xl border border-slate-800/90 space-y-2.5">
+          <h2 class="text-xs font-bold text-slate-200">Opsi Cetak &amp; Jenis Kertas:</h2>
+
+          <!-- Simplex / Duplex Radio -->
+          <div class="grid grid-cols-2 gap-2">
+            <label class="flex items-center gap-2 text-xs text-slate-200 bg-slate-850 border border-slate-700/80 px-2.5 py-2 rounded-lg cursor-pointer hover:border-slate-600 transition">
+              <input type="radio" name="printSide" value="simplex" checked class="accent-cyan-500 w-3.5 h-3.5" />
+              <span>1 Sisi (Simplex)</span>
+            </label>
+            <label class="flex items-center gap-2 text-xs text-slate-200 bg-slate-850 border border-slate-700/80 px-2.5 py-2 rounded-lg cursor-pointer hover:border-slate-600 transition">
+              <input type="radio" name="printSide" value="duplex" class="accent-cyan-500 w-3.5 h-3.5" />
+              <span>Bolak-Balik</span>
+            </label>
+          </div>
+
+          <!-- Paper Type + Editable Paper Extra Cost -->
+          <div class="space-y-2">
+            <select id="selectPaperType"
+              class="w-full bg-slate-850 border border-slate-700 focus:border-cyan-500 rounded-lg px-2.5 py-2 text-xs text-slate-100 focus:outline-none">
+              <option value="0" data-name="HVS 70-75 gsm (Standar)">HVS 70-75 gsm (Standar)</option>
+              <option value="50" data-name="HVS 80 gsm">HVS 80 gsm (+Rp 50/lbr)</option>
+              <option value="150" data-name="HVS 100 gsm">HVS 100 gsm (+Rp 150/lbr)</option>
+              <option value="500" data-name="Art Paper 120-150 gsm">Art Paper 120-150 gsm (+Rp 500/lbr)</option>
+              <option value="400" data-name="BC / Manila / Brief Card">BC / Manila / Brief Card (+Rp 400/lbr)</option>
+              <option value="custom" data-name="Kertas Khusus">Kertas Khusus (Atur Harga Sendiri)</option>
+            </select>
+
+            <div class="flex items-center justify-between gap-2">
+              <label for="inputPaperExtra" class="text-[11px] text-slate-400">Tambahan Kertas / Lembar:</label>
+              <div class="flex items-center bg-slate-850 border border-slate-700 focus-within:border-cyan-500 rounded-lg px-2 py-1 w-32">
+                <span class="text-[11px] text-slate-400 mr-1">Rp</span>
+                <input id="inputPaperExtra" type="number" min="0" step="50" value="0"
+                  class="w-full bg-transparent text-xs font-semibold text-white focus:outline-none text-right" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3: Jilid, Eksemplar & Diskon -->
+        <div class="bg-slate-925/80 p-3 rounded-xl border border-slate-800/90 space-y-2.5">
+          <h2 class="text-xs font-bold text-slate-200">Jilid, Eksemplar &amp; Diskon:</h2>
+
+          <!-- Binding Dropdown + Editable Cost -->
+          <div class="space-y-2">
+            <select id="selectBinding"
+              class="w-full bg-slate-850 border border-slate-700 focus:border-cyan-500 rounded-lg px-2.5 py-2 text-xs text-slate-100 focus:outline-none">
+              <option value="0" data-name="Tanpa Jilid (Loose Sheet)">Tanpa Jilid (Loose Sheet)</option>
+              <option value="1000" data-name="Staples Pinggir / Tengah">Staples Pinggir / Tengah (Rp 1.000)</option>
+              <option value="3000" data-name="Jilid Lakban Biasa">Jilid Lakban Biasa (Rp 3.000)</option>
+              <option value="5000" data-name="Jilid Mika + Lakban">Jilid Mika + Lakban (Rp 5.000)</option>
+              <option value="10000" data-name="Jilid Spiral Kawat / Plastik">Jilid Spiral Kawat / Plastik (Rp 10.000)</option>
+              <option value="15000" data-name="Softcover / Lem Panas">Softcover / Lem Panas (Rp 15.000)</option>
+              <option value="custom" data-name="Jilid Khusus">Jilid Khusus (Atur Harga Sendiri)</option>
+            </select>
+
+            <div class="flex items-center justify-between gap-2">
+              <label for="inputBindingCost" class="text-[11px] text-slate-400">Biaya Jilid / Set:</label>
+              <div class="flex items-center bg-slate-850 border border-slate-700 focus-within:border-cyan-500 rounded-lg px-2 py-1 w-32">
+                <span class="text-[11px] text-slate-400 mr-1">Rp</span>
+                <input id="inputBindingCost" type="number" min="0" step="500" value="0"
+                  class="w-full bg-transparent text-xs font-semibold text-white focus:outline-none text-right" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Copies & Discount -->
+          <div class="grid grid-cols-2 gap-2.5 pt-1">
+            <div>
+              <label for="inputCopies" class="block text-[11px] text-slate-400 mb-1">Jumlah Eksemplar:</label>
+              <div class="flex items-center bg-slate-850 border border-slate-700 focus-within:border-cyan-500 rounded-lg px-2.5 py-1.5">
+                <input id="inputCopies" type="number" min="1" step="1" value="1"
+                  class="w-full bg-transparent text-sm font-semibold text-white focus:outline-none" />
+                <span class="text-[11px] text-slate-400 ml-1">Set</span>
+              </div>
+            </div>
+
+            <div>
+              <label for="inputDiscount" class="block text-[11px] text-slate-400 mb-1">Diskon (%):</label>
+              <div class="flex items-center bg-slate-850 border border-slate-700 focus-within:border-cyan-500 rounded-lg px-2.5 py-1.5">
+                <input id="inputDiscount" type="number" min="0" max="100" step="1" value="0"
+                  class="w-full bg-transparent text-sm font-semibold text-white focus:outline-none" />
+                <span class="text-xs text-slate-400 ml-1">%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 4: Pelanggan, Nama Toko & Toleransi Warna -->
+        <div class="bg-slate-925/80 p-3 rounded-xl border border-slate-800/90 space-y-2.5">
+          <div>
+            <label for="inputCustomerName" class="block text-[11px] font-medium text-slate-400 mb-1">Nama Pelanggan:</label>
+            <input id="inputCustomerName" type="text" value="Umum / Pelanggan" placeholder="Masukkan nama pelanggan..."
+              class="w-full bg-slate-850 border border-slate-700 focus:border-cyan-500 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none" />
+          </div>
+
+          <div>
+            <label for="inputShopName" class="block text-[11px] font-medium text-slate-400 mb-1">Nama Percetakan / Toko (Untuk Nota):</label>
+            <input id="inputShopName" type="text" value="MUSADAD.COM" placeholder="Nama toko Anda..."
+              class="w-full bg-slate-850 border border-slate-700 focus:border-cyan-500 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none" />
+          </div>
+
+          <div>
+            <label for="selectColorTolerance" class="block text-[11px] font-medium text-slate-400 mb-1">Toleransi Deteksi Warna:</label>
+            <select id="selectColorTolerance"
+              class="w-full bg-slate-850 border border-slate-700 focus:border-cyan-500 rounded-lg px-2.5 py-2 text-xs text-slate-100 focus:outline-none">
+              <option value="strict">Sangat Sensitif (Sedikit warna = Color)</option>
+              <option value="standard" selected>Standar (Direkomendasikan)</option>
+              <option value="tolerant">Toleran (Abaikan garis/watermark tipis)</option>
+              <option value="heavy">Dominan Warna (&gt;8% area berwarna)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Action Buttons Stack -->
+        <div class="space-y-2 pt-1 pb-2">
+          <!-- Direct Print PDF from App -->
+          <button id="btnDirectPrintActive" type="button"
+            class="w-full py-2.5 px-4 bg-cyan-600 hover:bg-cyan-500 active:bg-cyan-700 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+            </svg>
+            <span id="lblDirectPrintBtn">PRINT DOKUMEN PDF (SEMUA)</span>
+          </button>
+
+          <!-- Print Kalkulasi / Nota Struk -->
+          <button id="btnPrintReceipt" type="button"
+            class="w-full py-2.5 px-4 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-slate-950 font-extrabold text-xs rounded-xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            PRINT KALKULASI / NOTA STRUK
+          </button>
+
+          <!-- Split PDF (Warna & B/W) -->
+          <button id="btnSplitPdf" type="button"
+            class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+            </svg>
+            PISAHKAN FILE (WARNA &amp; B/W)
+          </button>
+
+          <!-- Download Cost Report PDF -->
+          <button id="btnDownloadReportPdf" type="button"
+            class="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            BUAT LAPORAN BIAYA (PDF)
+          </button>
+
+          <!-- Copy Summary Text -->
+          <button id="btnCopySummary" type="button"
+            class="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 active:bg-slate-850 text-slate-200 font-bold text-xs rounded-xl border border-slate-700 transition flex items-center justify-center gap-2 cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
+            </svg>
+            SALIN REKAP BIAYA
+          </button>
+        </div>
+
+      </div>
+    </aside>
+
+    <!-- ==================== RIGHT MAIN WORKSPACE ==================== -->
+    <main class="flex-1 flex flex-col min-w-0 bg-slate-950 lg:h-full lg:overflow-hidden">
+
+      <!-- Top 4 Summary Cards -->
+      <section class="p-3 sm:p-4 pb-2 grid grid-cols-2 xl:grid-cols-4 gap-2.5 sm:gap-3 shrink-0">
+        <!-- Card 1: Total Halaman -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 sm:p-3.5 flex flex-col justify-between">
+          <span class="text-[10px] sm:text-[11px] font-bold tracking-wider text-cyan-400 uppercase">TOTAL HALAMAN</span>
+          <div class="text-lg sm:text-xl font-extrabold text-white mt-1" id="statTotalPages">0 Hal</div>
+          <div class="text-[11px] text-slate-400 mt-1" id="statTotalSheets">0 Lembar (Simplex)</div>
+        </div>
+
+        <!-- Card 2: Hitam Putih (B/W) -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 sm:p-3.5 flex flex-col justify-between">
+          <span class="text-[10px] sm:text-[11px] font-bold tracking-wider text-slate-400 uppercase">HITAM PUTIH (B/W)</span>
+          <div class="text-lg sm:text-xl font-extrabold text-white mt-1" id="statBWPages">0 Hal</div>
+          <div class="text-[11px] text-slate-400 mt-1" id="statBWSubtotal">Subtotal: Rp 0</div>
+        </div>
+
+        <!-- Card 3: Berwarna (Color) -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 sm:p-3.5 flex flex-col justify-between">
+          <span class="text-[10px] sm:text-[11px] font-bold tracking-wider text-indigo-400 uppercase">BERWARNA (COLOR)</span>
+          <div class="text-lg sm:text-xl font-extrabold text-white mt-1" id="statColorPages">0 Hal</div>
+          <div class="text-[11px] text-slate-400 mt-1" id="statColorSubtotal">Subtotal: Rp 0</div>
+        </div>
+
+        <!-- Card 4: Grand Total -->
+        <div class="bg-slate-900/90 border border-cyan-500/40 rounded-xl p-3 sm:p-3.5 flex flex-col justify-between shadow-lg shadow-cyan-500/5">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] sm:text-[11px] font-bold tracking-wider text-emerald-400 uppercase">GRAND TOTAL</span>
+            <span id="statExtraBadge" class="hidden text-[10px] text-amber-300 bg-amber-500/10 px-1.5 py-0.5 rounded">+Kertas/Jilid</span>
+          </div>
+          <div class="text-lg sm:text-xl font-extrabold text-white mt-1" id="statGrandTotal">Rp 0</div>
+          <div class="text-[11px] text-slate-400 mt-1" id="statPerSet">1 Set • Rp 0/set</div>
+        </div>
+      </section>
+
+      <!-- Filter Tabs & Quick Print Toolbar -->
+      <section class="px-3 sm:px-4 py-2 flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 shrink-0">
+        <!-- Filter Mode Tabs -->
+        <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+          <button type="button" data-tab="all"
+            class="tab-btn active px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 bg-cyan-500 text-slate-950 shadow">
+            <span>📄</span>
+            <span>Semua Dokumen (<span id="tabCountAll">0</span>)</span>
+          </button>
+
+          <button type="button" data-tab="bw"
+            class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 bg-slate-850 text-slate-300 hover:bg-slate-800 border border-slate-700/70">
+            <span>⬛</span>
+            <span>Dokumen B/W (<span id="tabCountBW">0</span>)</span>
+          </button>
+
+          <button type="button" data-tab="color"
+            class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 bg-slate-850 text-slate-300 hover:bg-slate-800 border border-slate-700/70">
+            <span>🌈</span>
+            <span>Dokumen Warna (<span id="tabCountColor">0</span>)</span>
+          </button>
+
+          <button type="button" data-tab="grid"
+            class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 bg-slate-850 text-slate-300 hover:bg-slate-800 border border-slate-700/70">
+            <span>🎛️</span>
+            <span>Atur Per Halaman</span>
+          </button>
+        </div>
+
+        <!-- Right Status + Zoom & Print Toolbar -->
+        <div class="flex flex-wrap items-center gap-2 ml-auto">
+          <span id="viewStatusLabel" class="hidden xl:inline text-xs italic text-cyan-400 mr-2">
+            Menampilkan: Semua Dokumen
+          </span>
+
+          <!-- Zoom Controls -->
+          <div class="flex items-center bg-slate-900 border border-slate-800 rounded-lg p-0.5">
+            <button id="btnZoomOut" type="button" title="Perkecil Preview"
+              class="px-2 py-1 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800 rounded">−</button>
+            <span id="lblZoomLevel" class="px-2 text-[11px] font-semibold text-slate-300 select-none">100%</span>
+            <button id="btnZoomIn" type="button" title="Perbesar Preview"
+              class="px-2 py-1 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800 rounded">+</button>
+          </div>
+
+          <!-- Quick Print Filtered PDF Button -->
+          <button id="btnToolbarPrint" type="button"
+            class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-lg shadow transition flex items-center gap-1.5 cursor-pointer">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+            </svg>
+            <span>Print Tab Ini</span>
+          </button>
+
+          <!-- Quick Download Filtered PDF Button -->
+          <button id="btnToolbarDownload" type="button"
+            class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs rounded-lg border border-slate-700 transition flex items-center gap-1.5 cursor-pointer">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            </svg>
+            <span>Unduh PDF Ini</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Document Preview Viewport -->
+      <section id="previewContainer" class="flex-1 overflow-y-auto p-3 sm:p-5 bg-slate-950 relative">
+
+        <!-- Loading Progress Overlay -->
+        <div id="loadingOverlay" class="hidden absolute inset-0 bg-slate-950/85 backdrop-blur-sm z-30 flex flex-col items-center justify-center p-6 text-center">
+          <div class="w-12 h-12 border-4 border-slate-700 border-t-cyan-400 rounded-full animate-spin mb-4"></div>
+          <h3 class="text-base font-bold text-white" id="loadingTitle">Menganalisis Halaman PDF...</h3>
+          <p class="text-xs text-slate-400 mt-1" id="loadingSubtitle">Mendeteksi piksel warna dan hitam putih</p>
+          <div class="w-64 bg-slate-800 h-2 rounded-full overflow-hidden mt-3">
+            <div id="loadingProgressBar" class="bg-cyan-400 h-full transition-all duration-150" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- Empty State / Drag & Drop Zone -->
+        <div id="emptyDropZone"
+          class="h-full min-h-[380px] border-2 border-dashed border-slate-800 hover:border-cyan-500/60 rounded-2xl flex flex-col items-center justify-center p-6 text-center transition bg-slate-900/30">
+          <div class="w-16 h-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 mb-4">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+          </div>
+          <h2 class="text-lg font-bold text-white">Unggah atau Tarik File PDF ke Sini</h2>
+          <p class="text-xs sm:text-sm text-slate-400 max-w-md mt-1.5 leading-relaxed">
+            Sistem akan otomatis memisahkan halaman <span class="text-slate-200 font-semibold">Hitam Putih (B/W)</span> dan <span class="text-cyan-400 font-semibold">Berwarna (Color)</span>, menghitung biaya cetak, serta siap diprint langsung per kategori atau dicetak nota kalkulasinya.
+          </p>
+          <div class="flex flex-wrap items-center justify-center gap-3 mt-5">
+            <button type="button" onclick="document.getElementById('pdfFileInput').click()"
+              class="px-5 py-2.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs rounded-xl shadow-lg shadow-cyan-500/20 transition cursor-pointer">
+              Pilih File PDF dari Perangkat
+            </button>
+            <button type="button" id="btnEmptyLoadDemo"
+              class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs rounded-xl border border-slate-700 transition cursor-pointer">
+              Coba Contoh PDF (Campuran Warna &amp; B/W)
+            </button>
+          </div>
+        </div>
+
+        <!-- Rendered Document Pages List (All / BW / Color) -->
+        <div id="pagesListWrapper" class="hidden flex flex-col items-center gap-5 pb-10"></div>
+
+        <!-- Page-by-Page Grid Manager (Manual Override View) -->
+        <div id="pagesGridWrapper" class="hidden grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 pb-10"></div>
+
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ==================== APP 2: PARAMETER POTONGAN (KALKULATOR POTONG KERTAS) ==================== -->
+  <div id="paperCutCalculatorView" class="hidden flex-col lg:flex-row flex-1 lg:h-full lg:overflow-hidden">
+
+    <!-- ==================== LEFT SIDEBAR: PARAMETER POTONGAN ==================== -->
+    <aside class="w-full lg:w-[375px] xl:w-[400px] bg-slate-900 border-b lg:border-b-0 lg:border-r border-slate-800 flex flex-col lg:h-full shrink-0">
+      
+      <!-- Sidebar Header -->
+      <div class="p-4 pb-3 border-b border-slate-800/80 flex items-center justify-between gap-2">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2 mb-1">
+            <button id="btnBackFromCut" type="button"
+              class="text-[11px] font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 px-2 py-0.5 rounded-md border border-slate-700 transition cursor-pointer">
+              &larr; Menu Utama
+            </button>
+            <span class="text-[11px] font-extrabold text-indigo-400">musadad.com</span>
+          </div>
+          <h1 class="text-base font-extrabold tracking-wide text-white uppercase flex items-center gap-2 truncate">
+            <svg class="w-5 h-5 text-indigo-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm0-5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z"/>
+            </svg>
+            PARAMETER POTONGAN
+          </h1>
+        </div>
+        <button id="btnResetCut" type="button" title="Reset Parameter Potongan"
+          class="text-[11px] text-slate-400 hover:text-indigo-400 bg-slate-800/80 hover:bg-slate-800 px-2.5 py-1.5 rounded-lg border border-slate-700/70 transition shrink-0">
+          Reset
+        </button>
+      </div>
+
+      <!-- Scrollable Sidebar Body -->
+      <div class="p-4 space-y-4 overflow-y-auto flex-1">
+
+        <!-- Kertas Besar (Parent Sheet) -->
+        <div class="bg-slate-925/80 p-3 rounded-xl border border-slate-800/90 space-y-2.5">
+          <h2 class="text-xs font-bold text-slate-200">Kertas Besar (Parent Sheet):</h2>
+
+          <select id="selectParentSheet"
+            class="w-full bg-slate-850 border border-slate-700 focus:border-indigo-500 rounded-lg px-2.5 py-2 text-xs text-slate-100 focus:outline-none">
+            <option value="86x61" selected>Plano 61 x 86 cm</option>
+            <option value="100x65">Plano 65 x 100 cm</option>
+            <option value="109x79">Plano 79 x 109 cm</option>
+            <option value="45x32">SRA3 (32 x 45 cm)</option>
+            <option value="48.5x32.5">A3+ (32,5 x 48,5 cm)</option>
+            <option value="33x21.5">F4 / Folio (21,5 x 33 cm)</option>
+            <option value="custom">Ukuran Plano Khusus (Custom)</option>
+          </select>
+
+          <div class="grid grid-cols-2 gap-2.5">
+            <div>
+              <label for="inputParentW" class="block text-[11px] text-slate-400 mb-1">Lebar (W) cm:</label>
+              <div class="flex items-center bg-slate-850 border border-slate-700 focus-within:border-indigo-500 rounded-lg px-2.5 py-1.5">
+                <input id="inputParentW" type="number" min="1" step="0.1" value="86.0"
+                  class="w-full bg-transparent text-sm font-semibold text-white focus:outline-none" />
+                <span class="text-[11px] text-slate-400 ml-1">cm</span>
+              </div>
+            </div>
+            <div>
+              <label for="inputParentH" class="block text-[11px] text-slate-400 mb-1">Tinggi (H) cm:</label>
+              <div class="flex items-center bg-slate-850 border border-slate-700 focus-within:border-indigo-500 rounded-lg px-2.5 py-1.5">
+                <input id="inputParentH" type="number" min="1" step="0.1" value="61.0"
+                  class="w-full bg-transparent text-sm font-semibold text-white focus:outline-none" />
+                <span class="text-[11px] text-slate-400 ml-1">cm</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ukuran Potongan Jadi (Child Sheet) -->
+        <div class="bg-slate-925/80 p-3 rounded-xl border border-slate-800/90 space-y-2.5">
+          <h2 class="text-xs font-bold text-slate-200">Ukuran Potongan Jadi (Child Sheet):</h2>
+
+          <select id="selectChildSheet"
+            class="w-full bg-slate-850 border border-slate-700 focus:border-indigo-500 rounded-lg px-2.5 py-2 text-xs text-slate-100 focus:outline-none">
+            <option value="21x29.7" selected>A4 (21 x 29.7 cm)</option>
+            <option value="21.5x33">F4 / Folio (21.5 x 33 cm)</option>
+            <option value="14.8x21">A5 (14.8 x 21 cm)</option>
+            <option value="10.5x14.8">A6 (10.5 x 14.8 cm)</option>
+            <option value="9x5.5">Kartu Nama (9 x 5.5 cm)</option>
+            <option value="9.9x21">Brosur 1/3 A4 (9.9 x 21 cm)</option>
+            <option value="custom">Ukuran Potong Khusus (Custom)</option>
+          </select>
+
+          <div class="grid grid-cols-2 gap-2.5">
+            <div>
+              <label for="inputChildW" class="block text-[11px] text-slate-400 mb-1">Lebar (w) cm:</label>
+              <div class="flex items-center bg-slate-850 border border-slate-700 focus-within:border-indigo-500 rounded-lg px-2.5 py-1.5">
+                <input id="inputChildW" type="number" min="0.5" step="0.1" value="21.0"
+                  class="w-full bg-transparent text-sm font-semibold text-white focus:outline-none" />
+                <span class="text-[11px] text-slate-400 ml-1">cm</span>
+              </div>
+            </div>
+            <div>
+              <label for="inputChildH" class="block text-[11px] text-slate-400 mb-1">Tinggi (h) cm:</label>
+              <div class="flex items-center bg-slate-850 border border-slate-700 focus-within:border-indigo-500 rounded-lg px-2.5 py-1.5">
+                <input id="inputChildH" type="number" min="0.5" step="0.1" value="29.7"
+                  class="w-full bg-transparent text-sm font-semibold text-white focus:outline-none" />
+                <span class="text-[11px] text-slate-400 ml-1">cm</span>
+              </div>
+            </div>
+          </div>
+
+          <label class="flex items-center gap-2 text-xs text-slate-200 pt-1 cursor-pointer select-none">
+            <input id="chkAllowRotation" type="checkbox" checked class="accent-indigo-500 w-4 h-4 rounded" />
+            <span>Izinkan Kombinasi Rotasi 90&deg; (Otomatis)</span>
+          </label>
+        </div>
+
+        <!-- Export Skema to PDF Button -->
+        <button id="btnExportCutPdf" type="button"
+          class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          EXPORT SKEMA KE PDF
+        </button>
+
+        <!-- Pembelian Kertas -->
+        <div class="bg-slate-925/80 p-3 rounded-xl border border-slate-800/90 space-y-2.5">
+          <h2 class="text-xs font-extrabold uppercase tracking-wider text-slate-200">PEMBELIAN KERTAS</h2>
+
+          <div>
+            <label for="inputCutNeeded" class="block text-[11px] text-slate-400 mb-1">Jumlah potongan dibutuhkan:</label>
+            <div class="flex items-center bg-slate-850 border border-slate-700 focus-within:border-cyan-500 rounded-lg px-2.5 py-1.5">
+              <input id="inputCutNeeded" type="number" min="1" step="10" value="1000"
+                class="w-full bg-transparent text-sm font-semibold text-white focus:outline-none" />
+              <span class="text-xs text-slate-400 ml-1.5">potong</span>
+            </div>
+          </div>
+
+          <div>
+            <label for="inputPlanoPrice" class="block text-[11px] text-slate-400 mb-1">Harga per lembar plano (Rp):</label>
+            <div class="flex items-center bg-slate-850 border border-slate-700 focus-within:border-cyan-500 rounded-lg px-2.5 py-1.5">
+              <span class="text-xs text-slate-400 mr-1.5">Rp</span>
+              <input id="inputPlanoPrice" type="number" min="0" step="100" value="2500"
+                class="w-full bg-transparent text-sm font-semibold text-white focus:outline-none" />
+            </div>
+          </div>
+
+          <div>
+            <label for="txtCutSummary" class="block text-[11px] text-slate-400 mb-1">Hasil (klik lalu Ctrl+C untuk menyalin):</label>
+            <textarea id="txtCutSummary" readonly rows="10"
+              class="w-full bg-slate-950 border border-slate-800 focus:border-cyan-500 rounded-lg p-2.5 font-mono text-[11px] text-slate-200 leading-relaxed focus:outline-none resize-none"></textarea>
+          </div>
+
+          <button id="btnCopyCutResult" type="button"
+            class="w-full py-2.5 px-4 bg-cyan-500 hover:bg-cyan-400 active:bg-cyan-600 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg shadow-cyan-500/20 transition flex items-center justify-center gap-2 cursor-pointer">
+            SALIN HASIL
+          </button>
+        </div>
+
+      </div>
+    </aside>
+
+    <!-- ==================== RIGHT MAIN WORKSPACE: KALKULATOR POTONG KERTAS ==================== -->
+    <main class="flex-1 overflow-y-auto p-4 sm:p-6 bg-slate-950 space-y-5">
+
+      <!-- Page Header -->
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 class="text-xl sm:text-2xl font-extrabold text-white tracking-tight">Kalkulator Potong Kertas</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Optimasi tata letak pemotongan plano otomatis dengan kalkulasi limbah &amp; orientasi presisi.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold text-slate-400 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg">
+            Percetakan <strong class="text-cyan-400">musadad.com</strong>
+          </span>
+        </div>
+      </div>
+
+      <!-- Top 4 Yield & Efficiency Cards -->
+      <section class="grid grid-cols-2 xl:grid-cols-4 gap-3">
+        <!-- Card 1: Yield -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5">
+          <span class="text-[11px] font-semibold text-slate-400">Hasil Potongan (Yield)</span>
+          <div id="cutYieldVal" class="text-xl sm:text-2xl font-extrabold text-white mt-1">8 Lembar</div>
+          <div class="text-[11px] text-indigo-400 mt-1">Per Plano Besar</div>
+        </div>
+
+        <!-- Card 2: Efficiency -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5">
+          <span class="text-[11px] font-semibold text-slate-400">Efisiensi Area</span>
+          <div id="cutEfficiencyVal" class="text-xl sm:text-2xl font-extrabold text-white mt-1">95,1%</div>
+          <div class="text-[11px] text-emerald-400 mt-1">Area Terpakai</div>
+        </div>
+
+        <!-- Card 3: Waste -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5">
+          <span class="text-[11px] font-semibold text-slate-400">Limbah (Waste)</span>
+          <div id="cutWasteVal" class="text-xl sm:text-2xl font-extrabold text-white mt-1">4,9%</div>
+          <div class="text-[11px] text-rose-400 mt-1">Area Terbuang</div>
+        </div>
+
+        <!-- Card 4: Strategy -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5">
+          <span class="text-[11px] font-semibold text-slate-400">Strategi Potong</span>
+          <div id="cutStrategyVal" class="text-base sm:text-lg font-extrabold text-white mt-1.5 leading-snug">Grid Normal (Tegak)</div>
+          <div class="text-[11px] text-cyan-400 mt-1">Pola Optimal</div>
+        </div>
+      </section>
+
+      <!-- Kebutuhan & Biaya Pembelian Kertas -->
+      <section class="space-y-2.5">
+        <h3 class="text-xs font-bold text-slate-300">Kebutuhan &amp; Biaya Pembelian Kertas</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5">
+            <span class="text-[11px] font-semibold text-slate-400">Kebutuhan Plano</span>
+            <div id="cutPlanoNeededVal" class="text-xl font-extrabold text-white mt-1">125 lembar</div>
+            <div id="cutPlanoFormulaVal" class="text-[11px] text-indigo-400 mt-1">1.000 potong &divide; 8/plano</div>
+          </div>
+
+          <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5">
+            <span class="text-[11px] font-semibold text-slate-400">Total Potongan Didapat</span>
+            <div id="cutTotalGotVal" class="text-xl font-extrabold text-white mt-1">1.000 potong</div>
+            <div id="cutSurplusVal" class="text-[11px] text-cyan-400 mt-1">Surplus 0 potong</div>
+          </div>
+
+          <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5">
+            <span class="text-[11px] font-semibold text-slate-400">Total Biaya Kertas</span>
+            <div id="cutTotalCostVal" class="text-xl font-extrabold text-white mt-1">Rp 312.500</div>
+            <div id="cutCostFormulaVal" class="text-[11px] text-emerald-400 mt-1">Rp 2.500 x 125 plano</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Visualisasi Skema Pemotongan Plano -->
+      <section class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <h3 id="cutVisualHeader" class="text-sm font-bold text-white">Visualisasi Skema Pemotongan Plano (86 x 61 cm)</h3>
+          <span class="text-[11px] text-slate-400">Skala proporsional real-time</span>
+        </div>
+
+        <!-- Blueprint Container -->
+        <div class="w-full bg-slate-950/90 border border-slate-800 rounded-xl p-4 sm:p-6 flex items-center justify-center min-h-[340px]">
+          <div id="cutSvgWrapper" class="w-full flex items-center justify-center"></div>
+        </div>
+
+        <!-- Legend -->
+        <div class="flex flex-wrap items-center gap-5 text-xs text-slate-300 pt-1">
+          <div class="flex items-center gap-2">
+            <span class="w-3.5 h-3.5 rounded-sm bg-sky-600 border border-sky-400 inline-block"></span>
+            <span id="legendNormalLabel">Potongan Tegak (21 x 29,7 cm)</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="w-3.5 h-3.5 rounded-sm bg-violet-600 border border-violet-400 inline-block"></span>
+            <span id="legendRotatedLabel">Potongan Rotasi 90&deg; (29,7 x 21 cm)</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="w-3.5 h-3.5 rounded-sm bg-slate-800 border border-slate-600 inline-block"></span>
+            <span>Area Limbah (Waste)</span>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ==================== PRINTABLE RECEIPT / NOTA MODAL & PRINT TARGET ==================== -->
+  <div id="receiptModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+          <span>🧾</span> Preview Nota / Struk Kalkulasi
+        </h3>
+        <button id="btnCloseReceiptModal" type="button" class="text-slate-400 hover:text-white text-lg font-bold px-2">&times;</button>
+      </div>
+
+      <!-- Receipt Preview Box (Also used as @media print target) -->
+      <div class="p-4 overflow-y-auto bg-slate-950/60 flex-1">
+        <div id="printReceiptContainer" class="bg-white text-slate-900 p-5 rounded-xl shadow font-mono text-xs leading-relaxed">
+          <!-- Dynamically populated receipt HTML -->
+        </div>
+      </div>
+
+      <div class="p-4 border-t border-slate-800 flex items-center justify-end gap-2 bg-slate-900">
+        <button id="btnCancelReceipt" type="button"
+          class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl">
+          Tutup
+        </button>
+        <button id="btnConfirmPrintReceipt" type="button"
+          class="px-5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-extrabold rounded-xl shadow flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+          </svg>
+          CETAK SEKARANG (PRINT)
+        </button>
+      </div>
     </div>
+  </div>
 
-    <script>
-        const DB_KEY = 'manajemenPesananDB';
-        let pesananData = [];
-        let currentIndex = -1;
-        let originalData = {};
-        let filteredData = [];
+  <!-- Hidden Iframe for Direct PDF Printing -->
+  <iframe id="hiddenPrintIframe" class="hidden" title="Print PDF Frame"></iframe>
 
-        // --- Core Database Functions ---
-        function loadFromLocalStorage() {
-            const storedData = localStorage.getItem(DB_KEY);
-            if (storedData) {
-                pesananData = JSON.parse(storedData);
-            } else {
-                // Jika tidak ada data, gunakan data sampel awal
-                pesananData = [ { noPesanan: "PSN001", namaPesanan: "Brosur A4", jumlah: 500, tanggalAmbil: "2024-01-15", status: "PROSES", keteranganProses: "Sedang dalam tahap desain" }, { noPesanan: "PSN002", namaPesanan: "Kartu Nama", jumlah: 1000, tanggalAmbil: "2024-01-20", status: "CETAK", keteranganProses: "Siap untuk dicetak" } ];
-                persistData();
-            }
-            filteredData = [...pesananData];
+  <!-- Non-intrusive Toast Notification -->
+  <div id="toastNotification"
+    class="fixed bottom-4 right-4 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none bg-slate-800 border border-cyan-500/40 text-white px-4 py-3 rounded-xl shadow-2xl text-xs font-semibold flex items-center gap-2.5 max-w-sm">
+    <span id="toastIcon" class="text-cyan-400 text-base">ℹ️</span>
+    <span id="toastMessage">Pesan notifikasi</span>
+  </div>
+
+  <script>
+    // Configure PDF.js Worker
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    /**
+     * Application State
+     */
+    const state = {
+      pdfBytes: null,           // Raw Uint8Array of loaded PDF
+      pdfDocJs: null,           // PDF.js DocumentProxy
+      fileName: '',             // Original file name
+      pages: [],                // Array of { pageNumber, width, height, colorRatio, maxColorDiff, isColor, previewDataUrl }
+      activeTab: 'all',         // 'all' | 'bw' | 'color' | 'grid'
+      zoomScale: 1.0,           // Preview zoom factor
+      settings: {
+        priceBW: 250,
+        priceColor: 1500,
+        printSide: 'simplex',   // 'simplex' | 'duplex'
+        paperType: '0',
+        paperName: 'HVS 70-75 gsm (Standar)',
+        paperExtra: 0,
+        bindingType: '0',
+        bindingName: 'Tanpa Jilid (Loose Sheet)',
+        bindingCost: 0,
+        copies: 1,
+        discount: 0,
+        customerName: 'Umum / Pelanggan',
+        shopName: 'MUSADAD.COM',
+        tolerance: 'standard'
+      }
+    };
+
+    const STORAGE_KEY = 'kalkulasi_print_pdf_settings_v1';
+    const CUT_STORAGE_KEY = 'musadad_paper_cut_settings_v1';
+    // DOM Elements Reference
+    const el = {
+      pdfFileInput: document.getElementById('pdfFileInput'),
+      btnPickPdf: document.getElementById('btnPickPdf'),
+      btnLoadDemo: document.getElementById('btnLoadDemo'),
+      btnEmptyLoadDemo: document.getElementById('btnEmptyLoadDemo'),
+      btnResetPrices: document.getElementById('btnResetPrices'),
+      selectedFileName: document.getElementById('selectedFileName'),
+
+      inputPriceBW: document.getElementById('inputPriceBW'),
+      inputPriceColor: document.getElementById('inputPriceColor'),
+      printSideRadios: document.querySelectorAll('input[name="printSide"]'),
+      selectPaperType: document.getElementById('selectPaperType'),
+      inputPaperExtra: document.getElementById('inputPaperExtra'),
+      selectBinding: document.getElementById('selectBinding'),
+      inputBindingCost: document.getElementById('inputBindingCost'),
+      inputCopies: document.getElementById('inputCopies'),
+      inputDiscount: document.getElementById('inputDiscount'),
+      inputCustomerName: document.getElementById('inputCustomerName'),
+      inputShopName: document.getElementById('inputShopName'),
+      selectColorTolerance: document.getElementById('selectColorTolerance'),
+
+      btnDirectPrintActive: document.getElementById('btnDirectPrintActive'),
+      lblDirectPrintBtn: document.getElementById('lblDirectPrintBtn'),
+      btnPrintReceipt: document.getElementById('btnPrintReceipt'),
+      btnSplitPdf: document.getElementById('btnSplitPdf'),
+      btnDownloadReportPdf: document.getElementById('btnDownloadReportPdf'),
+      btnCopySummary: document.getElementById('btnCopySummary'),
+
+      statTotalPages: document.getElementById('statTotalPages'),
+      statTotalSheets: document.getElementById('statTotalSheets'),
+      statBWPages: document.getElementById('statBWPages'),
+      statBWSubtotal: document.getElementById('statBWSubtotal'),
+      statColorPages: document.getElementById('statColorPages'),
+      statColorSubtotal: document.getElementById('statColorSubtotal'),
+      statGrandTotal: document.getElementById('statGrandTotal'),
+      statPerSet: document.getElementById('statPerSet'),
+      statExtraBadge: document.getElementById('statExtraBadge'),
+
+      tabButtons: document.querySelectorAll('.tab-btn'),
+      tabCountAll: document.getElementById('tabCountAll'),
+      tabCountBW: document.getElementById('tabCountBW'),
+      tabCountColor: document.getElementById('tabCountColor'),
+      viewStatusLabel: document.getElementById('viewStatusLabel'),
+
+      btnZoomOut: document.getElementById('btnZoomOut'),
+      btnZoomIn: document.getElementById('btnZoomIn'),
+      lblZoomLevel: document.getElementById('lblZoomLevel'),
+      btnToolbarPrint: document.getElementById('btnToolbarPrint'),
+      btnToolbarDownload: document.getElementById('btnToolbarDownload'),
+
+      previewContainer: document.getElementById('previewContainer'),
+      loadingOverlay: document.getElementById('loadingOverlay'),
+      loadingTitle: document.getElementById('loadingTitle'),
+      loadingSubtitle: document.getElementById('loadingSubtitle'),
+      loadingProgressBar: document.getElementById('loadingProgressBar'),
+      emptyDropZone: document.getElementById('emptyDropZone'),
+      pagesListWrapper: document.getElementById('pagesListWrapper'),
+      pagesGridWrapper: document.getElementById('pagesGridWrapper'),
+
+      receiptModal: document.getElementById('receiptModal'),
+      printReceiptContainer: document.getElementById('printReceiptContainer'),
+      btnCloseReceiptModal: document.getElementById('btnCloseReceiptModal'),
+      btnCancelReceipt: document.getElementById('btnCancelReceipt'),
+      btnConfirmPrintReceipt: document.getElementById('btnConfirmPrintReceipt'),
+      hiddenPrintIframe: document.getElementById('hiddenPrintIframe'),
+
+      toastNotification: document.getElementById('toastNotification'),
+      toastIcon: document.getElementById('toastIcon'),
+      toastMessage: document.getElementById('toastMessage')
+    };
+
+    /**
+     * Format currency to Indonesian Rupiah (e.g., Rp 15.000)
+     */
+    function formatRupiah(amount) {
+      const num = Math.round(Number(amount) || 0);
+      return 'Rp ' + num.toLocaleString('id-ID');
+    }
+
+    /**
+     * Show non-intrusive toast message
+     */
+    let toastTimeout = null;
+    function showToast(message, icon = '✅') {
+      el.toastIcon.textContent = icon;
+      el.toastMessage.textContent = message;
+      el.toastNotification.classList.remove('translate-y-20', 'opacity-0');
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        el.toastNotification.classList.add('translate-y-20', 'opacity-0');
+      }, 3200);
+    }
+
+    /**
+     * Load & Save Settings to localStorage so custom shop prices persist
+     */
+    function loadSavedSettings() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          Object.assign(state.settings, parsed);
         }
+      } catch (e) {
+        console.warn('Gagal memuat pengaturan tersimpan:', e);
+      }
+      syncInputsFromState();
+    }
 
-        function persistData() {
-            localStorage.setItem(DB_KEY, JSON.stringify(pesananData));
+    function saveSettings() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          priceBW: state.settings.priceBW,
+          priceColor: state.settings.priceColor,
+          paperType: state.settings.paperType,
+          paperName: state.settings.paperName,
+          paperExtra: state.settings.paperExtra,
+          bindingType: state.settings.bindingType,
+          bindingName: state.settings.bindingName,
+          bindingCost: state.settings.bindingCost,
+          shopName: state.settings.shopName,
+          tolerance: state.settings.tolerance
+        }));
+      } catch (e) {
+        console.warn('Gagal menyimpan pengaturan:', e);
+      }
+    }
+
+    function syncInputsFromState() {
+      el.inputPriceBW.value = state.settings.priceBW;
+      el.inputPriceColor.value = state.settings.priceColor;
+      el.selectPaperType.value = state.settings.paperType;
+      el.inputPaperExtra.value = state.settings.paperExtra;
+      el.selectBinding.value = state.settings.bindingType;
+      el.inputBindingCost.value = state.settings.bindingCost;
+      el.inputCopies.value = state.settings.copies;
+      el.inputDiscount.value = state.settings.discount;
+      el.inputCustomerName.value = state.settings.customerName;
+      el.inputShopName.value = state.settings.shopName;
+      el.selectColorTolerance.value = state.settings.tolerance;
+      el.printSideRadios.forEach(r => {
+        r.checked = (r.value === state.settings.printSide);
+      });
+    }
+
+    /**
+     * Evaluate whether a page is Color or B/W based on pre-analyzed pixel metrics & tolerance preset
+     */
+    function evaluatePageIsColor(pageObj, toleranceMode) {
+      // Thresholds: { minRatioAtDiff15, minRatioAtDiff25, minRatioAtDiff40 }
+      if (toleranceMode === 'strict') {
+        // Very sensitive: even 0.04% colored pixels triggers Color
+        return pageObj.ratioDiff15 >= 0.0004;
+      } else if (toleranceMode === 'standard') {
+        // Recommended: ignores tiny anti-aliasing noise, catches logos/colored titles/charts
+        return pageObj.ratioDiff25 >= 0.0018;
+      } else if (toleranceMode === 'tolerant') {
+        // Tolerant: ignores light watermarks or thin colored borders
+        return pageObj.ratioDiff35 >= 0.009;
+      } else {
+        // Heavy color (>8% page area has rich color)
+        return pageObj.ratioDiff30 >= 0.08;
+      }
+    }
+
+    /**
+     * Calculate all billing numbers based on current pages & user pricing settings
+     */
+    function calculateBilling() {
+      const totalPages = state.pages.length;
+      const bwPages = state.pages.filter(p => !p.isColor).length;
+      const colorPages = state.pages.filter(p => p.isColor).length;
+
+      const isDuplex = state.settings.printSide === 'duplex';
+      const totalSheets = isDuplex ? Math.ceil(totalPages / 2) : totalPages;
+
+      const priceBW = Math.max(0, Number(state.settings.priceBW) || 0);
+      const priceColor = Math.max(0, Number(state.settings.priceColor) || 0);
+      const paperExtra = Math.max(0, Number(state.settings.paperExtra) || 0);
+      const bindingCost = Math.max(0, Number(state.settings.bindingCost) || 0);
+      const copies = Math.max(1, parseInt(state.settings.copies, 10) || 1);
+      const discountPct = Math.min(100, Math.max(0, Number(state.settings.discount) || 0));
+
+      const subtotalBW = bwPages * priceBW;
+      const subtotalColor = colorPages * priceColor;
+      const subtotalPaper = totalSheets * paperExtra;
+      const subtotalBinding = totalPages > 0 ? bindingCost : 0;
+
+      const perSetBeforeDiscount = subtotalBW + subtotalColor + subtotalPaper + subtotalBinding;
+      const totalBeforeDiscount = perSetBeforeDiscount * copies;
+      const discountAmount = Math.round(totalBeforeDiscount * (discountPct / 100));
+      const grandTotal = Math.max(0, totalBeforeDiscount - discountAmount);
+      const perSetFinal = copies > 0 ? Math.round(grandTotal / copies) : 0;
+
+      return {
+        totalPages,
+        bwPages,
+        colorPages,
+        isDuplex,
+        totalSheets,
+        priceBW,
+        priceColor,
+        paperExtra,
+        bindingCost: subtotalBinding,
+        copies,
+        discountPct,
+        subtotalBW,
+        subtotalColor,
+        subtotalPaper,
+        totalBeforeDiscount,
+        discountAmount,
+        grandTotal,
+        perSetFinal
+      };
+    }
+
+    /**
+     * Update Summary Cards, Tab Counts, and Button Labels
+     */
+    function updateUI() {
+      const calc = calculateBilling();
+
+      // Top 4 Cards
+      el.statTotalPages.textContent = `${calc.totalPages} Hal`;
+      el.statTotalSheets.textContent = `${calc.totalSheets} Lembar (${calc.isDuplex ? 'Duplex' : 'Simplex'})`;
+
+      el.statBWPages.textContent = `${calc.bwPages} Hal`;
+      el.statBWSubtotal.textContent = `Subtotal: ${formatRupiah(calc.subtotalBW)}`;
+
+      el.statColorPages.textContent = `${calc.colorPages} Hal`;
+      el.statColorSubtotal.textContent = `Subtotal: ${formatRupiah(calc.subtotalColor)}`;
+
+      el.statGrandTotal.textContent = formatRupiah(calc.grandTotal);
+      el.statPerSet.textContent = `${calc.copies} Set • ${formatRupiah(calc.perSetFinal)}/set`;
+
+      if (calc.subtotalPaper > 0 || calc.bindingCost > 0) {
+        el.statExtraBadge.classList.remove('hidden');
+      } else {
+        el.statExtraBadge.classList.add('hidden');
+      }
+
+      // Tab Counters
+      el.tabCountAll.textContent = calc.totalPages;
+      el.tabCountBW.textContent = calc.bwPages;
+      el.tabCountColor.textContent = calc.colorPages;
+
+      // Active Tab Styling & Labels
+      el.tabButtons.forEach(btn => {
+        const isActive = btn.dataset.tab === state.activeTab;
+        if (isActive) {
+          btn.className = 'tab-btn active px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-cyan-500 text-slate-950 shadow cursor-pointer';
+        } else {
+          btn.className = 'tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 bg-slate-850 text-slate-300 hover:bg-slate-800 border border-slate-700/70 cursor-pointer';
         }
-        
-        // --- Form & UI Functions ---
-        function loadRecord(index) {
-            if (index >= 0 && index < filteredData.length) {
-                const data = filteredData[index];
-                // Cari index asli di data utama
-                const originalIndex = pesananData.findIndex(p => p.noPesanan === data.noPesanan);
-                if (originalIndex === -1) return;
+      });
 
-                currentIndex = originalIndex;
+      if (state.activeTab === 'all') {
+        el.viewStatusLabel.textContent = `Menampilkan: Semua Dokumen (${calc.totalPages} Hal)`;
+        el.lblDirectPrintBtn.textContent = `PRINT DOKUMEN PDF (SEMUA - ${calc.totalPages} HAL)`;
+      } else if (state.activeTab === 'bw') {
+        el.viewStatusLabel.textContent = `Menampilkan: File Dokumen Hitam Putih (${calc.bwPages} Hal)`;
+        el.lblDirectPrintBtn.textContent = `PRINT DOKUMEN B/W SAJA (${calc.bwPages} HAL)`;
+      } else if (state.activeTab === 'color') {
+        el.viewStatusLabel.textContent = `Menampilkan: File Dokumen Berwarna (${calc.colorPages} Hal)`;
+        el.lblDirectPrintBtn.textContent = `PRINT DOKUMEN WARNA SAJA (${calc.colorPages} HAL)`;
+      } else {
+        el.viewStatusLabel.textContent = `Mode Atur Manual Per Halaman (${calc.totalPages} Hal)`;
+        el.lblDirectPrintBtn.textContent = `PRINT DOKUMEN PDF (SEMUA - ${calc.totalPages} HAL)`;
+      }
 
-                document.getElementById('noPesanan').value = data.noPesanan;
-                document.getElementById('namaPesanan').value = data.namaPesanan;
-                document.getElementById('jumlah').value = data.jumlah;
-                document.getElementById('tanggalAmbil').value = data.tanggalAmbil;
-                document.getElementById('status').value = data.status;
-                document.getElementById('keteranganProses').value = data.keteranganProses;
-                
-                originalData = {...data};
-                
-                updateRecordCounter();
-            }
-        }
+      el.lblZoomLevel.textContent = `${Math.round(state.zoomScale * 100)}%`;
+    }
 
-        function updateRecordCounter() {
-            const total = pesananData.length;
-            const current = total > 0 ? currentIndex + 1 : 0;
-            document.getElementById('currentRecord').textContent = current;
-            document.getElementById('totalRecords').textContent = total;
-        }
+    /**
+     * Render Document Preview Viewport according to activeTab and zoomScale
+     */
+    function renderPreviewViewport() {
+      updateUI();
 
-        // --- Navigation functions ---
-        function firstRecord() {
-            if (pesananData.length === 0) return;
-            currentIndex = 0;
-            loadRecord(0); // Load based on filtered data index
-            showNotification("Navigasi ke record pertama", "info");
-        }
+      if (state.pages.length === 0) {
+        el.emptyDropZone.classList.remove('hidden');
+        el.pagesListWrapper.classList.add('hidden');
+        el.pagesGridWrapper.classList.add('hidden');
+        return;
+      }
 
-        function previousRecord() {
-            if (currentIndex > 0) {
-                currentIndex--;
-                loadRecordBasedOnCurrentIndex();
-                showNotification("Navigasi ke record sebelumnya", "info");
-            } else {
-                showNotification("Sudah di record pertama", "warning");
-            }
-        }
+      el.emptyDropZone.classList.add('hidden');
 
-        function nextRecord() {
-            if (currentIndex < pesananData.length - 1) {
-                currentIndex++;
-                loadRecordBasedOnCurrentIndex();
-                showNotification("Navigasi ke record selanjutnya", "info");
-            } else {
-                showNotification("Sudah di record terakhir", "warning");
-            }
-        }
+      // Grid / Manual Override View
+      if (state.activeTab === 'grid') {
+        el.pagesListWrapper.classList.add('hidden');
+        el.pagesGridWrapper.classList.remove('hidden');
+        el.pagesGridWrapper.innerHTML = '';
 
-        function lastRecord() {
-            if (pesananData.length === 0) return;
-            currentIndex = pesananData.length - 1;
-            loadRecordBasedOnCurrentIndex();
-            showNotification("Navigasi ke record terakhir", "info");
-        }
-        
-        function loadRecordBasedOnCurrentIndex(){
-            const currentNoPesanan = pesananData[currentIndex].noPesanan;
-            const filteredIndex = filteredData.findIndex(p => p.noPesanan === currentNoPesanan);
-            if(filteredIndex !== -1){
-                loadRecord(filteredIndex);
-            } else {
-                // Jika record tidak ada di filter, clear search dan load
-                clearSearch();
-                loadRecord(currentIndex);
-            }
-        }
+        state.pages.forEach((page, idx) => {
+          const card = document.createElement('div');
+          card.className = `bg-slate-900 border ${page.isColor ? 'border-cyan-500/50' : 'border-slate-700'} rounded-xl p-2.5 flex flex-col items-center gap-2 shadow-md transition`;
 
-        // --- Data control functions ---
-        function undoRecord() {
-            if (originalData.noPesanan) {
-                loadRecord(currentIndex); // Cukup load ulang data asli
-                showNotification("Data dikembalikan ke kondisi semula", "success");
-            }
-        }
-
-        function saveRecord() {
-            const noPesanan = document.getElementById('noPesanan').value.trim();
-            const namaPesanan = document.getElementById('namaPesanan').value.trim();
-
-            if (!noPesanan || !namaPesanan) {
-                showNotification("Mohon lengkapi No Pesanan dan Nama Pesanan", "error");
-                return;
-            }
-            
-            const data = {
-                noPesanan: noPesanan,
-                namaPesanan: namaPesanan,
-                jumlah: parseInt(document.getElementById('jumlah').value) || 0,
-                tanggalAmbil: document.getElementById('tanggalAmbil').value,
-                status: document.getElementById('status').value,
-                keteranganProses: document.getElementById('keteranganProses').value
-            };
-            
-            const existingIndex = pesananData.findIndex(p => p.noPesanan === data.noPesanan);
-
-            if (existingIndex !== -1) {
-                // Update
-                pesananData[existingIndex] = data;
-                showNotification(`Data untuk ${data.noPesanan} berhasil diperbarui`, "success");
-            } else {
-                // Add new
-                pesananData.push(data);
-                currentIndex = pesananData.length - 1;
-                showNotification(`Data baru ${data.noPesanan} berhasil disimpan`, "success");
-            }
-            
-            persistData();
-            refreshTable();
-            loadRecord(filteredData.findIndex(p => p.noPesanan === data.noPesanan));
-        }
-
-        function newRecord() {
-            document.getElementById('noPesanan').value = '';
-            document.getElementById('namaPesanan').value = '';
-            document.getElementById('jumlah').value = '';
-            document.getElementById('tanggalAmbil').value = new Date().toISOString().split('T')[0];
-            document.getElementById('status').value = 'BLM PROSES';
-            document.getElementById('keteranganProses').value = '';
-            
-            let lastNum = 0;
-            pesananData.forEach(p => {
-                const num = parseInt(p.noPesanan.replace('PSN', ''));
-                if (!isNaN(num) && num > lastNum) lastNum = num;
-            });
-
-            const newNo = "PSN" + String(lastNum + 1).padStart(3, '0');
-            document.getElementById('noPesanan').value = newNo;
-            
-            currentIndex = -1; // Indicate new record
-            originalData = {}; // Kosongkan data asli
-            updateRecordCounter();
-            showNotification("Form siap untuk record baru", "info");
-        }
-
-        function deleteRecord() {
-            if (currentIndex < 0 || currentIndex >= pesananData.length) {
-                showNotification("Pilih record yang ingin dihapus terlebih dahulu", "warning");
-                return;
-            }
-            
-            const noPesananToDelete = pesananData[currentIndex].noPesanan;
-            if (confirm(`Apakah Anda yakin ingin menghapus pesanan ${noPesananToDelete}?`)) {
-                // Step 1: Hapus data dari array utama
-                pesananData.splice(currentIndex, 1);
-                
-                // Step 2: Simpan perubahan ke localStorage
-                persistData();
-                
-                // Step 3: Sesuaikan index jika item terakhir dihapus
-                if (currentIndex >= pesananData.length) {
-                    currentIndex = pesananData.length - 1; // Pindah ke item terakhir yang baru, atau menjadi -1 jika kosong
-                }
-                
-                // Step 4: Refresh tabel untuk menampilkan data terbaru (sesuai filter)
-                refreshTable();
-                
-                // Step 5: Muat record yang benar ke dalam form, atau kosongkan form
-                if (pesananData.length > 0) {
-                    // Coba muat record yang sekarang ada di currentIndex
-                    const recordToDisplay = pesananData[currentIndex];
-                    // Temukan posisinya di daftar yang sedang ditampilkan (yang mungkin difilter)
-                    const displayIndex = filteredData.findIndex(p => p.noPesanan === recordToDisplay.noPesanan);
-
-                    if (displayIndex !== -1) {
-                        // Jika recordnya terlihat di tabel, muat ke form
-                        loadRecord(displayIndex);
-                    } else {
-                        // Jika record tidak terlihat (karena filter), kosongkan form
-                        newRecord();
-                    }
-                } else {
-                    // Jika tidak ada data tersisa, siapkan form untuk data baru
-                    newRecord();
-                }
-
-                showNotification(`Pesanan ${noPesananToDelete} berhasil dihapus`, "success");
-            }
-        }
-
-        // --- Table & Search Functions ---
-        function refreshTable() {
-            searchData();
-        }
-
-        function searchData() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const searchFilter = document.getElementById('searchFilter').value;
-            
-            if (!searchTerm) {
-                filteredData = [...pesananData];
-                document.getElementById('searchInfo').classList.add('hidden');
-            } else {
-                filteredData = pesananData.filter(data => {
-                    if (searchFilter === 'all') {
-                        return Object.values(data).some(value => value.toString().toLowerCase().includes(searchTerm));
-                    } else {
-                        return data[searchFilter].toString().toLowerCase().includes(searchTerm);
-                    }
-                });
-                
-                const searchInfo = document.getElementById('searchInfo');
-                const searchResults = document.getElementById('searchResults');
-                searchInfo.classList.remove('hidden');
-                searchResults.textContent = `Ditemukan ${filteredData.length} hasil untuk "${searchTerm}"`;
-            }
-            
-            renderTable();
-        }
-
-        function clearSearch() {
-            document.getElementById('searchInput').value = '';
-            document.getElementById('searchFilter').value = 'all';
-            refreshTable();
-            showNotification("Pencarian dibersihkan", "info");
-        }
-
-        function renderTable() {
-            const tbody = document.getElementById('dataTable');
-            tbody.innerHTML = '';
-
-            if (filteredData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="border border-gray-300 px-4 py-8 text-center text-gray-500"><div class="flex flex-col items-center gap-2"><svg class="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.47-.881-6.08-2.33"></path></svg><span class="text-lg font-medium">Tidak ada data yang ditemukan</span></div></td></tr>`;
-                updateRecordCounter();
-                return;
-            }
-
-            filteredData.forEach((data, index) => {
-                const statusClass = { 'BLM PROSES': 'bg-red-100 text-red-800', 'PROSES': 'bg-yellow-100 text-yellow-800', 'CETAK': 'bg-blue-100 text-blue-800', 'FINISHING': 'bg-purple-100 text-purple-800', 'SELESAI': 'bg-green-100 text-green-800' };
-                const row = document.createElement('tr');
-                row.className = 'hover:bg-blue-50 transition-colors cursor-pointer';
-                row.onclick = () => loadRecord(index);
-                row.innerHTML = `<td class="border border-gray-300 px-4 py-3">${data.noPesanan}</td><td class="border border-gray-300 px-4 py-3">${data.namaPesanan}</td><td class="border border-gray-300 px-4 py-3">${data.jumlah}</td><td class="border border-gray-300 px-4 py-3">${data.tanggalAmbil}</td><td class="border border-gray-300 px-4 py-3"><span class="${statusClass[data.status]} px-2 py-1 rounded-full text-sm font-medium">${data.status}</span></td><td class="border border-gray-300 px-4 py-3">${data.keteranganProses}</td>`;
-                tbody.appendChild(row);
-            });
-            updateRecordCounter();
-        }
-
-        // --- Database Management ---
-        function downloadDatabase() {
-            if (pesananData.length === 0) {
-                showNotification("Database kosong, tidak ada yang bisa di-download.", "warning");
-                return;
-            }
-            const dataStr = JSON.stringify(pesananData, null, 2);
-            const dataBlob = new Blob([dataStr], { type: 'application/json' });
-            const url = URL.createObjectURL(dataBlob);
-            const link = document.createElement('a');
-            link.href = url;
-            const date = new Date().toISOString().split('T')[0];
-            link.download = `pesanan_backup_${date}.json`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-            showNotification("Database berhasil di-download!", "success");
-        }
-
-        function uploadDatabase() {
-            document.getElementById('importFile').click();
-        }
-
-        function handleFileUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                if (confirm('Ini akan menimpa semua data saat ini dengan data dari file. Lanjutkan?')) {
-                    try {
-                        const importedData = JSON.parse(e.target.result);
-                        if (Array.isArray(importedData)) {
-                            pesananData = importedData;
-                            persistData();
-                            init();
-                            showNotification('Database berhasil di-upload dan dipulihkan!', "success");
-                        } else {
-                            showNotification('File tidak valid. Data harus berupa array.', "error");
-                        }
-                    } catch (error) {
-                        showNotification('Gagal memproses file. Pastikan format JSON benar.', "error");
-                    }
-                }
-            };
-            reader.readAsText(file);
-            event.target.value = null;
-        }
-
-        // --- Notification system ---
-        function showNotification(message, type) {
-            const notification = document.createElement('div');
-            const colors = { success: 'bg-green-500', error: 'bg-red-500', warning: 'bg-yellow-500', info: 'bg-blue-500' };
-            notification.className = `fixed top-4 right-4 ${colors[type]} text-white px-6 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300`;
-            notification.textContent = message;
-            document.body.appendChild(notification);
-            setTimeout(() => { notification.style.transform = 'translateX(120%)'; setTimeout(() => { if (notification.parentNode) notification.parentNode.removeChild(notification); }, 300); }, 3000);
-        }
-        
-        // --- Initialize ---
-        function init() {
-            loadFromLocalStorage();
-            renderTable();
-            if (pesananData.length > 0) {
-                loadRecord(0);
-            } else {
-                newRecord();
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            init();
-            document.getElementById('searchInput').addEventListener('input', searchData);
-            document.getElementById('searchFilter').addEventListener('change', searchData);
-            document.getElementById('searchInput').addEventListener('keypress', e => { if (e.key === 'Enter') searchData(); });
-            showNotification("Sistem Manajemen Pesanan siap digunakan!", "success");
+          card.innerHTML = `
+            <div class="w-full flex items-center justify-between text-[11px]">
+              <span class="font-bold text-slate-300">Hal ${page.pageNumber}</span>
+              <span class="px-2 py-0.5 rounded-full font-bold text-[10px] ${page.isColor ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' : 'bg-slate-800 text-slate-300 border border-slate-600'}">
+                ${page.isColor ? 'COLOR' : 'B/W'}
+              </span>
+            </div>
+            <div class="w-full aspect-[3/4] bg-white rounded-lg overflow-hidden flex items-center justify-center border border-slate-700">
+              <img src="${page.previewDataUrl}" alt="Halaman ${page.pageNumber}" class="max-w-full max-h-full object-contain" />
+            </div>
+            <button type="button" data-page-index="${idx}"
+              class="btn-toggle-page-type w-full py-1.5 px-2 rounded-lg text-[11px] font-bold transition cursor-pointer ${
+                page.isColor
+                  ? 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600'
+                  : 'bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 border border-cyan-500/40'
+              }">
+              Ubah ke ${page.isColor ? 'B/W' : 'Color'}
+            </button>
+          `;
+          el.pagesGridWrapper.appendChild(card);
         });
-    </script>
+
+        // Attach toggle events
+        el.pagesGridWrapper.querySelectorAll('.btn-toggle-page-type').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const idx = Number(btn.dataset.pageIndex);
+            state.pages[idx].isColor = !state.pages[idx].isColor;
+            renderPreviewViewport();
+            showToast(`Halaman ${state.pages[idx].pageNumber} diubah ke ${state.pages[idx].isColor ? 'BERWARNA' : 'HITAM PUTIH'}`, '🔄');
+          });
+        });
+
+        return;
+      }
+
+      // Filtered Document View ('all', 'bw', or 'color')
+      el.pagesGridWrapper.classList.add('hidden');
+      el.pagesListWrapper.classList.remove('hidden');
+      el.pagesListWrapper.innerHTML = '';
+
+      const filteredPages = state.pages.filter(p => {
+        if (state.activeTab === 'bw') return !p.isColor;
+        if (state.activeTab === 'color') return p.isColor;
+        return true;
+      });
+
+      if (filteredPages.length === 0) {
+        el.pagesListWrapper.innerHTML = `
+          <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 text-center max-w-md mt-8">
+            <p class="text-sm font-bold text-slate-200">Tidak ada halaman pada kategori ini</p>
+            <p class="text-xs text-slate-400 mt-1">
+              ${state.activeTab === 'bw'
+                ? 'Semua halaman pada PDF ini terdeteksi berwarna (Color).'
+                : 'Semua halaman pada PDF ini terdeteksi hitam putih (B/W).'}
+            </p>
+          </div>
+        `;
+        return;
+      }
+
+      const baseWidth = Math.min(820, Math.max(300, el.previewContainer.clientWidth - 48));
+      const targetWidth = Math.round(baseWidth * state.zoomScale);
+
+      filteredPages.forEach(page => {
+        const wrapper = document.createElement('div');
+        wrapper.style.width = `${targetWidth}px`;
+        wrapper.style.maxWidth = '100%';
+        wrapper.className = 'bg-white rounded-sm shadow-2xl overflow-hidden relative group border border-slate-700/60';
+
+        wrapper.innerHTML = `
+          <div class="absolute top-2.5 right-2.5 z-10 flex items-center gap-1.5 opacity-90 group-hover:opacity-100 transition">
+            <span class="px-2.5 py-1 rounded-md text-[11px] font-extrabold shadow ${
+              page.isColor
+                ? 'bg-cyan-600 text-white'
+                : 'bg-slate-900 text-slate-100'
+            }">
+              Hal ${page.pageNumber} • ${page.isColor ? 'COLOR' : 'B/W'}
+            </span>
+          </div>
+          <img src="${page.previewDataUrl}" alt="Halaman ${page.pageNumber}" class="w-full h-auto block select-none" />
+        `;
+        el.pagesListWrapper.appendChild(wrapper);
+      });
+    }
+
+    /**
+     * Process an uploaded or generated PDF ArrayBuffer:
+     * 1. Load into PDF.js
+     * 2. Render each page to canvas for preview + analyze pixel RGB chroma
+     */
+    async function processPdfBytes(arrayBuffer, fileName) {
+      try {
+        el.loadingOverlay.classList.remove('hidden');
+        el.loadingTitle.textContent = 'Membaca Dokumen PDF...';
+        el.loadingSubtitle.textContent = fileName;
+        el.loadingProgressBar.style.width = '5%';
+
+        const uint8Copy = new Uint8Array(arrayBuffer.slice(0));
+        state.pdfBytes = uint8Copy;
+        state.fileName = fileName;
+        el.selectedFileName.textContent = fileName;
+        el.selectedFileName.title = fileName;
+
+        const loadingTask = pdfjsLib.getDocument({ data: uint8Copy.slice(0) });
+        const pdfDoc = await loadingTask.promise;
+        state.pdfDocJs = pdfDoc;
+
+        const numPages = pdfDoc.numPages;
+        const analyzedPages = [];
+
+        // Reusable offscreen canvas
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+        for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+          const pct = Math.round((pageNum / numPages) * 100);
+          el.loadingTitle.textContent = `Menganalisis Halaman ${pageNum} dari ${numPages}...`;
+          el.loadingProgressBar.style.width = `${pct}%`;
+
+          const page = await pdfDoc.getPage(pageNum);
+          const unscaledViewport = page.getViewport({ scale: 1.0 });
+
+          // Render at good readable width (~900px) so preview looks crisp while staying fast
+          const targetPreviewWidth = 900;
+          const renderScale = Math.min(2.0, Math.max(0.8, targetPreviewWidth / unscaledViewport.width));
+          const viewport = page.getViewport({ scale: renderScale });
+
+          canvas.width = Math.floor(viewport.width);
+          canvas.height = Math.floor(viewport.height);
+
+          // Fill white background first (important for transparent PDFs)
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+          await page.render({
+            canvasContext: ctx,
+            viewport: viewport
+          }).promise;
+
+          // Analyze pixel colors (sample every 2nd pixel for high speed + high accuracy)
+          const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+          let sampledPixels = 0;
+          let countDiff15 = 0;
+          let countDiff25 = 0;
+          let countDiff30 = 0;
+          let countDiff35 = 0;
+
+          const step = 8; // 2 pixels * 4 channels
+          for (let i = 0; i < imgData.length; i += step) {
+            const r = imgData[i];
+            const g = imgData[i + 1];
+            const b = imgData[i + 2];
+            sampledPixels++;
+
+            // Skip near-pure white & near-pure black
+            if ((r > 246 && g > 246 && b > 246) || (r < 14 && g < 14 && b < 14)) {
+              continue;
+            }
+
+            const diffRG = Math.abs(r - g);
+            const diffGB = Math.abs(g - b);
+            const diffRB = Math.abs(r - b);
+            const maxDiff = Math.max(diffRG, diffGB, diffRB);
+
+            if (maxDiff >= 15) countDiff15++;
+            if (maxDiff >= 25) countDiff25++;
+            if (maxDiff >= 30) countDiff30++;
+            if (maxDiff >= 35) countDiff35++;
+          }
+
+          const denom = Math.max(1, sampledPixels);
+          const pageInfo = {
+            pageNumber: pageNum,
+            width: unscaledViewport.width,
+            height: unscaledViewport.height,
+            ratioDiff15: countDiff15 / denom,
+            ratioDiff25: countDiff25 / denom,
+            ratioDiff30: countDiff30 / denom,
+            ratioDiff35: countDiff35 / denom,
+            isColor: false,
+            previewDataUrl: canvas.toDataURL('image/jpeg', 0.85)
+          };
+
+          pageInfo.isColor = evaluatePageIsColor(pageInfo, state.settings.tolerance);
+          analyzedPages.push(pageInfo);
+        }
+
+        state.pages = analyzedPages;
+        state.activeTab = 'all';
+        renderPreviewViewport();
+
+        const bwCount = analyzedPages.filter(p => !p.isColor).length;
+        const colorCount = analyzedPages.filter(p => p.isColor).length;
+        showToast(`Selesai! ${numPages} hal (${colorCount} Warna, ${bwCount} B/W)`, '📄');
+      } catch (err) {
+        console.error('Error processing PDF:', err);
+        showToast('Gagal membaca file PDF. Pastikan file tidak terenkripsi password.', '⚠️');
+      } finally {
+        el.loadingOverlay.classList.add('hidden');
+      }
+    }
+
+    /**
+     * Build a filtered PDF Uint8Array using pdf-lib ('all' | 'bw' | 'color')
+     */
+    async function buildFilteredPdfBytes(filterType) {
+      if (!state.pdfBytes || state.pages.length === 0) return null;
+
+      const targetIndices = state.pages
+        .filter(p => {
+          if (filterType === 'bw') return !p.isColor;
+          if (filterType === 'color') return p.isColor;
+          return true;
+        })
+        .map(p => p.pageNumber - 1);
+
+      if (targetIndices.length === 0) return null;
+
+      const srcDoc = await PDFLib.PDFDocument.load(state.pdfBytes);
+      const outDoc = await PDFLib.PDFDocument.create();
+      const copiedPages = await outDoc.copyPages(srcDoc, targetIndices);
+      copiedPages.forEach(page => outDoc.addPage(page));
+
+      return await outDoc.save();
+    }
+
+    /**
+     * Trigger browser download of a Uint8Array PDF
+     */
+    function triggerBlobDownload(bytes, filename, mimeType = 'application/pdf') {
+      const blob = new Blob([bytes], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+    }
+
+    /**
+     * Direct Print PDF directly from the application (All, B/W only, or Color only)
+     */
+    async function directPrintFilteredPdf(filterType) {
+      if (!state.pdfBytes || state.pages.length === 0) {
+        showToast('Silakan pilih file PDF terlebih dahulu!', '⚠️');
+        return;
+      }
+
+      const mode = filterType === 'grid' ? 'all' : filterType;
+      const pdfBytes = await buildFilteredPdfBytes(mode);
+      if (!pdfBytes) {
+        showToast('Tidak ada halaman pada kategori yang dipilih untuk diprint.', '⚠️');
+        return;
+      }
+
+      showToast('Menyiapkan dialog print printer...', '🖨️');
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+      const blobUrl = URL.createObjectURL(blob);
+
+      const iframe = el.hiddenPrintIframe;
+      iframe.src = blobUrl;
+      iframe.onload = () => {
+        try {
+          iframe.contentWindow.focus();
+          iframe.contentWindow.print();
+        } catch (err) {
+          // Fallback if sandbox blocks iframe print
+          window.open(blobUrl, '_blank');
+        }
+      };
+    }
+
+    /**
+     * Split & Download separated B/W PDF and Color PDF
+     */
+    async function splitAndDownloadPdfs() {
+      if (!state.pdfBytes || state.pages.length === 0) {
+        showToast('Silakan pilih file PDF terlebih dahulu!', '⚠️');
+        return;
+      }
+
+      const baseName = state.fileName.replace(/\.pdf$/i, '') || 'Dokumen';
+      const bwBytes = await buildFilteredPdfBytes('bw');
+      const colorBytes = await buildFilteredPdfBytes('color');
+
+      if (!bwBytes && !colorBytes) {
+        showToast('Tidak ada halaman yang dapat dipisahkan.', '⚠️');
+        return;
+      }
+
+      let msgParts = [];
+      if (bwBytes) {
+        triggerBlobDownload(bwBytes, `${baseName}_HITAM_PUTIH.pdf`);
+        msgParts.push('B/W');
+      }
+      if (colorBytes) {
+        setTimeout(() => {
+          triggerBlobDownload(colorBytes, `${baseName}_WARNA.pdf`);
+        }, 400);
+        msgParts.push('Warna');
+      }
+
+      showToast(`Mengunduh file PDF terpisah (${msgParts.join(' & ')})...`, '✂️');
+    }
+
+    /**
+     * Populate Receipt HTML & Open Print Modal
+     */
+    function openReceiptPreviewModal() {
+      const calc = calculateBilling();
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('id-ID', {
+        day: '2-digit', month: 'short', year: 'numeric'
+      }) + ' ' + now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+      const paperLabel = el.selectPaperType.options[el.selectPaperType.selectedIndex]?.dataset?.name || 'Standar';
+      const bindingLabel = el.selectBinding.options[el.selectBinding.selectedIndex]?.dataset?.name || 'Tanpa Jilid';
+      const docName = state.fileName || 'Dokumen PDF';
+
+      el.printReceiptContainer.innerHTML = `
+        <div style="text-align:center; border-bottom: 1px dashed #333; padding-bottom: 8px; margin-bottom: 10px;">
+          <div style="font-size: 14px; font-weight: 800; letter-spacing: 0.5px;">${escapeHtml(state.settings.shopName)}</div>
+          <div style="font-size: 11px; color: #444;">NOTA KALKULASI CETAK DOKUMEN</div>
+          <div style="font-size: 10px; color: #666; margin-top: 2px;">${dateStr}</div>
+        </div>
+
+        <div style="margin-bottom: 8px; font-size: 11px;">
+          <div><strong>Pelanggan:</strong> ${escapeHtml(state.settings.customerName || 'Umum')}</div>
+          <div style="word-break: break-all;"><strong>File:</strong> ${escapeHtml(docName)}</div>
+          <div><strong>Opsi Cetak:</strong> ${calc.isDuplex ? 'Bolak-Balik (Duplex)' : '1 Sisi (Simplex)'} • ${escapeHtml(paperLabel)}</div>
+        </div>
+
+        <table style="width: 100%; border-collapse: collapse; border-top: 1px dashed #333; border-bottom: 1px dashed #333; margin: 8px 0; font-size: 11px;">
+          <thead>
+            <tr style="border-bottom: 1px solid #ccc; text-align: left;">
+              <th style="padding: 5px 0;">Rincian</th>
+              <th style="padding: 5px 4px; text-align: right;">Qty x Tarif</th>
+              <th style="padding: 5px 0; text-align: right;">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding: 4px 0;">Hitam Putih (B/W)</td>
+              <td style="padding: 4px 4px; text-align: right;">${calc.bwPages} x ${formatRupiah(calc.priceBW)}</td>
+              <td style="padding: 4px 0; text-align: right;">${formatRupiah(calc.subtotalBW)}</td>
+            </tr>
+            <tr>
+              <td style="padding: 4px 0;">Berwarna (Color)</td>
+              <td style="padding: 4px 4px; text-align: right;">${calc.colorPages} x ${formatRupiah(calc.priceColor)}</td>
+              <td style="padding: 4px 0; text-align: right;">${formatRupiah(calc.subtotalColor)}</td>
+            </tr>
+            ${calc.subtotalPaper > 0 ? `
+            <tr>
+              <td style="padding: 4px 0;">Tambahan Kertas</td>
+              <td style="padding: 4px 4px; text-align: right;">${calc.totalSheets} lbr x ${formatRupiah(calc.paperExtra)}</td>
+              <td style="padding: 4px 0; text-align: right;">${formatRupiah(calc.subtotalPaper)}</td>
+            </tr>` : ''}
+            ${calc.bindingCost > 0 ? `
+            <tr>
+              <td style="padding: 4px 0;">${escapeHtml(bindingLabel)}</td>
+              <td style="padding: 4px 4px; text-align: right;">1 x ${formatRupiah(calc.bindingCost)}</td>
+              <td style="padding: 4px 0; text-align: right;">${formatRupiah(calc.bindingCost)}</td>
+            </tr>` : ''}
+          </tbody>
+        </table>
+
+        <div style="font-size: 11px; space-y: 3px;">
+          <div style="display:flex; justify-content:space-between; margin-bottom: 3px;">
+            <span>Total Halaman / Lembar:</span>
+            <span><strong>${calc.totalPages} Hal / ${calc.totalSheets} Lbr</strong></span>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-bottom: 3px;">
+            <span>Jumlah Eksemplar:</span>
+            <span><strong>${calc.copies} Set</strong> (${formatRupiah(calc.perSetFinal)}/set)</span>
+          </div>
+          ${calc.discountPct > 0 ? `
+          <div style="display:flex; justify-content:space-between; margin-bottom: 3px; color: #b91c1c;">
+            <span>Diskon (${calc.discountPct}%):</span>
+            <span>-${formatRupiah(calc.discountAmount)}</span>
+          </div>` : ''}
+          <div style="display:flex; justify-content:space-between; font-size: 14px; font-weight: 800; border-top: 1px solid #111; padding-top: 6px; margin-top: 6px;">
+            <span>GRAND TOTAL:</span>
+            <span>${formatRupiah(calc.grandTotal)}</span>
+          </div>
+        </div>
+
+        <div style="text-align:center; margin-top: 12px; font-size: 10px; color: #555;">
+          Terima kasih atas kepercayaan Anda!
+        </div>
+      `;
+
+      el.receiptModal.classList.remove('hidden');
+    }
+
+    /**
+     * Generate & Download Official Cost Report PDF using pdf-lib
+     */
+    async function generateAndDownloadReportPdf() {
+      const calc = calculateBilling();
+      const doc = await PDFLib.PDFDocument.create();
+      const page = doc.addPage([595.28, 841.89]); // A4
+      const fontRegular = await doc.embedFont(PDFLib.StandardFonts.Helvetica);
+      const fontBold = await doc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+
+      const { height } = page.getSize();
+      let y = height - 55;
+
+      const drawText = (text, x, yPos, size = 11, bold = false, color = PDFLib.rgb(0.1, 0.12, 0.18)) => {
+        page.drawText(String(text), {
+          x,
+          y: yPos,
+          size,
+          font: bold ? fontBold : fontRegular,
+          color
+        });
+      };
+
+      // Header Banner
+      page.drawRectangle({
+        x: 45,
+        y: y - 15,
+        width: 505,
+        height: 48,
+        color: PDFLib.rgb(0.06, 0.09, 0.16)
+      });
+      drawText(state.settings.shopName.toUpperCase(), 60, y + 10, 14, true, PDFLib.rgb(0.13, 0.83, 0.93));
+      drawText('LAPORAN RINCIAN BIAYA CETAK DOKUMEN PDF', 60, y - 6, 9, false, PDFLib.rgb(0.85, 0.9, 0.95));
+
+      y -= 45;
+      const nowStr = new Date().toLocaleString('id-ID');
+      drawText(`Tanggal Cetak  : ${nowStr}`, 50, y, 10);
+      y -= 16;
+      drawText(`Nama Pelanggan : ${state.settings.customerName}`, 50, y, 10);
+      y -= 16;
+      drawText(`Nama File PDF  : ${state.fileName || 'Belum ada file'}`, 50, y, 10);
+      y -= 16;
+      drawText(`Mode Cetak     : ${calc.isDuplex ? 'Bolak-Balik (Duplex)' : '1 Sisi (Simplex)'} | ${calc.copies} Eksemplar`, 50, y, 10);
+
+      y -= 30;
+      page.drawLine({ start: { x: 50, y }, end: { x: 545, y }, thickness: 1, color: PDFLib.rgb(0.7, 0.75, 0.8) });
+      y -= 18;
+      drawText('KOMPONEN BIAYA', 50, y, 10, true);
+      drawText('VOLUME & TARIF', 280, y, 10, true);
+      drawText('SUBTOTAL', 465, y, 10, true);
+      y -= 10;
+      page.drawLine({ start: { x: 50, y }, end: { x: 545, y }, thickness: 1, color: PDFLib.rgb(0.7, 0.75, 0.8) });
+
+      const rows = [
+        ['Halaman Hitam Putih (B/W)', `${calc.bwPages} hal x ${formatRupiah(calc.priceBW)}`, formatRupiah(calc.subtotalBW)],
+        ['Halaman Berwarna (Color)', `${calc.colorPages} hal x ${formatRupiah(calc.priceColor)}`, formatRupiah(calc.subtotalColor)],
+        ['Tambahan Jenis Kertas', `${calc.totalSheets} lbr x ${formatRupiah(calc.paperExtra)}`, formatRupiah(calc.subtotalPaper)],
+        ['Biaya Jilid / Finishing', `1 paket x ${formatRupiah(calc.bindingCost)}`, formatRupiah(calc.bindingCost)]
+      ];
+
+      rows.forEach(r => {
+        y -= 22;
+        drawText(r[0], 50, y, 10);
+        drawText(r[1], 280, y, 10);
+        drawText(r[2], 465, y, 10, true);
+      });
+
+      y -= 20;
+      page.drawLine({ start: { x: 50, y }, end: { x: 545, y }, thickness: 1, color: PDFLib.rgb(0.7, 0.75, 0.8) });
+
+      y -= 22;
+      drawText(`Biaya per Set (1 Eksemplar):`, 280, y, 10);
+      drawText(formatRupiah(calc.perSetFinal), 465, y, 10, true);
+
+      y -= 18;
+      drawText(`Jumlah Eksemplar:`, 280, y, 10);
+      drawText(`${calc.copies} Set`, 465, y, 10, true);
+
+      if (calc.discountPct > 0) {
+        y -= 18;
+        drawText(`Diskon (${calc.discountPct}%):`, 280, y, 10, false, PDFLib.rgb(0.8, 0.1, 0.1));
+        drawText(`-${formatRupiah(calc.discountAmount)}`, 465, y, 10, true, PDFLib.rgb(0.8, 0.1, 0.1));
+      }
+
+      y -= 28;
+      page.drawRectangle({
+        x: 270,
+        y: y - 8,
+        width: 275,
+        height: 28,
+        color: PDFLib.rgb(0.92, 0.98, 0.96)
+      });
+      drawText('GRAND TOTAL:', 280, y + 2, 12, true);
+      drawText(formatRupiah(calc.grandTotal), 455, y + 2, 12, true, PDFLib.rgb(0.02, 0.5, 0.35));
+
+      const pdfBytes = await doc.save();
+      const safeName = (state.fileName || 'Kalkulasi_Print').replace(/\.pdf$/i, '');
+      triggerBlobDownload(pdfBytes, `Laporan_Biaya_${safeName}.pdf`);
+      showToast('Laporan Biaya (PDF) berhasil diunduh!', '📥');
+    }
+
+    /**
+     * Copy formatted WhatsApp / Chat summary text to clipboard
+     */
+    function copySummaryToClipboard() {
+      const calc = calculateBilling();
+      const summaryText = [
+        `*${state.settings.shopName}*`,
+        `Pelanggan: ${state.settings.customerName}`,
+        `File: ${state.fileName || '-'}`,
+        `--------------------------------`,
+        `• Total Halaman: ${calc.totalPages} Hal (${calc.totalSheets} Lbr ${calc.isDuplex ? 'Duplex' : 'Simplex'})`,
+        `• Hitam Putih (B/W): ${calc.bwPages} Hal x ${formatRupiah(calc.priceBW)} = ${formatRupiah(calc.subtotalBW)}`,
+        `• Berwarna (Color): ${calc.colorPages} Hal x ${formatRupiah(calc.priceColor)} = ${formatRupiah(calc.subtotalColor)}`,
+        calc.subtotalPaper > 0 ? `• Tambahan Kertas: ${formatRupiah(calc.subtotalPaper)}` : null,
+        calc.bindingCost > 0 ? `• Biaya Jilid: ${formatRupiah(calc.bindingCost)}` : null,
+        `• Eksemplar: ${calc.copies} Set`,
+        calc.discountPct > 0 ? `• Diskon (${calc.discountPct}%): -${formatRupiah(calc.discountAmount)}` : null,
+        `--------------------------------`,
+        `*GRAND TOTAL: ${formatRupiah(calc.grandTotal)}*`
+      ].filter(Boolean).join('\n');
+
+      const textarea = document.createElement('textarea');
+      textarea.value = summaryText;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        showToast('Rekap biaya berhasil disalin ke clipboard!', '📋');
+      } catch (e) {
+        showToast('Gagal menyalin teks rekap.', '⚠️');
+      }
+      document.body.removeChild(textarea);
+    }
+
+    /**
+     * Generate a realistic 6-page mixed Color & B/W Sample PDF in memory so user can test immediately
+     */
+    async function loadBuiltInSamplePdf() {
+      try {
+        const doc = await PDFLib.PDFDocument.create();
+        const fontBold = await doc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+        const fontReg = await doc.embedFont(PDFLib.StandardFonts.Helvetica);
+
+        // Page 1: Colored Cover / Header Page
+        const p1 = doc.addPage([595, 842]);
+        p1.drawRectangle({ x: 40, y: 680, width: 515, height: 110, color: PDFLib.rgb(0.06, 0.32, 0.58) });
+        p1.drawText('LEMBAR KERJA PESERTA DIDIK (LKPD)', { x: 65, y: 745, size: 20, font: fontBold, color: PDFLib.rgb(1, 1, 1) });
+        p1.drawText('CONTOH DOKUMEN CAMPURAN WARNA & HITAM PUTIH', { x: 65, y: 715, size: 12, font: fontReg, color: PDFLib.rgb(0.75, 0.92, 1) });
+        p1.drawText('Halaman 1 ini memiliki banner biru sehingga terdeteksi sebagai BERWARNA (COLOR).', { x: 55, y: 630, size: 11, font: fontReg, color: PDFLib.rgb(0.1, 0.1, 0.1) });
+
+        // Page 2: Pure Black & White Text Page
+        const p2 = doc.addPage([595, 842]);
+        p2.drawText('BAB I - PENDAHULUAN (HALAMAN HITAM PUTIH)', { x: 55, y: 770, size: 15, font: fontBold, color: PDFLib.rgb(0, 0, 0) });
+        for (let i = 0; i < 18; i++) {
+          p2.drawText(`Baris materi pelajaran ke-${i + 1}: Teks standar hitam di atas kertas putih bersih tanpa elemen warna.`, {
+            x: 55,
+            y: 730 - i * 26,
+            size: 10.5,
+            font: fontReg,
+            color: PDFLib.rgb(0.08, 0.08, 0.08)
+          });
+        }
+
+        // Page 3: Pure Black & White Worksheet Table
+        const p3 = doc.addPage([595, 842]);
+        p3.drawText('LATIHAN SOAL EVALUASI (HALAMAN HITAM PUTIH)', { x: 55, y: 770, size: 15, font: fontBold, color: PDFLib.rgb(0, 0, 0) });
+        p3.drawRectangle({ x: 55, y: 500, width: 485, height: 240, borderColor: PDFLib.rgb(0, 0, 0), borderWidth: 1.5 });
+        p3.drawText('1. Jelaskan perbedaan tarif cetak dokumen hitam putih dan berwarna!', { x: 70, y: 705, size: 11, font: fontReg, color: PDFLib.rgb(0, 0, 0) });
+        p3.drawText('2. Hitung total biaya jika mencetak 2 rangkap dokumen.', { x: 70, y: 620, size: 11, font: fontReg, color: PDFLib.rgb(0, 0, 0) });
+
+        // Page 4: Colored Chart / Diagram Page
+        const p4 = doc.addPage([595, 842]);
+        p4.drawText('GRAFIK & DIAGRAM BERWARNA (HALAMAN COLOR)', { x: 55, y: 770, size: 15, font: fontBold, color: PDFLib.rgb(0.8, 0.15, 0.15) });
+        p4.drawRectangle({ x: 80, y: 520, width: 80, height: 180, color: PDFLib.rgb(0.9, 0.25, 0.2) });
+        p4.drawRectangle({ x: 200, y: 520, width: 80, height: 220, color: PDFLib.rgb(0.15, 0.65, 0.35) });
+        p4.drawRectangle({ x: 320, y: 520, width: 80, height: 140, color: PDFLib.rgb(0.15, 0.45, 0.85) });
+        p4.drawText('Halaman ini terdeteksi BERWARNA karena mengandung grafik batang berwarna.', { x: 55, y: 470, size: 11, font: fontReg, color: PDFLib.rgb(0.1, 0.1, 0.1) });
+
+        // Page 5: Pure Black & White Closing Page
+        const p5 = doc.addPage([595, 842]);
+        p5.drawText('DAFTAR PUSTAKA & CATATAN AKHIR (HITAM PUTIH)', { x: 55, y: 770, size: 15, font: fontBold, color: PDFLib.rgb(0, 0, 0) });
+        p5.drawText('Halaman penutup dokumen hanya berisi teks hitam putih.', { x: 55, y: 735, size: 11, font: fontReg, color: PDFLib.rgb(0.1, 0.1, 0.1) });
+
+        const bytes = await doc.save();
+        await processPdfBytes(bytes.buffer, 'Contoh_LKPD_Campuran_5_Halaman.pdf');
+      } catch (err) {
+        console.error(err);
+        showToast('Gagal memuat contoh PDF.', '⚠️');
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    /**
+     * Wire up all interactive event listeners
+     */
+    function initEventListeners() {
+      // File picker button
+      el.btnPickPdf.addEventListener('click', () => el.pdfFileInput.click());
+
+      el.pdfFileInput.addEventListener('change', async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const buffer = await file.arrayBuffer();
+        await processPdfBytes(buffer, file.name);
+        e.target.value = '';
+      });
+
+      // Drag & drop support on preview container
+      el.previewContainer.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        el.emptyDropZone.classList.add('border-cyan-400', 'bg-slate-900/70');
+      });
+      el.previewContainer.addEventListener('dragleave', () => {
+        el.emptyDropZone.classList.remove('border-cyan-400', 'bg-slate-900/70');
+      });
+      el.previewContainer.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        el.emptyDropZone.classList.remove('border-cyan-400', 'bg-slate-900/70');
+        const file = e.dataTransfer?.files?.[0];
+        if (file && file.type === 'application/pdf') {
+          const buffer = await file.arrayBuffer();
+          await processPdfBytes(buffer, file.name);
+        } else {
+          showToast('Harap jatuhkan file berformat PDF (.pdf)', '⚠️');
+        }
+      });
+
+      // Sample PDF buttons
+      el.btnLoadDemo.addEventListener('click', loadBuiltInSamplePdf);
+      el.btnEmptyLoadDemo.addEventListener('click', loadBuiltInSamplePdf);
+
+      // Editable Prices & Options
+      el.inputPriceBW.addEventListener('input', () => {
+        state.settings.priceBW = Math.max(0, Number(el.inputPriceBW.value) || 0);
+        saveSettings();
+        updateUI();
+      });
+
+      el.inputPriceColor.addEventListener('input', () => {
+        state.settings.priceColor = Math.max(0, Number(el.inputPriceColor.value) || 0);
+        saveSettings();
+        updateUI();
+      });
+
+      el.printSideRadios.forEach(radio => {
+        radio.addEventListener('change', () => {
+          if (radio.checked) {
+            state.settings.printSide = radio.value;
+            updateUI();
+          }
+        });
+      });
+
+      el.selectPaperType.addEventListener('change', () => {
+        const val = el.selectPaperType.value;
+        state.settings.paperType = val;
+        if (val !== 'custom') {
+          state.settings.paperExtra = Number(val) || 0;
+          el.inputPaperExtra.value = state.settings.paperExtra;
+        }
+        saveSettings();
+        updateUI();
+      });
+
+      el.inputPaperExtra.addEventListener('input', () => {
+        state.settings.paperExtra = Math.max(0, Number(el.inputPaperExtra.value) || 0);
+        saveSettings();
+        updateUI();
+      });
+
+      el.selectBinding.addEventListener('change', () => {
+        const val = el.selectBinding.value;
+        state.settings.bindingType = val;
+        if (val !== 'custom') {
+          state.settings.bindingCost = Number(val) || 0;
+          el.inputBindingCost.value = state.settings.bindingCost;
+        }
+        saveSettings();
+        updateUI();
+      });
+
+      el.inputBindingCost.addEventListener('input', () => {
+        state.settings.bindingCost = Math.max(0, Number(el.inputBindingCost.value) || 0);
+        saveSettings();
+        updateUI();
+      });
+
+      el.inputCopies.addEventListener('input', () => {
+        state.settings.copies = Math.max(1, parseInt(el.inputCopies.value, 10) || 1);
+        updateUI();
+      });
+
+      el.inputDiscount.addEventListener('input', () => {
+        state.settings.discount = Math.min(100, Math.max(0, Number(el.inputDiscount.value) || 0));
+        updateUI();
+      });
+
+      el.inputCustomerName.addEventListener('input', () => {
+        state.settings.customerName = el.inputCustomerName.value;
+      });
+
+      el.inputShopName.addEventListener('input', () => {
+        state.settings.shopName = el.inputShopName.value;
+        saveSettings();
+      });
+
+      // Color Tolerance instantaneous re-evaluation
+      el.selectColorTolerance.addEventListener('change', () => {
+        state.settings.tolerance = el.selectColorTolerance.value;
+        saveSettings();
+        state.pages.forEach(p => {
+          p.isColor = evaluatePageIsColor(p, state.settings.tolerance);
+        });
+        renderPreviewViewport();
+        showToast('Sensitivitas deteksi warna diperbarui!', '🎯');
+      });
+
+      // Reset Prices to Default
+      el.btnResetPrices.addEventListener('click', () => {
+        state.settings.priceBW = 250;
+        state.settings.priceColor = 1500;
+        state.settings.paperType = '0';
+        state.settings.paperExtra = 0;
+        state.settings.bindingType = '0';
+        state.settings.bindingCost = 0;
+        state.settings.tolerance = 'standard';
+        saveSettings();
+        syncInputsFromState();
+        state.pages.forEach(p => {
+          p.isColor = evaluatePageIsColor(p, state.settings.tolerance);
+        });
+        renderPreviewViewport();
+        showToast('Tarif berhasil dikembalikan ke pengaturan awal.', '🔄');
+      });
+
+      // Filter Tabs
+      el.tabButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.activeTab = btn.dataset.tab;
+          renderPreviewViewport();
+        });
+      });
+
+      // Zoom Controls
+      el.btnZoomOut.addEventListener('click', () => {
+        state.zoomScale = Math.max(0.5, Number((state.zoomScale - 0.15).toFixed(2)));
+        renderPreviewViewport();
+      });
+      el.btnZoomIn.addEventListener('click', () => {
+        state.zoomScale = Math.min(2.0, Number((state.zoomScale + 0.15).toFixed(2)));
+        renderPreviewViewport();
+      });
+
+      // Direct Print PDF Buttons (Sidebar & Toolbar)
+      el.btnDirectPrintActive.addEventListener('click', () => directPrintFilteredPdf(state.activeTab));
+      el.btnToolbarPrint.addEventListener('click', () => directPrintFilteredPdf(state.activeTab));
+
+      // Download Filtered PDF Button
+      el.btnToolbarDownload.addEventListener('click', async () => {
+        if (!state.pdfBytes || state.pages.length === 0) {
+          showToast('Silakan pilih file PDF terlebih dahulu!', '⚠️');
+          return;
+        }
+        const mode = state.activeTab === 'grid' ? 'all' : state.activeTab;
+        const bytes = await buildFilteredPdfBytes(mode);
+        if (!bytes) {
+          showToast('Tidak ada halaman pada tab ini untuk diunduh.', '⚠️');
+          return;
+        }
+        const suffix = mode === 'bw' ? '_BW' : mode === 'color' ? '_WARNA' : '_SEMUA';
+        const baseName = state.fileName.replace(/\.pdf$/i, '') || 'Dokumen';
+        triggerBlobDownload(bytes, `${baseName}${suffix}.pdf`);
+        showToast(`Mengunduh ${baseName}${suffix}.pdf`, '📥');
+      });
+
+      // Split PDF (B/W & Color)
+      el.btnSplitPdf.addEventListener('click', splitAndDownloadPdfs);
+
+      // Print Kalkulasi / Nota Struk Modal
+      el.btnPrintReceipt.addEventListener('click', openReceiptPreviewModal);
+      el.btnCloseReceiptModal.addEventListener('click', () => el.receiptModal.classList.add('hidden'));
+      el.btnCancelReceipt.addEventListener('click', () => el.receiptModal.classList.add('hidden'));
+      el.btnConfirmPrintReceipt.addEventListener('click', () => {
+        window.print();
+      });
+
+      // Download Cost Report PDF
+      el.btnDownloadReportPdf.addEventListener('click', generateAndDownloadReportPdf);
+
+      // Copy Summary Text
+      el.btnCopySummary.addEventListener('click', copySummaryToClipboard);
+    }
+
+    /**
+     * ==================== NAVIGATION & PAPER CUTTING OPTIMIZER (MUSADAD.COM) ====================
+     */
+    const cutState = {
+      parentW: 86.0,
+      parentH: 61.0,
+      childW: 21.0,
+      childH: 29.7,
+      allowRotation: true,
+      needed: 1000,
+      planoPrice: 2500,
+      lastResult: null
+    };
+
+    function switchMainView(viewName) {
+      const mainMenu = document.getElementById('mainMenuView');
+      const pdfView = document.getElementById('pdfCalculatorView');
+      const cutView = document.getElementById('paperCutCalculatorView');
+
+      mainMenu.classList.add('hidden');
+      pdfView.classList.add('hidden');
+      pdfView.classList.remove('flex');
+      cutView.classList.add('hidden');
+      cutView.classList.remove('flex');
+
+      if (viewName === 'pdf') {
+        pdfView.classList.remove('hidden');
+        pdfView.classList.add('flex');
+        renderPreviewViewport();
+      } else if (viewName === 'cut') {
+        cutView.classList.remove('hidden');
+        cutView.classList.add('flex');
+        updatePaperCutCalculator();
+      } else {
+        mainMenu.classList.remove('hidden');
+      }
+    }
+
+    function formatDecimalID(num, digits = 1) {
+      return Number(num).toLocaleString('id-ID', {
+        minimumFractionDigits: digits,
+        maximumFractionDigits: digits
+      });
+    }
+
+    function formatDimID(num) {
+      return Number(num).toLocaleString('id-ID', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2
+      });
+    }
+
+    /**
+     * Compute optimal 2D guillotine / combination cutting layout
+     */
+    function computeOptimalCutLayout(W, H, w, h, allowRotation) {
+      if (W <= 0 || H <= 0 || w <= 0 || h <= 0) {
+        return { count: 0, strategy: 'Ukuran Tidak Valid', pieces: [], efficiency: 0, waste: 100 };
+      }
+
+      const candidates = [];
+
+      // 1. Pure Normal Grid (Tegak)
+      const normCols = Math.floor((W + 1e-9) / w);
+      const normRows = Math.floor((H + 1e-9) / h);
+      if (normCols > 0 && normRows > 0) {
+        const pieces = [];
+        for (let r = 0; r < normRows; r++) {
+          for (let c = 0; c < normCols; c++) {
+            pieces.push({ x: c * w, y: r * h, w, h, rotated: false });
+          }
+        }
+        candidates.push({
+          priority: 1,
+          strategy: 'Grid Normal (Tegak)',
+          pieces
+        });
+      }
+
+      if (allowRotation && Math.abs(w - h) > 1e-6) {
+        // 2. Pure Rotated Grid (Rotasi 90°)
+        const rotCols = Math.floor((W + 1e-9) / h);
+        const rotRows = Math.floor((H + 1e-9) / w);
+        if (rotCols > 0 && rotRows > 0) {
+          const pieces = [];
+          for (let r = 0; r < rotRows; r++) {
+            for (let c = 0; c < rotCols; c++) {
+              pieces.push({ x: c * h, y: r * w, w: h, h: w, rotated: true });
+            }
+          }
+          candidates.push({
+            priority: 2,
+            strategy: 'Grid Rotasi 90° (Tidur)',
+            pieces
+          });
+        }
+
+        // 3. Horizontal Split Combinations (Top Normal + Bottom Rotated)
+        for (let rN = 1; rN <= normRows; rN++) {
+          const usedH = rN * h;
+          const remH = H - usedH;
+          const rR = Math.floor((remH + 1e-9) / w);
+          const cR = Math.floor((W + 1e-9) / h);
+          if (rR > 0 && cR > 0 && normCols > 0) {
+            const pieces = [];
+            for (let r = 0; r < rN; r++) {
+              for (let c = 0; c < normCols; c++) {
+                pieces.push({ x: c * w, y: r * h, w, h, rotated: false });
+              }
+            }
+            for (let r = 0; r < rR; r++) {
+              for (let c = 0; c < cR; c++) {
+                pieces.push({ x: c * h, y: usedH + r * w, w: h, h: w, rotated: true });
+              }
+            }
+            candidates.push({
+              priority: 3,
+              strategy: 'Kombinasi Tegak + Rotasi',
+              pieces
+            });
+          }
+        }
+
+        // 4. Vertical Split Combinations (Left Normal + Right Rotated)
+        for (let cN = 1; cN <= normCols; cN++) {
+          const usedW = cN * w;
+          const remW = W - usedW;
+          const cR = Math.floor((remW + 1e-9) / h);
+          const rR = Math.floor((H + 1e-9) / w);
+          if (cR > 0 && rR > 0 && normRows > 0) {
+            const pieces = [];
+            for (let r = 0; r < normRows; r++) {
+              for (let c = 0; c < cN; c++) {
+                pieces.push({ x: c * w, y: r * h, w, h, rotated: false });
+              }
+            }
+            for (let r = 0; r < rR; r++) {
+              for (let c = 0; c < cR; c++) {
+                pieces.push({ x: usedW + c * h, y: r * w, w: h, h: w, rotated: true });
+              }
+            }
+            candidates.push({
+              priority: 3,
+              strategy: 'Kombinasi Tegak + Rotasi',
+              pieces
+            });
+          }
+        }
+      }
+
+      if (candidates.length === 0) {
+        return { count: 0, strategy: 'Ukuran Terlalu Besar', pieces: [], efficiency: 0, waste: 100 };
+      }
+
+      candidates.sort((a, b) => {
+        if (b.pieces.length !== a.pieces.length) return b.pieces.length - a.pieces.length;
+        return a.priority - b.priority;
+      });
+
+      const best = candidates[0];
+      const count = best.pieces.length;
+      const parentArea = W * H;
+      const usedArea = count * (w * h);
+      const efficiency = Math.min(100, (usedArea / parentArea) * 100);
+      const waste = Math.max(0, 100 - efficiency);
+
+      return {
+        count,
+        strategy: best.strategy,
+        pieces: best.pieces,
+        efficiency,
+        waste
+      };
+    }
+
+    function updatePaperCutCalculator() {
+      const W = Math.max(0.1, Number(document.getElementById('inputParentW').value) || 86);
+      const H = Math.max(0.1, Number(document.getElementById('inputParentH').value) || 61);
+      const w = Math.max(0.1, Number(document.getElementById('inputChildW').value) || 21);
+      const h = Math.max(0.1, Number(document.getElementById('inputChildH').value) || 29.7);
+      const allowRotation = document.getElementById('chkAllowRotation').checked;
+      const needed = Math.max(1, parseInt(document.getElementById('inputCutNeeded').value, 10) || 1);
+      const planoPrice = Math.max(0, Number(document.getElementById('inputPlanoPrice').value) || 0);
+
+      cutState.parentW = W;
+      cutState.parentH = H;
+      cutState.childW = w;
+      cutState.childH = h;
+      cutState.allowRotation = allowRotation;
+      cutState.needed = needed;
+      cutState.planoPrice = planoPrice;
+
+      try {
+        localStorage.setItem(CUT_STORAGE_KEY, JSON.stringify({
+          parentW: W, parentH: H, childW: w, childH: h, allowRotation, planoPrice
+        }));
+      } catch (e) {}
+
+      const layout = computeOptimalCutLayout(W, H, w, h, allowRotation);
+      cutState.lastResult = layout;
+
+      const yieldCount = layout.count;
+      const planoNeeded = yieldCount > 0 ? Math.ceil(needed / yieldCount) : 0;
+      const totalGot = planoNeeded * yieldCount;
+      const surplus = Math.max(0, totalGot - needed);
+      const totalCost = planoNeeded * planoPrice;
+
+      // Top 4 Cards
+      document.getElementById('cutYieldVal').textContent = `${yieldCount} Lembar`;
+      document.getElementById('cutEfficiencyVal').textContent = `${formatDecimalID(layout.efficiency, 1)}%`;
+      document.getElementById('cutWasteVal').textContent = `${formatDecimalID(layout.waste, 1)}%`;
+      document.getElementById('cutStrategyVal').textContent = layout.strategy;
+
+      // Purchase 3 Cards
+      document.getElementById('cutPlanoNeededVal').textContent = `${planoNeeded.toLocaleString('id-ID')} lembar`;
+      document.getElementById('cutPlanoFormulaVal').textContent = `${needed.toLocaleString('id-ID')} potong ÷ ${yieldCount}/plano`;
+      document.getElementById('cutTotalGotVal').textContent = `${totalGot.toLocaleString('id-ID')} potong`;
+      document.getElementById('cutSurplusVal').textContent = `Surplus ${surplus.toLocaleString('id-ID')} potong`;
+      document.getElementById('cutTotalCostVal').textContent = formatRupiah(totalCost);
+      document.getElementById('cutCostFormulaVal').textContent = `${formatRupiah(planoPrice)} x ${planoNeeded.toLocaleString('id-ID')} plano`;
+
+      // Summary Textarea
+      const summaryLines = [
+        `== KEBUTUHAN & BIAYA KERTAS ==`,
+        `Plano   : ${formatDimID(W)} x ${formatDimID(H)} cm`,
+        `Potongan: ${formatDimID(w)} x ${formatDimID(h)} cm (1 : ${yieldCount})`,
+        `------------------------------`,
+        `Dibutuhkan : ${needed.toLocaleString('id-ID')} potong`,
+        `Beli plano : ${planoNeeded.toLocaleString('id-ID')} lembar`,
+        `Didapat    : ${totalGot.toLocaleString('id-ID')} potong (surplus ${surplus.toLocaleString('id-ID')})`,
+        `------------------------------`,
+        `Harga plano: ${formatRupiah(planoPrice)} / lembar`,
+        `TOTAL BIAYA: ${formatRupiah(totalCost)}`
+      ];
+      document.getElementById('txtCutSummary').value = summaryLines.join('\n');
+
+      // Visual Header & Legend
+      document.getElementById('cutVisualHeader').textContent = `Visualisasi Skema Pemotongan Plano (${formatDimID(W)} x ${formatDimID(H)} cm)`;
+      document.getElementById('legendNormalLabel').textContent = `Potongan Tegak (${formatDimID(w)} x ${formatDimID(h)} cm)`;
+      document.getElementById('legendRotatedLabel').textContent = `Potongan Rotasi 90° (${formatDimID(h)} x ${formatDimID(w)} cm)`;
+
+      renderCutBlueprintSvg(W, H, layout.pieces);
+    }
+
+    function renderCutBlueprintSvg(W, H, pieces) {
+      const wrapper = document.getElementById('cutSvgWrapper');
+      const maxSvgW = 640;
+      const maxSvgH = 420;
+      const scale = Math.min(maxSvgW / W, maxSvgH / H);
+      const svgW = Math.round(W * scale);
+      const svgH = Math.round(H * scale);
+
+      let rectsSvg = '';
+      pieces.forEach((p, index) => {
+        const px = p.x * scale;
+        const py = p.y * scale;
+        const pw = p.w * scale;
+        const ph = p.h * scale;
+        const fill = p.rotated ? '#7c3aed' : '#0b6ea8';
+        const stroke = p.rotated ? '#c4b5fd' : '#38bdf8';
+        const fontSize = Math.max(9, Math.min(14, Math.min(pw, ph) * 0.22));
+
+        rectsSvg += `
+          <g>
+            <rect x="${px.toFixed(2)}" y="${py.toFixed(2)}" width="${pw.toFixed(2)}" height="${ph.toFixed(2)}"
+              fill="${fill}" stroke="${stroke}" stroke-width="1.5" rx="2" />
+            ${pw > 22 && ph > 18 ? `
+              <text x="${(px + pw / 2).toFixed(2)}" y="${(py + ph / 2 + fontSize * 0.35).toFixed(2)}"
+                fill="#ffffff" font-family="Inter, sans-serif" font-size="${fontSize.toFixed(1)}"
+                font-weight="700" text-anchor="middle">#${index + 1}</text>
+            ` : ''}
+          </g>
+        `;
+      });
+
+      wrapper.innerHTML = `
+        <svg width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}"
+          class="max-w-full h-auto rounded-md shadow-2xl border-2 border-slate-600 bg-slate-800/80">
+          <defs>
+            <pattern id="wasteHatch" width="10" height="10" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+              <line x1="0" y1="0" x2="0" y2="10" stroke="#334155" stroke-width="2" />
+            </pattern>
+          </defs>
+          <rect x="0" y="0" width="${svgW}" height="${svgH}" fill="url(#wasteHatch)" />
+          ${rectsSvg}
+        </svg>
+      `;
+    }
+
+    async function exportCutSchemeToPdf() {
+      const { parentW: W, parentH: H, childW: w, childH: h, needed, planoPrice, lastResult } = cutState;
+      const layout = lastResult || computeOptimalCutLayout(W, H, w, h, cutState.allowRotation);
+      const yieldCount = layout.count;
+      const planoNeeded = yieldCount > 0 ? Math.ceil(needed / yieldCount) : 0;
+      const totalGot = planoNeeded * yieldCount;
+      const surplus = Math.max(0, totalGot - needed);
+      const totalCost = planoNeeded * planoPrice;
+
+      const doc = await PDFLib.PDFDocument.create();
+      const page = doc.addPage([595.28, 841.89]); // A4
+      const fontBold = await doc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+      const fontReg = await doc.embedFont(PDFLib.StandardFonts.Helvetica);
+
+      const { height } = page.getSize();
+      let y = height - 50;
+
+      // Header Banner
+      page.drawRectangle({ x: 45, y: y - 16, width: 505, height: 48, color: PDFLib.rgb(0.06, 0.09, 0.16) });
+      page.drawText('MUSADAD.COM - SKEMA PEMOTONGAN KERTAS PLANO', { x: 60, y: y + 10, size: 13, font: fontBold, color: PDFLib.rgb(0.13, 0.83, 0.93) });
+      page.drawText(`Tanggal Cetak: ${new Date().toLocaleString('id-ID')}`, { x: 60, y: y - 6, size: 9, font: fontReg, color: PDFLib.rgb(0.85, 0.9, 0.95) });
+
+      y -= 45;
+      const infoRows = [
+        `Ukuran Plano (Parent)   : ${formatDimID(W)} x ${formatDimID(H)} cm`,
+        `Ukuran Potongan (Child) : ${formatDimID(w)} x ${formatDimID(h)} cm`,
+        `Hasil Potongan (Yield)  : ${yieldCount} Lembar / Plano (${layout.strategy})`,
+        `Efisiensi / Limbah      : ${formatDecimalID(layout.efficiency, 1)}% Terpakai / ${formatDecimalID(layout.waste, 1)}% Limbah`,
+        `Kebutuhan Potongan      : ${needed.toLocaleString('id-ID')} potong -> Beli ${planoNeeded.toLocaleString('id-ID')} lembar plano (Surplus ${surplus})`,
+        `Total Biaya Kertas      : ${formatRupiah(totalCost)} (@ ${formatRupiah(planoPrice)} / lembar plano)`
+      ];
+      infoRows.forEach(line => {
+        page.drawText(line, { x: 50, y, size: 10, font: fontReg, color: PDFLib.rgb(0.1, 0.12, 0.18) });
+        y -= 17;
+      });
+
+      // Draw Blueprint Diagram on PDF
+      y -= 15;
+      const boxMaxW = 490;
+      const boxMaxH = 380;
+      const pdfScale = Math.min(boxMaxW / W, boxMaxH / H);
+      const drawW = W * pdfScale;
+      const drawH = H * pdfScale;
+      const startX = 50 + (boxMaxW - drawW) / 2;
+      const startY = y - drawH;
+
+      // Parent sheet frame
+      page.drawRectangle({
+        x: startX,
+        y: startY,
+        width: drawW,
+        height: drawH,
+        color: PDFLib.rgb(0.92, 0.94, 0.96),
+        borderColor: PDFLib.rgb(0.2, 0.25, 0.35),
+        borderWidth: 1.5
+      });
+
+      // Child rectangles (PDF Y goes bottom-up, so flip Y)
+      layout.pieces.forEach((p, idx) => {
+        const rx = startX + p.x * pdfScale;
+        const ry = startY + drawH - (p.y + p.h) * pdfScale;
+        const rw = p.w * pdfScale;
+        const rh = p.h * pdfScale;
+
+        page.drawRectangle({
+          x: rx,
+          y: ry,
+          width: rw,
+          height: rh,
+          color: p.rotated ? PDFLib.rgb(0.48, 0.23, 0.93) : PDFLib.rgb(0.05, 0.43, 0.66),
+          borderColor: PDFLib.rgb(1, 1, 1),
+          borderWidth: 1
+        });
+
+        if (rw > 18 && rh > 14) {
+          page.drawText(`#${idx + 1}`, {
+            x: rx + rw / 2 - 7,
+            y: ry + rh / 2 - 4,
+            size: 9,
+            font: fontBold,
+            color: PDFLib.rgb(1, 1, 1)
+          });
+        }
+      });
+
+      const pdfBytes = await doc.save();
+      triggerBlobDownload(pdfBytes, `Skema_Potong_${formatDimID(W)}x${formatDimID(H)}_musadad.pdf`);
+      showToast('Skema Pemotongan PDF berhasil diunduh!', '📥');
+    }
+
+    function initPaperCutEvents() {
+      // Load saved paper cut preferences
+      try {
+        const saved = JSON.parse(localStorage.getItem(CUT_STORAGE_KEY) || 'null');
+        if (saved) {
+          if (saved.parentW) document.getElementById('inputParentW').value = saved.parentW;
+          if (saved.parentH) document.getElementById('inputParentH').value = saved.parentH;
+          if (saved.childW) document.getElementById('inputChildW').value = saved.childW;
+          if (saved.childH) document.getElementById('inputChildH').value = saved.childH;
+          if (typeof saved.allowRotation === 'boolean') document.getElementById('chkAllowRotation').checked = saved.allowRotation;
+          if (typeof saved.planoPrice === 'number') document.getElementById('inputPlanoPrice').value = saved.planoPrice;
+        }
+      } catch (e) {}
+
+      // Navigation buttons
+      document.getElementById('btnEnterPdfApp').addEventListener('click', () => switchMainView('pdf'));
+      document.getElementById('btnEnterCutApp').addEventListener('click', () => switchMainView('cut'));
+      document.getElementById('btnBackFromPdf').addEventListener('click', () => switchMainView('menu'));
+      document.getElementById('btnBackFromCut').addEventListener('click', () => switchMainView('menu'));
+
+      // Parent sheet preset select
+      document.getElementById('selectParentSheet').addEventListener('change', (e) => {
+        const val = e.target.value;
+        if (val !== 'custom') {
+          const [wVal, hVal] = val.split('x').map(Number);
+          document.getElementById('inputParentW').value = wVal.toFixed(1);
+          document.getElementById('inputParentH').value = hVal.toFixed(1);
+        }
+        updatePaperCutCalculator();
+      });
+
+      // Child sheet preset select
+      document.getElementById('selectChildSheet').addEventListener('change', (e) => {
+        const val = e.target.value;
+        if (val !== 'custom') {
+          const [wVal, hVal] = val.split('x').map(Number);
+          document.getElementById('inputChildW').value = wVal.toFixed(1);
+          document.getElementById('inputChildH').value = hVal.toFixed(1);
+        }
+        updatePaperCutCalculator();
+      });
+
+      // Live recalculation inputs
+      ['inputParentW', 'inputParentH', 'inputChildW', 'inputChildH', 'inputCutNeeded', 'inputPlanoPrice'].forEach(id => {
+        document.getElementById(id).addEventListener('input', () => {
+          if (id === 'inputParentW' || id === 'inputParentH') {
+            document.getElementById('selectParentSheet').value = 'custom';
+          }
+          if (id === 'inputChildW' || id === 'inputChildH') {
+            document.getElementById('selectChildSheet').value = 'custom';
+          }
+          updatePaperCutCalculator();
+        });
+      });
+
+      document.getElementById('chkAllowRotation').addEventListener('change', updatePaperCutCalculator);
+
+      // Click textarea to select all
+      document.getElementById('txtCutSummary').addEventListener('click', function () {
+        this.select();
+      });
+
+      // Copy result button
+      document.getElementById('btnCopyCutResult').addEventListener('click', () => {
+        const txt = document.getElementById('txtCutSummary');
+        txt.select();
+        try {
+          document.execCommand('copy');
+          showToast('Hasil perhitungan potong kertas disalin!', '📋');
+        } catch (e) {
+          showToast('Gagal menyalin hasil.', '⚠️');
+        }
+      });
+
+      // Export PDF scheme
+      document.getElementById('btnExportCutPdf').addEventListener('click', exportCutSchemeToPdf);
+
+      // Reset parameter potongan
+      document.getElementById('btnResetCut').addEventListener('click', () => {
+        document.getElementById('selectParentSheet').value = '86x61';
+        document.getElementById('inputParentW').value = '86.0';
+        document.getElementById('inputParentH').value = '61.0';
+        document.getElementById('selectChildSheet').value = '21x29.7';
+        document.getElementById('inputChildW').value = '21.0';
+        document.getElementById('inputChildH').value = '29.7';
+        document.getElementById('chkAllowRotation').checked = true;
+        document.getElementById('inputCutNeeded').value = '1000';
+        document.getElementById('inputPlanoPrice').value = '2500';
+        updatePaperCutCalculator();
+        showToast('Parameter potongan direset ke Plano 61x86 & A4.', '🔄');
+      });
+    }
+
+    // Initialize Application
+    window.addEventListener('DOMContentLoaded', () => {
+      loadSavedSettings();
+      initEventListeners();
+      initPaperCutEvents();
+      renderPreviewViewport();
+      updatePaperCutCalculator();
+    });
+  </script>
 </body>
 </html>
-
-
