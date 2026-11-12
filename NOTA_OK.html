@@ -2302,7 +2302,80 @@
             const canvas = await html2canvas(targetEl, {
                 scale: 2,
                 backgroundColor: '#ffffff',
-                useCORS: true
+                useCORS: true,
+                onclone: (clonedDoc) => {
+                    // 1. Ubah <input> di area nota menjadi elemen teks biasa pada dokumen clone
+                    // agar tampilan bersih dan bebas dari gaya bawaan form Mozilla Firefox
+                    clonedDoc.querySelectorAll('#areaNota input').forEach(inp => {
+                        const div = clonedDoc.createElement('div');
+                        const isDP = inp.id === 'inputDP';
+                        div.textContent = isDP ? Number(inp.value || 0).toLocaleString('id-ID') : inp.value;
+                        div.className = inp.className;
+                        div.style.border = isDP ? '1px solid #000000' : 'none';
+                        div.style.background = isDP ? '#f9f9f9' : 'transparent';
+                        div.style.padding = isDP ? '5px' : '2px';
+                        div.style.width = isDP ? '150px' : '100%';
+                        div.style.textAlign = inp.classList.contains('text-center') ? 'center' : (inp.classList.contains('text-end') ? 'right' : 'left');
+                        div.style.fontWeight = (inp.classList.contains('fw-bold') || isDP) ? 'bold' : 'normal';
+                        div.style.color = '#000000';
+                        inp.parentNode.replaceChild(div, inp);
+                    });
+
+                    // 2. Konversi warna modern CSS (oklab, oklch, lab, lch, color()) ke rgba()
+                    // untuk mencegah error "unsupported color function oklab" di Mozilla Firefox
+                    const clonedWin = clonedDoc.defaultView;
+                    if (clonedWin && clonedWin.getComputedStyle) {
+                        const origGetComputedStyle = clonedWin.getComputedStyle.bind(clonedWin);
+                        const colorCanvas = document.createElement('canvas');
+                        colorCanvas.width = 1;
+                        colorCanvas.height = 1;
+                        const colorCtx = colorCanvas.getContext('2d', { willReadFrequently: true });
+
+                        const modernColorRegex = /(?:oklab|oklch|lab|lch|color)\([^()]*(?:\([^()]*\)[^()]*)*\)/gi;
+
+                        const toRgba = (colorExpr) => {
+                            try {
+                                colorCtx.clearRect(0, 0, 1, 1);
+                                colorCtx.fillStyle = '#000000';
+                                colorCtx.fillStyle = colorExpr;
+                                const parsed = colorCtx.fillStyle;
+                                if (parsed && !/oklab|oklch|\blab\(|\blch\(|\bcolor\(/i.test(parsed)) {
+                                    return parsed;
+                                }
+                                colorCtx.fillRect(0, 0, 1, 1);
+                                const d = colorCtx.getImageData(0, 0, 1, 1).data;
+                                const alpha = +(d[3] / 255).toFixed(3);
+                                return `rgba(${d[0]}, ${d[1]}, ${d[2]}, ${alpha})`;
+                            } catch (e) {
+                                return 'rgba(0, 0, 0, 1)';
+                            }
+                        };
+
+                        const sanitizeCssValue = (val) => {
+                            if (typeof val !== 'string') return val;
+                            if (!/oklab|oklch|\blab\(|\blch\(|\bcolor\(/i.test(val)) return val;
+                            return val.replace(modernColorRegex, (match) => toRgba(match));
+                        };
+
+                        clonedWin.getComputedStyle = function(el, pseudo) {
+                            const style = origGetComputedStyle(el, pseudo);
+                            return new Proxy(style, {
+                                get(target, prop) {
+                                    if (prop === 'getPropertyValue') {
+                                        return function(name) {
+                                            return sanitizeCssValue(target.getPropertyValue(name));
+                                        };
+                                    }
+                                    const val = target[prop];
+                                    if (typeof val === 'function') {
+                                        return val.bind(target);
+                                    }
+                                    return sanitizeCssValue(val);
+                                }
+                            });
+                        };
+                    }
+                }
             });
 
             noPrintEls.forEach(el => el.style.visibility = '');
